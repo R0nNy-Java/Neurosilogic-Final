@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Recuperar Contraseña')}"></head>
+
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+        <div class="text-center mb-3">
+            <i class="fa-solid fa-key fa-3x text-warning mb-2"></i>
+            <h4 class="fw-bold">Recuperar Contraseña</h4>
+            <p class="text-muted small">Ingrese su usuario para enviar las instrucciones</p>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger p-2 small" th:text="${error}"></div>
+        <div th:if="${mensaje}" class="alert alert-success p-2 small" th:text="${mensaje}"></div>
+
+        <form th:action="@{/olvido-contrasena}" method="post">
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Nombre de Usuario</label>
+                <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero1" required>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 py-2 font-weight-bold">Recuperar</button>
+        </form>
+
+        <div class="text-center mt-3 pt-2 border-top small">
+            <a th:href="@{/login}" class="text-decoration-none"><i class="fa-solid fa-arrow-left me-1"></i> Volver al Login</a>
+        </div>
+    </div>
+</body>
+</html>

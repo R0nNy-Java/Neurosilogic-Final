@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Calculadora de Dosificación')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4" style="max-width: 700px;">
+        <div class="card shadow-sm p-4">
+            <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-calculator me-2"></i>Calculadora de Dosificación de Medicamentos</h3>
+            <p class="text-muted small">Fórmula de Regla de Tres: <code>Dosis a administrar = (Dosis deseada * Volumen disponible) / Dosis disponible</code></p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Dosis Deseada (mg)</label>
+                    <input type="number" id="dosisDeseada" class="form-control" placeholder="Ej. 250" value="250">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Dosis Disponible en Presentación (mg)</label>
+                    <input type="number" id="dosisDisponible" class="form-control" placeholder="Ej. 500" value="500">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Volumen Disponible (ml / solución)</label>
+                    <input type="number" id="volumenDisponible" class="form-control" placeholder="Ej. 5" value="5">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="button" onclick="calcularDosis()" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-square-root-variable me-1"></i> Calcular Dosis
+                    </button>
+                </div>
+            </div>
+
+            <div id="resultadoBox" class="alert alert-success mt-4 d-none">
+                <h5 class="fw-bold mb-1"><i class="fa-solid fa-syringes me-2"></i>Resultado de la Dosis:</h5>
+                <h3 id="resultadoTexto" class="fw-bold text-success mb-0">0 ml</h3>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script>
+        function calcularDosis() {
+            const deseada = parseFloat(document.getElementById('dosisDeseada').value) || 0;
+            const disponible = parseFloat(document.getElementById('dosisDisponible').value) || 0;
+            const volumen = parseFloat(document.getElementById('volumenDisponible').value) || 0;
+
+            if (disponible <= 0) {
+                alert('La dosis disponible debe ser mayor a 0');
+                return;
+            }
+
+            const resultado = (deseada * volumen) / disponible;
+            document.getElementById('resultadoTexto').innerText = resultado.toFixed(2) + ' ml a administrar';
+            document.getElementById('resultadoBox').classList.remove('d-none');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

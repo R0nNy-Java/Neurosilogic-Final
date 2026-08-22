@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Ficha de Paciente')}"></head>
+
+<body class="bg-light" style="font-family:'Inter',sans-serif;">
+
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height:100vh;">
+
+      <!-- Fragmento Sidebar -->
+      <th:block th:replace="~{fragments/header :: header('pacientes')}"></th:block>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="col">
+        <!-- Topbar desktop -->
+        <header id="nl-topbar" class="navbar navbar-dark bg-brand-gradient shadow-sm px-4" style="min-height:62px;">
+          <span class="navbar-brand fw-semibold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-person-bounding-box"></i>
+            Ficha Clínica Digital
+          </span>
+          <div class="d-flex align-items-center gap-3 ms-auto">
+            <a th:href="@{/pacientes}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-arrow-left"></i>Volver a Pacientes
+            </a>
+          </div>
+        </header>
+
+        <main class="p-4">
+          <!-- TARJETA PACIENTE -->
+          <div class="card border-0 text-white bg-brand-gradient shadow rounded-4 mb-4">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+              <div>
+                <h2 class="fs-4 fw-bold mb-1 text-white" th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</h2>
+                <div class="d-flex gap-3 small text-white-50 mt-2">
+                  <span><i class="bi bi-card-heading me-1"></i>Cédula: <strong class="text-white font-monospace" th:text="${paciente.cedula}">0000</strong></span>
+                  <span><i class="bi bi-calendar-event me-1"></i>Edad: <strong class="text-white" th:text="${paciente.edad}">0</strong> años</span>
+                  <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: <strong class="text-white" th:text="${paciente.sexo}">M</strong></span>
+                </div>
+              </div>
+              <span class="badge bg-white text-success fs-6 px-3 py-2">Ficha Activa</span>
+            </div>
+          </div>
+
+          <!-- MÓDULOS DE REGISTRO RÁPIDO -->
+          <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+            <div class="col">
+              <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
+                <i class="bi bi-activity text-danger fs-1 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1">Signos Vitales</h6>
+                <small class="text-muted">Presión, Pulso, Temp, Sat. O2</small>
+              </a>
+            </div>
+            <div class="col">
+              <a th:href="@{/escala-glasgow(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
+                <i class="bi bi-file-earmark-bar-graph text-warning fs-1 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1">Escala Glasgow</h6>
+                <small class="text-muted">Evaluación Neurológica</small>
+              </a>
+            </div>
+            <div class="col">
+              <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
+                <i class="bi bi-calculator text-success fs-1 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1">Evaluación IMC</h6>
+                <small class="text-muted">Peso (kg) / Estatura (m)²</small>
+              </a>
+            </div>
+            <div class="col">
+              <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
+                <i class="bi bi-file-medical text-info fs-1 mb-2"></i>
+                <h6 class="fw-bold text-dark mb-1">Antecedentes</h6>
+                <small class="text-muted">Alergias y Patologías</small>
+              </a>
+            </div>
+          </div>
+
+          <!-- TABLA RESUMEN SIGNOS VITALES -->
+          <div class="card border-0 shadow-sm p-4 rounded-4">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-clock-history me-2 text-danger"></i>Historial de Signos Vitales Registrados</h5>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="bg-success text-white">
+                  <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Presión Arterial</th>
+                    <th>F. Cardíaca</th>
+                    <th>F. Respiratoria</th>
+                    <th>Temperatura</th>
+                    <th>Sat. O2</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="sv : ${signosVitales}">
+                    <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}" class="font-monospace small">Fecha</td>
+                    <td th:text="${sv.presionArterial}" class="fw-bold">120/80</td>
+                    <td th:text="${sv.frecuenciaCardiaca + ' ppm'}">75</td>
+                    <td th:text="${sv.frecuenciaRespiratoria + ' rpm'}">18</td>
+                    <td th:text="${sv.temperatura + ' °C'}">36.5</td>
+                    <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
+                  </tr>
+                  <tr th:if="${signosVitales.isEmpty()}">
+                    <td colspan="6" class="text-center text-muted py-3">Sin historial de signos vitales registrados.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

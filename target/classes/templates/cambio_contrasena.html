@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Cambiar Contraseña')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4" style="max-width: 500px;">
+        <div class="card shadow-sm p-4">
+            <h4 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-lock me-2"></i>Cambiar Mi Contraseña</h4>
+
+            <div th:if="${error}" class="alert alert-danger p-2" th:text="${error}"></div>
+            <div th:if="${mensaje}" class="alert alert-success p-2" th:text="${mensaje}"></div>
+
+            <form th:action="@{/cambio-contrasena}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Contraseña Actual</label>
+                    <input type="password" name="contrasenaActual" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nueva Contraseña</label>
+                    <input type="password" name="nuevaContrasena" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-key me-1"></i> Actualizar Contraseña</button>
+            </form>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

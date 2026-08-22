@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Dashboard')}"></head>
+
+<body class="bg-light" style="font-family:'Inter',sans-serif;">
+
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height:100vh;">
+
+      <!-- Fragmento Sidebar -->
+      <th:block th:replace="~{fragments/header :: header('dashboard')}"></th:block>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="col">
+        <!-- Topbar móvil -->
+        <nav class="navbar navbar-dark bg-brand-gradient d-lg-none shadow-sm px-3">
+          <div class="container-fluid px-0">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <span class="navbar-brand fw-bold mb-0">NURSELOGIC</span>
+          </div>
+        </nav>
+
+        <!-- Topbar desktop -->
+        <header id="nl-topbar" class="navbar navbar-dark bg-brand-gradient d-none d-lg-flex shadow-sm px-4" style="min-height:62px;">
+          <span class="navbar-brand fw-semibold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-grid-1x2-fill"></i>
+            Dashboard &middot; <span th:text="${usuario != null and usuario.rol == 'ADMINISTRADOR' ? 'Panel de Administración' : 'Panel de Enfermería'}">Panel</span>
+          </span>
+          <div class="d-flex align-items-center gap-3 ms-auto">
+            <span class="text-white-50 small d-flex align-items-center gap-1">
+              <i class="bi bi-person-circle"></i>
+              <span th:text="${usuario != null ? usuario.nombreUsuario : 'Usuario'}">Usuario</span>
+            </span>
+            <a th:href="@{/logout}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-box-arrow-right"></i>Salir
+            </a>
+          </div>
+        </header>
+
+        <main class="p-4">
+          <!-- CARD DE BIENVENIDA -->
+          <div class="card border-0 text-white bg-brand-gradient shadow rounded-4 mb-4">
+            <div class="card-body d-flex align-items-center gap-3 py-4 px-4">
+              <i class="bi bi-heart-pulse flex-shrink-0" style="font-size:2.2rem;color:rgba(255,255,255,.8);"></i>
+              <div>
+                <h2 class="fs-5 fw-bold mb-1 text-white" th:text="${usuario != null and usuario.rol == 'ADMINISTRADOR' ? 'Panel de Administración · NURSELOGIC' : 'Panel de Enfermería · NURSELOGIC'}">Panel NURSELOGIC</h2>
+                <p class="small mb-0" style="color:rgba(255,255,255,.72);">
+                  Bienvenido/a, <strong th:text="${usuario != null ? usuario.nombreUsuario : 'Usuario'}">Usuario</strong>. Registre pacientes y gestione sus signos vitales con fragmentos dinámicos.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h1 class="h4 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-speedometer2 text-success"></i>Resumen de Actividad
+            </h1>
+            <p class="text-muted small mt-1">Estado actual del servicio de enfermería</p>
+          </div>
+
+          <!-- FILA DE ESTADÍSTICAS -->
+          <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+            <div class="col">
+              <div class="card border-0 shadow-sm h-100 rounded-3 border-start border-4" style="border-color: #0d6efd !important;">
+                <div class="card-body d-flex align-items-center gap-3 p-3">
+                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary flex-shrink-0" style="width:48px;height:48px;">
+                    <i class="bi bi-card-checklist fs-4"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold lh-1 fs-3" th:text="${totalPacientes}">0</div>
+                    <div class="text-muted small mt-0.5">Pacientes Registrados</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="card border-0 shadow-sm h-100 rounded-3 border-start border-4" style="border-color: #198754 !important;">
+                <div class="card-body d-flex align-items-center gap-3 p-3">
+                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success flex-shrink-0" style="width:48px;height:48px;">
+                    <i class="bi bi-people-fill fs-4"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold lh-1 fs-3" th:text="${totalUsuarios}">0</div>
+                    <div class="text-muted small mt-0.5">Usuarios Registrados</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="card border-0 shadow-sm h-100 rounded-3 border-start border-4" style="border-color: #0dcaf0 !important;">
+                <div class="card-body d-flex align-items-center gap-3 p-3">
+                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info flex-shrink-0" style="width:48px;height:48px;">
+                    <i class="bi bi-shield-check fs-4"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold lh-1 text-dark small mb-0.5">Sistema Conectado</div>
+                    <div class="text-muted small" style="font-size: 0.8rem;">
+                      Spring Boot 3 &middot; <span class="fw-semibold text-dark">Thymeleaf</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MÓDULOS DE ENFERMERÍA GRID -->
+          <p class="small fw-bold text-uppercase text-muted mb-3 d-flex align-items-center gap-1">
+            <i class="bi bi-lightning-fill"></i>Módulos de Enfermería
+          </p>
+          <div class="row row-cols-2 row-cols-lg-4 g-3">
+            <div class="col">
+              <a th:href="@{/pacientes}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
+                <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
+                  <i class="bi bi-person-badge text-success fs-5"></i>
+                </div>
+                <div class="fw-bold text-dark small">Gestionar Pacientes</div>
+                <div class="text-muted" style="font-size:.78rem;">Ficha clínica digital con antecedentes y alergias</div>
+                <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
+              </a>
+            </div>
+            <div class="col">
+              <a th:href="@{/dosificacion}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
+                <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
+                  <i class="bi bi-calculator text-success fs-5"></i>
+                </div>
+                <div class="fw-bold text-dark small">Calcular Dosis</div>
+                <div class="text-muted" style="font-size:.78rem;">Regla de tres con conversión g/mg/mcg y L/mL</div>
+                <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
+              </a>
+            </div>
+            <div class="col" th:if="${usuario != null and usuario.rol == 'ADMINISTRADOR'}">
+              <a th:href="@{/gestionar-usuarios}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
+                <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
+                  <i class="bi bi-people-fill text-success fs-5"></i>
+                </div>
+                <div class="fw-bold text-dark small">Gestionar Usuarios</div>
+                <div class="text-muted" style="font-size:.78rem;">Administración de cuentas y permisos</div>
+                <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
+              </a>
+            </div>
+            <div class="col" th:if="${usuario != null and usuario.rol == 'ADMINISTRADOR'}">
+              <a th:href="@{/gestionar-catalogo}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
+                <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
+                  <i class="bi bi-journal-medical text-success fs-5"></i>
+                </div>
+                <div class="fw-bold text-dark small">Catálogo Medicamentos</div>
+                <div class="text-muted" style="font-size:.78rem;">Listado y registro de medicamentos disponibles</div>
+                <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
+              </a>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

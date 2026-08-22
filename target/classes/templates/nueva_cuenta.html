@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Nueva Cuenta')}"></head>
+
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="card shadow-lg p-4" style="max-width: 450px; width: 100%;">
+        <div class="text-center mb-3">
+            <i class="fa-solid fa-user-plus fa-3x text-primary mb-2"></i>
+            <h4 class="fw-bold">Crear Nueva Cuenta</h4>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger p-2 small" th:text="${error}"></div>
+
+        <form th:action="@{/nueva-cuenta}" method="post">
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Nombre de Usuario</label>
+                <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero3" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nombre Completo</label>
+                <input type="text" name="nombreCompleto" class="form-control" placeholder="Ej. Laura Martínez" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" name="email" class="form-control" placeholder="lmartinez@nurselogic.ec" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="contrasena" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-2 font-weight-bold">Registrarse</button>
+        </form>
+
+        <div class="text-center mt-3 pt-2 border-top small">
+            ¿Ya tienes cuenta? <a th:href="@{/login}" class="text-decoration-none">Iniciar Sesión</a>
+        </div>
+    </div>
+</body>
+</html>

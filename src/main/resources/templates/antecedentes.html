@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Antecedentes Médicos')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3 text-info"><i class="fa-solid fa-file-medical me-2"></i>Nuevo Antecedente</h4>
+                    <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong></p>
+
+                    <form th:action="@{/antecedentes/guardar}" method="post">
+                        <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Antecedente</label>
+                            <select name="tipo" class="form-select" required>
+                                <option value="Patológico">Patológico (Enfermedades previas)</option>
+                                <option value="No Patológico">No Patológico (Hábitos, estilo de vida)</option>
+                                <option value="Quirúrgico">Quirúrgico (Operaciones)</option>
+                                <option value="Alergia">Alergia (Medicamentos/Alimentos)</option>
+                                <option value="Familiar">Heredofamiliar</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción Detallada</label>
+                            <textarea name="descripcion" class="form-control" rows="3" placeholder="Ej. Alergia a la Penicilina desde los 10 años" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-info text-white w-100"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Antecedente</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial de Antecedentes</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="a : ${historial}">
+                                    <td th:text="${#temporals.format(a.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                                    <td><span class="badge bg-info text-dark" th:text="${a.tipo}">Tipo</span></td>
+                                    <td th:text="${a.descripcion}">Descripción</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

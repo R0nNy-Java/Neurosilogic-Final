@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Signos Vitales')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3 text-danger"><i class="fa-solid fa-heart-pulse me-2"></i>Registrar Signos Vitales</h4>
+                    <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong></p>
+
+                    <form th:action="@{/signos-vitales/guardar}" method="post">
+                        <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Sistólica (mmHg)</label>
+                                <input type="number" name="presionSistolica" class="form-control" value="120" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Diastólica (mmHg)</label>
+                                <input type="number" name="presionDiastolica" class="form-control" value="80" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Frecuencia Cardíaca (ppm)</label>
+                            <input type="number" name="frecuenciaCardiaca" class="form-control" value="75" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Frecuencia Respiratoria (rpm)</label>
+                            <input type="number" name="frecuenciaRespiratoria" class="form-control" value="18" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Temperatura (°C)</label>
+                            <input type="number" step="0.1" name="temperatura" class="form-control" value="36.5" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Saturación de Oxígeno (%)</label>
+                            <input type="number" name="saturacionOxigeno" class="form-control" value="98" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Registro</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial de Signos Vitales</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>P. Arterial</th>
+                                    <th>FC</th>
+                                    <th>FR</th>
+                                    <th>Temp</th>
+                                    <th>Sat. O2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="sv : ${historial}">
+                                    <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                                    <td th:text="${sv.presionArterial}">120/80</td>
+                                    <td th:text="${sv.frecuenciaCardiaca}">75</td>
+                                    <td th:text="${sv.frecuenciaRespiratoria}">18</td>
+                                    <td th:text="${sv.temperatura + ' °C'}">36.5</td>
+                                    <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

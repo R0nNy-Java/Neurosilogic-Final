@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Gestión de Usuarios')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <div class="card shadow-sm p-4">
+            <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-users-gear me-2"></i>Gestión de Usuarios del Sistema</h3>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th># ID</th>
+                            <th>Usuario</th>
+                            <th>Nombre Completo</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${usuarios}">
+                            <td th:text="${u.idUsuario}">1</td>
+                            <td th:text="${u.nombreUsuario}" class="fw-bold">admin</td>
+                            <td th:text="${u.nombreCompleto}">Nombre</td>
+                            <td th:text="${u.email}">email@domain.com</td>
+                            <td><span class="badge bg-primary" th:text="${u.rol}">ADMINISTRADOR</span></td>
+                            <td>
+                                <span th:if="${!u.isBloqueado()}" class="badge bg-success">ACTIVO</span>
+                                <span th:if="${u.isBloqueado()}" class="badge bg-danger">BLOQUEADO</span>
+                            </td>
+                            <td class="text-center">
+                                <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
+                                    <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
+                                    <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
+                                    <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">
+                                        <i class="fa-solid" th:classappend="${u.isBloqueado() ? 'fa-unlock' : 'fa-lock'}"></i>
+                                        <span th:text="${u.isBloqueado() ? ' Desbloquear' : ' Bloquear'}">Acción</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

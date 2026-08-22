@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Escala de Glasgow')}"></head>
+
+<body>
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <main class="container my-4">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3 text-warning"><i class="fa-solid fa-brain me-2"></i>Escala de Glasgow</h4>
+                    <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong></p>
+
+                    <form th:action="@{/escala-glasgow/guardar}" method="post">
+                        <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Apertura Ocular (1-4)</label>
+                            <select name="respuestaOcular" class="form-select" required>
+                                <option value="4">4 - Espontánea</option>
+                                <option value="3">3 - A la orden verbal</option>
+                                <option value="2">2 - Al dolor</option>
+                                <option value="1">1 - Ninguna</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Respuesta Verbal (1-5)</label>
+                            <select name="respuestaVerbal" class="form-select" required>
+                                <option value="5">5 - Orientado y conversando</option>
+                                <option value="4">4 - Desorientado / confuso</option>
+                                <option value="3">3 - Palabras inapropiadas</option>
+                                <option value="2">2 - Sonidos incomprensibles</option>
+                                <option value="1">1 - Ninguna</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Respuesta Motora (1-6)</label>
+                            <select name="respuestaMotora" class="form-select" required>
+                                <option value="6">6 - Obedece órdenes</option>
+                                <option value="5">5 - Localiza el dolor</option>
+                                <option value="4">4 - Retirada al dolor</option>
+                                <option value="3">3 - Flexión anormal (decorticación)</option>
+                                <option value="2">2 - Extensión anormal (descerebración)</option>
+                                <option value="1">1 - Ninguna</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning w-100 fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Glasgow</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm p-4">
+                    <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial Glasgow</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Ocular</th>
+                                    <th>Verbal</th>
+                                    <th>Motora</th>
+                                    <th>Total</th>
+                                    <th>Clasificación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="g : ${historial}">
+                                    <td th:text="${#temporals.format(g.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                                    <td th:text="${g.respuestaOcular}">4</td>
+                                    <td th:text="${g.respuestaVerbal}">5</td>
+                                    <td th:text="${g.respuestaMotora}">6</td>
+                                    <td th:text="${g.puntajeTotal}" class="fw-bold">15</td>
+                                    <td th:text="${g.clasificacion}">Normal</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

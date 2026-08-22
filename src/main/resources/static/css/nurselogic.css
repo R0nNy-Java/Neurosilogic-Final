@@ -1,0 +1,218 @@
+/* ════════════════════════════════════════════════════════════
+   NurseLogic · Bootstrap 5 — Token overrides + utilidades
+   ────────────────────────────────────────────────────────────
+   Regla: CERO etiquetas <style> en archivos JSP.
+   Todas las variables y clases utilitarias del diseño NurseLogic
+   se definen de forma centralizada en este archivo.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Variables de color principal y layout ── */
+:root {
+  --bs-success:       #1a6b5e;
+  --bs-success-rgb:   26, 107, 94;
+  --bs-body-bg:       #f0f7f6;
+  --nl-primary:       #1a6b5e;
+  --nl-primary-dark:  #134f45;
+  --nl-primary-light: #2a9d8a;
+  --nl-accent:        #e9f5f3;
+  --nl-text:          #1e2d2b;
+  --nl-muted:         #6c8c87;
+  --nl-border:        #d0e8e4;
+  --nl-sidebar:       #0f3831;
+  --nl-topbar:        #134f45;
+  --sidebar-width:    240px;
+}
+
+/* ── Sidebar oscuro y navegación ── */
+.nl-sidebar {
+  background-color: #0f3831 !important;
+  flex-shrink: 0 !important;
+}
+
+@media (min-width: 992px) {
+  .offcanvas-lg.nl-sidebar {
+    background-color: #0f3831 !important;
+  }
+}
+
+.nl-nav-link {
+  color: rgba(255, 255, 255, .65);
+  border-radius: .5rem;
+  transition: background .18s, color .18s;
+  text-decoration: none;
+}
+.nl-nav-link:hover,
+.nl-nav-link.active {
+  background: #1a6b5e !important;
+  color: #fff !important;
+}
+
+/* ── Prevención de desalineación y desbordamiento en columnas principales ── */
+.nl-main-col {
+  min-width: 0 !important;
+  flex: 1 1 0% !important;
+  overflow-x: hidden;
+}
+
+/* ── Gradiente de marca (paneles, card-headers, topbar) ── */
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #134f45 0%, #2a9d8a 100%) !important;
+}
+
+/* ── Fondos de íconos en stat-cards ── */
+.icon-teal   { background: #e9f5f3; color: #1a6b5e; }
+.icon-blue   { background: #ebf8ff; color: #2b6cb0; }
+.icon-amber  { background: #fffaf0; color: #c05621; }
+.icon-red    { background: #fff5f5; color: #c53030; }
+.icon-violet { background: #faf5ff; color: #6b46c1; }
+.icon-green  { background: #f0fff4; color: #276749; }
+
+/* ── Animación heartbeat para el ícono de marca ── */
+@keyframes heartbeat {
+  0%   { transform: scale(1); }
+  14%  { transform: scale(1.18); }
+  28%  { transform: scale(1); }
+  42%  { transform: scale(1.12); }
+  70%  { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+.heart-beat {
+  animation: heartbeat 1.6s infinite ease-in-out;
+  transform-origin: center;
+}
+
+/* ── Animación EKG ── */
+.ekg-wrap {
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+.ekg-svg {
+  width: 100%;
+  height: 60px;
+}
+.ekg-line {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: ekgMove 2.4s linear infinite;
+  opacity: .9;
+}
+@keyframes ekgMove {
+  0%   { stroke-dashoffset: 600; }
+  100% { stroke-dashoffset: 0; }
+}
+
+/* ── Transición Fade-in ── */
+.fade-in {
+  animation: fadeIn .25s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Badges personalizados ── */
+.badge-stock {
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .35em .65em;
+  border-radius: 50rem;
+}
+.stock-ok   { background: #def7ec; color: #03543f; }
+.stock-low  { background: #fdf6b2; color: #723b13; }
+.stock-out  { background: #fde8e8; color: #9b1c1c; }
+
+.badge-rol {
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .35em .75em;
+  border-radius: 50rem;
+}
+.badge-admin     { background: #ebf8ff; color: #2b6cb0; }
+.badge-enfermero  { background: #e9f5f3; color: #1a6b5e; }
+.badge-pendiente { background: #fffaf0; color: #c05621; }
+
+.badge-estado {
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .35em .75em;
+  border-radius: 50rem;
+}
+.badge-activo    { background: #def7ec; color: #03543f; }
+.badge-bloqueado { background: #fde8e8; color: #9b1c1c; }
+
+/* ── Separadores de formulario ── */
+.nl-sep {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+.nl-sep-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: .4rem;
+  background: #1a6b5e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+.nl-sep-label {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #1a6b5e;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.nl-sep-line {
+  flex-grow: 1;
+  height: 1px;
+  background: #d0e8e4;
+}
+
+/* ── Requisitos de contraseña ── */
+.nl-req-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: .4rem;
+  margin-bottom: 0;
+  font-size: .75rem;
+}
+.req-ok   { color: #1a6b5e; font-weight: 600; }
+.req-fail { color: #889a96; }
+
+/* ── Nota de seguridad ── */
+.nl-security-note {
+  background: #e9f5f3;
+  border: 1px solid #d0e8e4;
+  border-radius: .5rem;
+  padding: .75rem 1rem;
+  font-size: .78rem;
+  color: #1a6b5e;
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-top: 1.25rem;
+}
+
+/* ── Grilla 2 columnas adaptativa ── */
+.nl-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 992px) {
+  .nl-grid-2col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
