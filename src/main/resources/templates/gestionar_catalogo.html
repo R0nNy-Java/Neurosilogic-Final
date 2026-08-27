@@ -2,60 +2,91 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Catálogo de Medicamentos')}"></head>
 
-<body>
-    <header th:replace="~{fragments/header :: header}"></header>
+<body class="bg-light" style="font-family:'Inter',sans-serif;">
 
-    <main class="container my-4">
-        <div class="row">
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height:100vh;">
+
+      <!-- Fragmento Sidebar -->
+      <th:block th:replace="~{fragments/header :: header('catalogo')}"></th:block>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="col">
+        <!-- Topbar móvil -->
+        <nav class="navbar navbar-dark bg-brand-gradient d-lg-none shadow-sm px-3">
+          <div class="container-fluid px-0">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <span class="navbar-brand fw-bold mb-0">NURSELOGIC</span>
+          </div>
+        </nav>
+
+        <!-- Topbar desktop -->
+        <header id="nl-topbar" class="navbar navbar-dark bg-brand-gradient d-none d-lg-flex shadow-sm px-4" style="min-height:62px;">
+          <span class="navbar-brand fw-semibold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-journal-medical"></i>
+            Catálogo de Medicamentos
+          </span>
+        </header>
+
+        <main class="p-4">
+          <div class="row">
             <div class="col-md-5">
-                <div class="card shadow-sm p-4">
-                    <h4 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-pills me-2"></i>Nuevo Medicamento</h4>
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-pills me-2"></i>Nuevo Medicamento</h4>
 
-                    <form th:action="@{/gestionar-catalogo/guardar}" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Nombre del Medicamento</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Ej. Paracetamol 500mg" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Composición / Categoría</label>
-                            <input type="text" name="composicion" class="form-control" placeholder="Ej. Analgésico / Antipirético" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Dosis Recomendada</label>
-                            <input type="text" name="dosisRecomendada" class="form-control" placeholder="Ej. 500mg cada 8 horas" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Agregar al Catálogo</button>
-                    </form>
-                </div>
+                <form th:action="@{/gestionar-catalogo/guardar}" method="post">
+                  <div class="mb-3">
+                    <label class="form-label">Nombre del Medicamento</label>
+                    <input type="text" name="nombre" class="form-control" placeholder="Ej. Paracetamol 500mg" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Composición / Categoría</label>
+                    <input type="text" name="composicion" class="form-control" placeholder="Ej. Analgésico / Antipirético" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Dosis Recomendada</label>
+                    <input type="text" name="dosisRecomendada" class="form-control" placeholder="Ej. 500mg cada 8 horas" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Agregar al Catálogo</button>
+                </form>
+              </div>
             </div>
 
             <div class="col-md-7">
-                <div class="card shadow-sm p-4">
-                    <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Catálogo Registrado</h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Medicamento</th>
-                                    <th>Composición</th>
-                                    <th>Dosis Recomendada</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="m : ${medicamentos}">
-                                    <td th:text="${m.nombre}" class="fw-bold">Paracetamol</td>
-                                    <td th:text="${m.composicion}">Analgésico</td>
-                                    <td th:text="${m.dosisRecomendada}">500mg</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Catálogo Registrado</h4>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="bg-success text-white">
+                      <tr>
+                        <th>Medicamento</th>
+                        <th>Composición</th>
+                        <th>Dosis Recomendada</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="m : ${medicamentos}">
+                        <td th:text="${m.nombre}" class="fw-bold">Paracetamol</td>
+                        <td th:text="${m.composicion}">Analgésico</td>
+                        <td th:text="${m.dosisRecomendada}">500mg</td>
+                      </tr>
+                      <tr th:if="${medicamentos.isEmpty()}">
+                        <td colspan="3" class="text-center text-muted py-3">Sin medicamentos registrados.</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
+              </div>
             </div>
-        </div>
-    </main>
+          </div>
+        </main>
+      </div>
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>
