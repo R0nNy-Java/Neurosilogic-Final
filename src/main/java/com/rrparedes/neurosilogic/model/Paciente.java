@@ -1,7 +1,11 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.Period;
 
 @Entity
 @Table(name = "paciente")
@@ -21,8 +25,9 @@ public class Paciente implements Serializable {
     @Column(name = "Apellidos", length = 50, nullable = false)
     private String apellidos;
 
-    @Column(name = "Edad", nullable = false)
-    private Integer edad;
+    @Column(name = "FechaNacimiento")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaNacimiento;
 
     @Column(name = "Sexo", length = 1, nullable = false)
     private String sexo;
@@ -33,11 +38,11 @@ public class Paciente implements Serializable {
     public Paciente() {
     }
 
-    public Paciente(String cedula, String nombres, String apellidos, Integer edad, String sexo, String estado) {
+    public Paciente(String cedula, String nombres, String apellidos, LocalDate fechaNacimiento, String sexo, String estado) {
         this.cedula = cedula;
         this.nombres = nombres;
         this.apellidos = apellidos;
-        this.edad = edad;
+        this.fechaNacimiento = fechaNacimiento;
         this.sexo = sexo;
         this.estado = estado;
     }
@@ -74,12 +79,22 @@ public class Paciente implements Serializable {
         this.apellidos = apellidos;
     }
 
-    public Integer getEdad() {
-        return edad;
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
     }
 
-    public void setEdad(Integer edad) {
-        this.edad = edad;
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    /**
+     * Calcula dinámicamente la edad del paciente en base a la fecha de nacimiento actual.
+     */
+    public Integer getEdad() {
+        if (this.fechaNacimiento == null) {
+            return 0;
+        }
+        return Period.between(this.fechaNacimiento, LocalDate.now()).getYears();
     }
 
     public String getSexo() {

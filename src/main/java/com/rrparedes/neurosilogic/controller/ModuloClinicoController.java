@@ -32,15 +32,27 @@ public class ModuloClinicoController {
 
     // ── Signos Vitales ──
     @GetMapping("/signos-vitales")
-    public String showSignosVitales(@RequestParam Long idPaciente, HttpSession session, Model model) {
+    public String showSignosVitales(@RequestParam(required = false) Long idPaciente,
+                                    @RequestParam(required = false) String cedula,
+                                    HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        Optional<Paciente> pOpt = pacienteRepository.findById(idPaciente);
-        if (pOpt.isPresent()) {
-            model.addAttribute("paciente", pOpt.get());
-            model.addAttribute("historial", signoVitalRepository.findByIdPaciente(idPaciente));
-            return "signos_vitales";
+
+        Optional<Paciente> pOpt = Optional.empty();
+        if (idPaciente != null) {
+            pOpt = pacienteRepository.findById(idPaciente);
+        } else if (cedula != null && !cedula.trim().isEmpty()) {
+            pOpt = pacienteRepository.findByCedula(cedula.trim());
+            if (pOpt.isEmpty()) {
+                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
+            }
         }
-        return "redirect:/pacientes";
+
+        if (pOpt.isPresent()) {
+            Paciente p = pOpt.get();
+            model.addAttribute("paciente", p);
+            model.addAttribute("historial", signoVitalRepository.findByIdPaciente(p.getIdPaciente()));
+        }
+        return "signos_vitales";
     }
 
     @PostMapping("/signos-vitales/guardar")
@@ -63,20 +75,32 @@ public class ModuloClinicoController {
         sv.setSaturacionOxigeno(saturacionOxigeno);
 
         signoVitalRepository.save(sv);
-        return "redirect:/paciente/panel?id=" + idPaciente;
+        return "redirect:/signos-vitales?idPaciente=" + idPaciente;
     }
 
     // ── Escala de Glasgow ──
     @GetMapping("/escala-glasgow")
-    public String showGlasgow(@RequestParam Long idPaciente, HttpSession session, Model model) {
+    public String showGlasgow(@RequestParam(required = false) Long idPaciente,
+                              @RequestParam(required = false) String cedula,
+                              HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        Optional<Paciente> pOpt = pacienteRepository.findById(idPaciente);
-        if (pOpt.isPresent()) {
-            model.addAttribute("paciente", pOpt.get());
-            model.addAttribute("historial", escalaGlasgowRepository.findByIdPaciente(idPaciente));
-            return "escala_glasgow";
+
+        Optional<Paciente> pOpt = Optional.empty();
+        if (idPaciente != null) {
+            pOpt = pacienteRepository.findById(idPaciente);
+        } else if (cedula != null && !cedula.trim().isEmpty()) {
+            pOpt = pacienteRepository.findByCedula(cedula.trim());
+            if (pOpt.isEmpty()) {
+                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
+            }
         }
-        return "redirect:/pacientes";
+
+        if (pOpt.isPresent()) {
+            Paciente p = pOpt.get();
+            model.addAttribute("paciente", p);
+            model.addAttribute("historial", escalaGlasgowRepository.findByIdPaciente(p.getIdPaciente()));
+        }
+        return "escala_glasgow";
     }
 
     @PostMapping("/escala-glasgow/guardar")
@@ -94,20 +118,32 @@ public class ModuloClinicoController {
         eg.setRespuestaMotora(respuestaMotora);
 
         escalaGlasgowRepository.save(eg);
-        return "redirect:/paciente/panel?id=" + idPaciente;
+        return "redirect:/escala-glasgow?idPaciente=" + idPaciente;
     }
 
     // ── Evaluación IMC ──
     @GetMapping("/evaluacion-imc")
-    public String showIMC(@RequestParam Long idPaciente, HttpSession session, Model model) {
+    public String showIMC(@RequestParam(required = false) Long idPaciente,
+                          @RequestParam(required = false) String cedula,
+                          HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        Optional<Paciente> pOpt = pacienteRepository.findById(idPaciente);
-        if (pOpt.isPresent()) {
-            model.addAttribute("paciente", pOpt.get());
-            model.addAttribute("historial", evaluacionIMCRepository.findByIdPaciente(idPaciente));
-            return "evaluacion_imc";
+
+        Optional<Paciente> pOpt = Optional.empty();
+        if (idPaciente != null) {
+            pOpt = pacienteRepository.findById(idPaciente);
+        } else if (cedula != null && !cedula.trim().isEmpty()) {
+            pOpt = pacienteRepository.findByCedula(cedula.trim());
+            if (pOpt.isEmpty()) {
+                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
+            }
         }
-        return "redirect:/pacientes";
+
+        if (pOpt.isPresent()) {
+            Paciente p = pOpt.get();
+            model.addAttribute("paciente", p);
+            model.addAttribute("historial", evaluacionIMCRepository.findByIdPaciente(p.getIdPaciente()));
+        }
+        return "evaluacion_imc";
     }
 
     @PostMapping("/evaluacion-imc/guardar")

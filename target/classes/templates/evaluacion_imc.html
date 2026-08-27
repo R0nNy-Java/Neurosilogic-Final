@@ -2,65 +2,133 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Evaluación IMC')}"></head>
 
-<body>
-    <header th:replace="~{fragments/header :: header}"></header>
+<body class="bg-light" style="font-family:'Inter',sans-serif;">
 
-    <main class="container my-4">
-        <div class="row">
-            <div class="col-md-5">
-                <div class="card shadow-sm p-4">
-                    <h4 class="fw-bold mb-3 text-success"><i class="fa-solid fa-weight-scale me-2"></i>Evaluación de IMC</h4>
-                    <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong></p>
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height:100vh;">
 
-                    <form th:action="@{/evaluacion-imc/guardar}" method="post">
-                        <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+      <!-- Fragmento Sidebar -->
+      <th:block th:replace="~{fragments/header :: header('pacientes')}"></th:block>
 
-                        <div class="mb-3">
-                            <label class="form-label">Peso (Kg)</label>
-                            <input type="number" step="0.1" name="pesoKg" class="form-control" placeholder="Ej. 70.5" required>
-                        </div>
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="col">
+        <!-- Topbar móvil -->
+        <nav class="navbar navbar-dark bg-brand-gradient d-lg-none shadow-sm px-3">
+          <div class="container-fluid px-0">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <span class="navbar-brand fw-bold mb-0">NURSELOGIC</span>
+          </div>
+        </nav>
 
-                        <div class="mb-3">
-                            <label class="form-label">Estatura (Metros)</label>
-                            <input type="number" step="0.01" name="estaturaM" class="form-control" placeholder="Ej. 1.75" required>
-                        </div>
+        <!-- Topbar desktop -->
+        <header id="nl-topbar" class="navbar navbar-dark bg-brand-gradient d-none d-lg-flex shadow-sm px-4" style="min-height:62px;">
+          <span class="navbar-brand fw-semibold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-rulers"></i>
+            Evaluación IMC
+          </span>
+          <div class="d-flex align-items-center gap-3 ms-auto">
+            <a th:if="${paciente != null}" th:href="@{/paciente/panel(id=${paciente.idPaciente})}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-arrow-left"></i>Volver a la Ficha
+            </a>
+            <a th:if="${paciente == null}" th:href="@{/pacientes}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-person-badge"></i>Ver Pacientes
+            </a>
+          </div>
+        </header>
 
-                        <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-calculator me-1"></i> Calcular y Guardar IMC</button>
-                    </form>
+        <main class="p-4">
+          <!-- Alerta de error si no se encuentra cédula -->
+          <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+
+          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
+          <div th:if="${paciente == null}" class="row justify-content-center py-4">
+            <div class="col-md-7 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
+                  <i class="bi bi-search text-success fs-2"></i>
                 </div>
+                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
+                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y calcular el IMC.</p>
+
+                <form th:action="@{/evaluacion-imc}" method="get" class="mb-3">
+                  <div class="input-group input-group-lg mb-3">
+                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Número de cédula" required autofocus>
+                    <button class="btn btn-success fw-bold px-4" type="submit">
+                      <i class="bi bi-search me-1"></i> Buscar Paciente
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <div th:if="${paciente != null}" class="row">
+            <div class="col-md-5">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-3 text-success"><i class="fa-solid fa-weight-scale me-2"></i>Evaluación de IMC</h4>
+                <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong> (Cédula: <span th:text="${paciente.cedula}"></span>)</p>
+
+                <form th:action="@{/evaluacion-imc/guardar}" method="post">
+                  <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+
+                  <div class="mb-3">
+                    <label class="form-label">Peso (Kg)</label>
+                    <input type="number" step="0.1" name="pesoKg" class="form-control" placeholder="Ej. 70.5" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Estatura (Metros)</label>
+                    <input type="number" step="0.01" name="estaturaM" class="form-control" placeholder="Ej. 1.75" required>
+                  </div>
+
+                  <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-calculator me-1"></i> Calcular y Guardar IMC</button>
+                </form>
+              </div>
             </div>
 
             <div class="col-md-7">
-                <div class="card shadow-sm p-4">
-                    <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial de IMC</h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Peso (Kg)</th>
-                                    <th>Estatura (m)</th>
-                                    <th>Valor IMC</th>
-                                    <th>Diagnóstico</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:each="i : ${historial}">
-                                    <td th:text="${#temporals.format(i.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
-                                    <td th:text="${i.pesoKg + ' kg'}">70</td>
-                                    <td th:text="${i.estaturaM + ' m'}">1.75</td>
-                                    <td th:text="${#numbers.formatDecimal(i.valorIMC, 1, 2)}" class="fw-bold">22.86</td>
-                                    <td th:text="${i.diagnostico}">Normal</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial de IMC</h4>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="bg-success text-white">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Peso (Kg)</th>
+                        <th>Estatura (m)</th>
+                        <th>Valor IMC</th>
+                        <th>Diagnóstico</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="i : ${historial}">
+                        <td th:text="${#temporals.format(i.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                        <td th:text="${i.pesoKg + ' kg'}">70</td>
+                        <td th:text="${i.estaturaM + ' m'}">1.75</td>
+                        <td th:text="${#numbers.formatDecimal(i.valorIMC, 1, 2)}" class="fw-bold">22.86</td>
+                        <td th:text="${i.diagnostico}">Normal</td>
+                      </tr>
+                      <tr th:if="${historial.isEmpty()}">
+                        <td colspan="5" class="text-center text-muted py-3">Sin historial de IMC registrado.</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
+              </div>
             </div>
-        </div>
-    </main>
+          </div>
+        </main>
+      </div>
 
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

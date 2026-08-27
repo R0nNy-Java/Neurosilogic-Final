@@ -31,4 +31,14 @@ public class DashboardController {
         model.addAttribute("pacientes", pacienteRepository.findAll());
         return "dashboard";
     }
+
+    @GetMapping("/reportes")
+    public String reportes(HttpSession session, Model model) {
+        Usuario usuarioLogueado = (Usuario) session.getAttribute("usuarioLogueado");
+        if (usuarioLogueado == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("usuario", usuarioLogueado);
+        return "reportes";
+    }
 }

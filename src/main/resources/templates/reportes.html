@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Reportería')}"></head>
+
+<body class="bg-light" style="font-family:'Inter',sans-serif;">
+
+  <div class="container-fluid p-0">
+    <div class="row g-0" style="min-height:100vh;">
+
+      <!-- Fragmento Sidebar -->
+      <th:block th:replace="~{fragments/header :: header('reportes')}"></th:block>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="col">
+        <!-- Topbar móvil -->
+        <nav class="navbar navbar-dark bg-brand-gradient d-lg-none shadow-sm px-3">
+          <div class="container-fluid px-0">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMobile">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <span class="navbar-brand fw-bold mb-0">NURSELOGIC</span>
+          </div>
+        </nav>
+
+        <!-- Topbar desktop -->
+        <header id="nl-topbar" class="navbar navbar-dark bg-brand-gradient d-none d-lg-flex shadow-sm px-4" style="min-height:62px;">
+          <span class="navbar-brand fw-semibold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            Reportería y Estadísticas
+          </span>
+        </header>
+
+        <main class="p-4">
+          <div class="card border-0 shadow-sm p-4 rounded-4">
+            <h3 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-line me-2"></i>Reportes Clínicos y del Sistema</h3>
+            <p class="text-muted">Generación e impresión de resúmenes de atención clínica, trazabilidad y actividad de usuarios.</p>
+
+            <div class="row row-cols-1 row-cols-md-2 g-3 mt-2">
+              <div class="col">
+                <div class="card border rounded-3 p-3 h-100">
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="rounded bg-success bg-opacity-10 p-2 text-success"><i class="bi bi-people fs-4"></i></div>
+                    <h5 class="fw-bold mb-0">Reporte General de Pacientes</h5>
+                  </div>
+                  <p class="small text-muted mb-3">Listado estructurado con ficha clínica, fecha de registro y antecedentes registrados.</p>
+                  <button class="btn btn-outline-success btn-sm mt-auto w-100" onclick="alert('Generando Reporte de Pacientes...')"><i class="bi bi-download me-1"></i> Exportar PDF</button>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card border rounded-3 p-3 h-100">
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="rounded bg-primary bg-opacity-10 p-2 text-primary"><i class="bi bi-activity fs-4"></i></div>
+                    <h5 class="fw-bold mb-0">Historial de Signos Vitales</h5>
+                  </div>
+                  <p class="small text-muted mb-3">Resumen trazable de mediciones de temperatura, presión arterial, FC y SatO2.</p>
+                  <button class="btn btn-outline-primary btn-sm mt-auto w-100" onclick="alert('Generando Historial de Signos Vitales...')"><i class="bi bi-download me-1"></i> Exportar PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

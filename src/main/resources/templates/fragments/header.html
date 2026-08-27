@@ -11,7 +11,7 @@
                 </div>
                 <div class="rounded bg-white bg-opacity-10 w-100 py-1.5 px-3 text-center small text-white-50" style="font-size: 0.8rem; letter-spacing: 0.5px;">
                     <i class="bi bi-person-badge me-1"></i>
-                    <span th:text="${session.usuarioLogueado != null ? session.usuarioLogueado.rol : 'GUEST'}">ROL</span>
+                    <span th:text="${session.usuarioLogueado != null ? (session.usuarioLogueado.rol == 'ADMINISTRADOR' ? 'Administrador' : 'Personal Clínico') : 'GUEST'}">ROL</span>
                 </div>
             </div>
             <div class="offcanvas-body d-flex flex-column p-0">
@@ -24,12 +24,12 @@
                             <i class="bi bi-grid-1x2-fill"></i>Dashboard
                         </a>
                     </li>
-                    <li class="nav-item" th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol == 'ADMINISTRADOR'}">
+                    <li class="nav-item" th:if="${session.usuarioLogueado != null and (session.usuarioLogueado.rol == 'ADMINISTRADOR' or session.usuarioLogueado.rol == 'ADMIN')}">
                         <a th:href="@{/gestionar-usuarios}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'usuarios'} ? 'active' : ''">
                             <i class="bi bi-people-fill"></i>Gestionar Usuarios
                         </a>
                     </li>
-                    <li class="nav-item" th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol == 'ADMINISTRADOR'}">
+                    <li class="nav-item" th:if="${session.usuarioLogueado != null and (session.usuarioLogueado.rol == 'ADMINISTRADOR' or session.usuarioLogueado.rol == 'ADMIN')}">
                         <a th:href="@{/gestionar-catalogo}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'catalogo'} ? 'active' : ''">
                             <i class="bi bi-journal-medical"></i>Catálogo Medicamentos
                         </a>
@@ -40,8 +40,23 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a th:href="@{/signos-vitales(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
+                            <i class="bi bi-activity"></i>Signos Vitales
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/escala-glasgow(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
+                            <i class="bi bi-clipboard-pulse"></i>Escala Glasgow
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a th:href="@{/dosificacion}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dosificacion'} ? 'active' : ''">
                             <i class="bi bi-calculator"></i>Calcular Dosis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/evaluacion-imc(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
+                            <i class="bi bi-speedometer2"></i>Calculadora IMC
                         </a>
                     </li>
                 </ul>
@@ -51,8 +66,8 @@
                             <i class="bi bi-person-fill text-white small"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <div class="text-white small fw-semibold text-truncate" th:text="${session.usuarioLogueado.nombreUsuario}">usuario</div>
-                            <div style="font-size:.7rem;" class="text-white-50" th:text="${session.usuarioLogueado.rol}">ROL</div>
+                            <div class="text-white small fw-semibold text-truncate" th:text="${session.usuarioLogueado.nombreCompleto != null and !session.usuarioLogueado.nombreCompleto.isEmpty() ? session.usuarioLogueado.nombreCompleto : session.usuarioLogueado.nombreUsuario}">usuario</div>
+                            <div style="font-size:.7rem;" class="text-white-50" th:text="${session.usuarioLogueado.rol == 'ADMINISTRADOR' ? 'Administrador' : 'Personal Clínico'}">ROL</div>
                         </div>
                     </div>
                     <ul class="nav flex-column gap-1 p-0 small">
@@ -85,7 +100,7 @@
                 </a>
                 <div class="rounded bg-white bg-opacity-10 py-1.5 px-3 text-center small text-white-50" style="font-size: 0.8rem; letter-spacing: 0.5px;" th:if="${session.usuarioLogueado != null}">
                     <i class="bi bi-person-badge me-1"></i>
-                    <span th:text="${session.usuarioLogueado.rol}">ROL</span>
+                    <span th:text="${session.usuarioLogueado.rol == 'ADMINISTRADOR' ? 'Administrador' : 'Personal Clínico'}">ROL</span>
                 </div>
             </div>
 
@@ -93,33 +108,63 @@
                 <small class="fw-bold text-uppercase" style="color:rgba(255,255,255,.3);font-size:.65rem;letter-spacing:1px;">MENÚ PRINCIPAL</small>
             </div>
 
-            <ul class="nav flex-column px-2 flex-grow-1">
-                <li class="nav-item">
-                    <a th:href="@{/dashboard}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
-                        <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item" th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol == 'ADMINISTRADOR'}">
-                    <a th:href="@{/gestionar-usuarios}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'usuarios'} ? 'active' : ''">
-                        <i class="bi bi-people-fill"></i><span>Gestionar Usuarios</span>
-                    </a>
-                </li>
-                <li class="nav-item" th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol == 'ADMINISTRADOR'}">
-                    <a th:href="@{/gestionar-catalogo}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'catalogo'} ? 'active' : ''">
-                        <i class="bi bi-journal-medical"></i><span>Catálogo Medicamentos</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/pacientes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'pacientes'} ? 'active' : ''">
-                        <i class="bi bi-person-badge"></i><span>Gestionar Pacientes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a th:href="@{/dosificacion}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dosificacion'} ? 'active' : ''">
-                        <i class="bi bi-calculator"></i><span>Calcular Dosis</span>
-                    </a>
-                </li>
-            </ul>
+                <ul class="nav flex-column px-2 flex-grow-1">
+                    <li class="nav-item">
+                        <a th:href="@{/dashboard}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+                            <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Menú Exclusivo Administrador -->
+                    <th:block th:if="${session.usuarioLogueado != null and (session.usuarioLogueado.rol == 'ADMINISTRADOR' or session.usuarioLogueado.rol == 'ADMIN')}">
+                        <li class="nav-item">
+                            <a th:href="@{/gestionar-usuarios}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'usuarios'} ? 'active' : ''">
+                                <i class="bi bi-people-fill"></i><span>Gestionar Usuarios</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/gestionar-catalogo}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'catalogo'} ? 'active' : ''">
+                                <i class="bi bi-journal-medical"></i><span>Catálogo Medicamentos</span>
+                            </a>
+                        </li>
+                    </th:block>
+
+                    <!-- Menú Exclusivo Enfermero / Personal Clínico -->
+                    <th:block th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol != 'ADMINISTRADOR' and session.usuarioLogueado.rol != 'ADMIN'}">
+                        <li class="nav-item">
+                            <a th:href="@{/pacientes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'pacientes'} ? 'active' : ''">
+                                <i class="bi bi-person-badge"></i><span>Gestionar Pacientes</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/signos-vitales}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
+                                <i class="bi bi-activity"></i><span>Signos Vitales</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/escala-glasgow}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
+                                <i class="bi bi-clipboard-pulse"></i><span>Escala Glasgow</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/dosificacion}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dosificacion'} ? 'active' : ''">
+                                <i class="bi bi-calculator"></i><span>Calcular Dosis</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/evaluacion-imc}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
+                                <i class="bi bi-speedometer2"></i><span>Calculadora IMC</span>
+                            </a>
+                        </li>
+                    </th:block>
+
+                    <!-- Común para Ambos Roles -->
+                    <li class="nav-item">
+                        <a th:href="@{/reportes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'reportes'} ? 'active' : ''">
+                            <i class="bi bi-file-earmark-bar-graph"></i><span>Reportería</span>
+                        </a>
+                    </li>
+                </ul>
 
             <div class="border-top border-white border-opacity-10 p-3 mt-auto" th:if="${session.usuarioLogueado != null}">
                 <div class="d-flex align-items-center gap-2 mb-3">
@@ -127,8 +172,8 @@
                         <i class="bi bi-person-fill text-white small"></i>
                     </div>
                     <div class="overflow-hidden">
-                        <div class="text-white small fw-semibold text-truncate" th:text="${session.usuarioLogueado.nombreUsuario}">usuario</div>
-                        <div style="font-size:.7rem;" class="text-white-50" th:text="${session.usuarioLogueado.rol}">ROL</div>
+                        <div class="text-white small fw-semibold text-truncate" th:text="${session.usuarioLogueado.nombreCompleto != null and !session.usuarioLogueado.nombreCompleto.isEmpty() ? session.usuarioLogueado.nombreCompleto : session.usuarioLogueado.nombreUsuario}">usuario</div>
+                        <div style="font-size:.7rem;" class="text-white-50" th:text="${session.usuarioLogueado.rol == 'ADMINISTRADOR' ? 'Administrador' : 'Personal Clínico'}">ROL</div>
                     </div>
                 </div>
                 <ul class="nav flex-column gap-1 p-0 small">
@@ -148,3 +193,4 @@
     </th:block>
 </body>
 </html>
+

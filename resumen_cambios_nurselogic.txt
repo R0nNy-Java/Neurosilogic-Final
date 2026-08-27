@@ -1,0 +1,87 @@
+================================================================================
+          DOCUMENTACIÓN DE CAMBIOS Y MANUAL DE ESTRUCTURA - NURSELOGIC
+================================================================================
+
+PROYECTO: NurseLogic / Neurosilogic Final (Spring Boot 3 + Thymeleaf)
+AUTOR: Equipo de Desarrollo
+FECHA: 26 de Agosto de 2026
+
+--------------------------------------------------------------------------------
+1. RESUMEN GENERAL DE LOS CAMBIOS REALIZADOS
+--------------------------------------------------------------------------------
+
+a) Corrección en la Sincronización del Estado de Usuario (Bloqueo):
+   - Problema detectado: El panel de administración cambiaba el estado a "B" (Bloqueado)
+     pero el inicio de sesión solo verificaba un campo booleano, permitiendo que
+     usuarios suspendidos ingresaran.
+   - Solución: Se actualizó `AdminController.java` y `AuthController.java` para que
+     el bloqueo sea efectivo y sincrónico en la base de datos y la sesión.
+
+b) Protección de Rutas por Rol (Administrador vs Personal Clínico / Enfermero):
+   - Problema detectado: Falta de validación del rol en los controladores administrativos.
+   - Solución: Se agregaron verificaciones en `AdminController.java` para que solo
+     usuarios con rol 'ADMINISTRADOR' o 'ADMIN' accedan a la gestión de usuarios
+     y catálogo de medicamentos. Redirección automática al Dashboard si un enfermero
+     intenta ingresar mediante URL directa.
+
+c) Reestructuración y Restauración de la Barra Lateral Navegación (Sidebar Estático):
+   - Se ajustó la plantilla fragmentada `src/main/resources/templates/fragments/header.html`
+     para implementar una navegación estática dividida estrictamente según la función
+     del usuario conectado.
+
+d) Creación del Módulo y Vista de Reportería:
+   - Se creó `reportes.html` y el endpoint `/reportes` en `DashboardController.java`
+     para proporcionar acceso directo a la exportación de reportes clínicos y del sistema.
+
+e) Cambio del Campo Edad a Fecha de Nacimiento en Entidad Paciente:
+   - Se reemplazó el entero estático `edad` en `Paciente.java` por un campo `LocalDate fechaNacimiento`.
+   - La edad se calcula dinámicamente llamando al método `getEdad()`, ejecutando `Period.between(fechaNacimiento, LocalDate.now()).getYears()`.
+   - Se actualizó el formulario de `registro_paciente.html` con un selector tipo `<input type="date">`.
+
+f) Conexión a Base de Datos MySQL (neurosilogic_db):
+   - Se actualizó `application.properties` para apuntar al servidor local de MySQL Workbench
+     en la base de datos `neurosilogic_db`.
+
+--------------------------------------------------------------------------------
+2. ESTRUCTURA DE PANELES Y NAVEGACIÓN SEGÚN EL ROL DE USUARIO
+--------------------------------------------------------------------------------
+
+A. PANEL DE ENFERMERO / PERSONAL CLÍNICO:
+   - Dashboard (/dashboard):
+     * Muestra la tarjeta del "Módulo de Enfermería".
+     * Acceso directo en cuadrícula a las tarjetas:
+       - Signos Vitales
+       - Escala de Glasgow
+       - Calculadora IMC
+       - Gestionar Pacientes / Calcular Dosis
+   - Barra Lateral (Menú Estático):
+     1. Dashboard
+     2. Gestionar Pacientes
+     3. Signos Vitales (Búsqueda independiente por cédula)
+     4. Escala Glasgow (Búsqueda independiente por cédula)
+     5. Calcular Dosis
+     6. Calculadora IMC (Búsqueda independiente por cédula)
+     7. Reportería
+
+B. PANEL DE ADMINISTRADOR:
+   - Dashboard (/dashboard):
+     * Muestra el resumen global del sistema: total de pacientes registrados y usuarios.
+     * Tarjetas de acceso a Módulos de Administración: Gestionar Usuarios, Catálogo Medicamentos y Reportería.
+   - Barra Lateral (Menú Estático):
+     1. Dashboard
+     2. Gestionar Usuarios
+     3. Catálogo Medicamentos
+     4. Reportería
+
+--------------------------------------------------------------------------------
+3. ¿DÓNDE SE GUARDA Y CREA EN BASE DE DATOS? (CÓDIGO EXPLICATIVO)
+--------------------------------------------------------------------------------
+- Mapeo de Tablas (JPA Entities):
+  * La carpeta `src/main/java/com/rrparedes/neurosilogic/model/` contiene las clases Java
+    anotadas con `@Entity` y `@Table(name = "paciente")`, `@Table(name = "usuario")`, etc.
+  * Hibernate/JPA lee estas clases y genera o mapea las tablas en MySQL automáticamente.
+
+- Operaciones CRUD (Repositories):
+  * La carpeta `src/main/java/com/rrparedes/neurosilogic/repository/` extiende de `JpaRepository`.
+  * Métodos como `pacienteRepository.save(paciente)` ejecutan los comandos `INSERT` / `UPDATE` de SQL.
+================================================================================

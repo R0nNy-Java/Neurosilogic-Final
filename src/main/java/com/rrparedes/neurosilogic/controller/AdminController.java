@@ -28,6 +28,9 @@ public class AdminController {
     public String gestionarUsuarios(HttpSession session, Model model) {
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
         if (userLog == null) return "redirect:/login";
+        if (!"ADMINISTRADOR".equalsIgnoreCase(userLog.getRol()) && !"ADMIN".equalsIgnoreCase(userLog.getRol())) {
+            return "redirect:/dashboard";
+        }
 
         model.addAttribute("usuarios", usuarioRepository.findAll());
         return "gestionar_usuarios";
@@ -37,11 +40,15 @@ public class AdminController {
     public String cambiarEstadoUsuario(@RequestParam Long idUsuario, @RequestParam String nuevoEstado, HttpSession session) {
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
         if (userLog == null) return "redirect:/login";
+        if (!"ADMINISTRADOR".equalsIgnoreCase(userLog.getRol()) && !"ADMIN".equalsIgnoreCase(userLog.getRol())) {
+            return "redirect:/dashboard";
+        }
 
         Optional<Usuario> uOpt = usuarioRepository.findById(idUsuario);
         if (uOpt.isPresent()) {
             Usuario u = uOpt.get();
             u.setEstado(nuevoEstado);
+            u.setBloqueado("B".equalsIgnoreCase(nuevoEstado));
             usuarioRepository.save(u);
         }
         return "redirect:/gestionar-usuarios";

@@ -37,7 +37,7 @@ public class AuthController {
         Optional<Usuario> uOpt = usuarioRepository.findByNombreUsuarioIgnoreCase(usuario.trim());
         if (uOpt.isPresent()) {
             Usuario u = uOpt.get();
-            if (u.isBloqueado()) {
+            if (u.isBloqueado() || "B".equalsIgnoreCase(u.getEstado())) {
                 model.addAttribute("error", "La cuenta se encuentra bloqueada. Contacte al administrador.");
                 return "login";
             }
