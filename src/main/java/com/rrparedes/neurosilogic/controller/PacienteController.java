@@ -18,17 +18,20 @@ public class PacienteController {
     private final EscalaGlasgowRepository escalaGlasgowRepository;
     private final EvaluacionIMCRepository evaluacionIMCRepository;
     private final AntecedenteRepository antecedenteRepository;
+    private final AlertaClinicaRepository alertaClinicaRepository;
 
     public PacienteController(PacienteRepository pacienteRepository,
                               SignoVitalRepository signoVitalRepository,
                               EscalaGlasgowRepository escalaGlasgowRepository,
                               EvaluacionIMCRepository evaluacionIMCRepository,
-                              AntecedenteRepository antecedenteRepository) {
+                              AntecedenteRepository antecedenteRepository,
+                              AlertaClinicaRepository alertaClinicaRepository) {
         this.pacienteRepository = pacienteRepository;
         this.signoVitalRepository = signoVitalRepository;
         this.escalaGlasgowRepository = escalaGlasgowRepository;
         this.evaluacionIMCRepository = evaluacionIMCRepository;
         this.antecedenteRepository = antecedenteRepository;
+        this.alertaClinicaRepository = alertaClinicaRepository;
     }
 
     @GetMapping("/pacientes")
@@ -69,6 +72,7 @@ public class PacienteController {
             model.addAttribute("glasgowList", escalaGlasgowRepository.findByIdPaciente(id));
             model.addAttribute("imcList", evaluacionIMCRepository.findByIdPaciente(id));
             model.addAttribute("antecedentesList", antecedenteRepository.findByIdPaciente(id));
+            model.addAttribute("alertas", alertaClinicaRepository.findByIdPacienteOrderByFechaRegistroDesc(id));
             return "panel_paciente";
         }
         return "redirect:/pacientes";

@@ -41,6 +41,60 @@
             </div>
           </div>
 
+          <!-- ALERTAS CLÍNICAS -->
+          <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                  <i class="bi bi-shield-exclamation text-danger" th:if="${not #lists.isEmpty(alertas)}"></i>
+                  <i class="bi bi-shield-check text-success" th:if="${#lists.isEmpty(alertas)}"></i>
+                  Alertas Clínicas
+                </h5>
+                <span th:if="${not #lists.isEmpty(alertas)}" class="badge bg-danger rounded-pill px-3 py-2"
+                      th:text="${#lists.size(alertas)} + (${#lists.size(alertas)} == 1 ? ' activa' : ' activas')">0 activas</span>
+              </div>
+
+              <!-- Estado sin alertas -->
+              <div th:if="${#lists.isEmpty(alertas)}" class="d-flex align-items-center gap-3 p-3 rounded-3 bg-success bg-opacity-10">
+                <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                <div>
+                  <div class="fw-semibold text-dark small">Sin alertas registradas</div>
+                  <div class="text-muted" style="font-size:.8rem;">Todos los valores clínicos registrados están dentro de los rangos normales.</div>
+                </div>
+              </div>
+
+              <!-- Listado de alertas -->
+              <div th:if="${not #lists.isEmpty(alertas)}" class="d-flex flex-column gap-2" style="max-height: 340px; overflow-y: auto;">
+                <div th:each="al : ${alertas}" class="d-flex align-items-start gap-3 p-3 rounded-3 border-start border-4"
+                     th:classappend="${al.colorCodigo == 'danger'} ? 'border-danger bg-danger bg-opacity-10' : 'border-warning bg-warning bg-opacity-10'">
+
+                  <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;">
+                    <span th:switch="${al.modulo}" th:classappend="${al.colorCodigo == 'danger'} ? 'text-danger' : 'text-warning'">
+                      <i th:case="'Signos Vitales'" class="bi bi-heart-pulse-fill"></i>
+                      <i th:case="'Escala Glasgow'" class="bi bi-file-earmark-bar-graph-fill"></i>
+                      <i th:case="'Evaluación IMC'" class="bi bi-rulers"></i>
+                      <i th:case="*" class="bi bi-exclamation-triangle-fill"></i>
+                    </span>
+                  </div>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                      <span class="badge d-inline-flex align-items-center gap-1" th:classappend="'bg-' + ${al.colorCodigo}">
+                        <i th:class="${al.nivelAlerta == 'ALTO'} ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'"></i>
+                        <span th:text="${al.nivelAlerta}">ALTO</span>
+                      </span>
+                      <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal" th:text="${al.modulo}">Módulo</span>
+                    </div>
+                    <div class="small fw-semibold text-dark" th:text="${al.mensajeAlerta}">Mensaje</div>
+                    <div class="text-muted" style="font-size:.72rem;">
+                      <i class="bi bi-clock-history me-1"></i><span th:text="${#temporals.format(al.fechaRegistro, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- MÓDULOS DE REGISTRO RÁPIDO -->
           <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
             <div class="col">
@@ -86,19 +140,23 @@
                     <th>F. Respiratoria</th>
                     <th>Temperatura</th>
                     <th>Sat. O2</th>
+                    <th class="text-center">Alerta</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr th:each="sv : ${signosVitales}">
+                  <tr th:each="sv : ${signosVitales}" th:classappend="${sv.alertaGenerada == 'S'} ? 'table-danger'">
                     <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}" class="font-monospace small">Fecha</td>
                     <td th:text="${sv.presionArterial}" class="fw-bold">120/80</td>
                     <td th:text="${sv.frecuenciaCardiaca + ' ppm'}">75</td>
                     <td th:text="${sv.frecuenciaRespiratoria + ' rpm'}">18</td>
                     <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                     <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
+                    <td class="text-center">
+                      <i th:if="${sv.alertaGenerada == 'S'}" class="bi bi-exclamation-triangle-fill text-danger" title="Fuera de rango normal"></i>
+                    </td>
                   </tr>
                   <tr th:if="${signosVitales.isEmpty()}">
-                    <td colspan="6" class="text-center text-muted py-3">Sin historial de signos vitales registrados.</td>
+                    <td colspan="7" class="text-center text-muted py-3">Sin historial de signos vitales registrados.</td>
                   </tr>
                 </tbody>
               </table>

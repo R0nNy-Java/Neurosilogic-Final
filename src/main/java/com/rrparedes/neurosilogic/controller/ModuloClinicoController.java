@@ -2,6 +2,7 @@ package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.*;
 import com.rrparedes.neurosilogic.repository.*;
+import com.rrparedes.neurosilogic.service.AlertaClinicaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,17 +18,20 @@ public class ModuloClinicoController {
     private final EscalaGlasgowRepository escalaGlasgowRepository;
     private final EvaluacionIMCRepository evaluacionIMCRepository;
     private final AntecedenteRepository antecedenteRepository;
+    private final AlertaClinicaService alertaClinicaService;
 
     public ModuloClinicoController(PacienteRepository pacienteRepository,
                                   SignoVitalRepository signoVitalRepository,
                                   EscalaGlasgowRepository escalaGlasgowRepository,
                                   EvaluacionIMCRepository evaluacionIMCRepository,
-                                  AntecedenteRepository antecedenteRepository) {
+                                  AntecedenteRepository antecedenteRepository,
+                                  AlertaClinicaService alertaClinicaService) {
         this.pacienteRepository = pacienteRepository;
         this.signoVitalRepository = signoVitalRepository;
         this.escalaGlasgowRepository = escalaGlasgowRepository;
         this.evaluacionIMCRepository = evaluacionIMCRepository;
         this.antecedenteRepository = antecedenteRepository;
+        this.alertaClinicaService = alertaClinicaService;
     }
 
     // ── Signos Vitales ──
@@ -74,6 +78,8 @@ public class ModuloClinicoController {
         sv.setTemperatura(temperatura);
         sv.setSaturacionOxigeno(saturacionOxigeno);
 
+        boolean hayAlerta = alertaClinicaService.evaluarSignosVitales(idPaciente, sv);
+        sv.setAlertaGenerada(hayAlerta ? "S" : "N");
         signoVitalRepository.save(sv);
         return "redirect:/signos-vitales?idPaciente=" + idPaciente;
     }
@@ -117,6 +123,7 @@ public class ModuloClinicoController {
         eg.setRespuestaVerbal(respuestaVerbal);
         eg.setRespuestaMotora(respuestaMotora);
 
+        alertaClinicaService.evaluarGlasgow(idPaciente, eg);
         escalaGlasgowRepository.save(eg);
         return "redirect:/escala-glasgow?idPaciente=" + idPaciente;
     }
@@ -158,6 +165,7 @@ public class ModuloClinicoController {
         imc.setPesoKg(pesoKg);
         imc.setEstaturaM(estaturaM);
 
+        alertaClinicaService.evaluarIMC(idPaciente, imc);
         evaluacionIMCRepository.save(imc);
         return "redirect:/paciente/panel?id=" + idPaciente;
     }

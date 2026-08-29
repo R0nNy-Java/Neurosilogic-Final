@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface AntecedenteRepository extends JpaRepository<Antecedente, Long> {
-    List<Antecedente> findByPaciente_IdPaciente(Long idPaciente);
     List<Antecedente> findByIdPaciente(Long idPaciente);
 }

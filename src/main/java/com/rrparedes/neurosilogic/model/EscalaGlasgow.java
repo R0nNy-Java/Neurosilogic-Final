@@ -13,11 +13,7 @@ public class EscalaGlasgow implements Serializable {
     @Column(name = "IdGlasgow")
     private Long idGlasgow;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IdPaciente")
-    private Paciente paciente;
-
-    @Column(name = "IdPacienteTemp")
+    @Column(name = "IdPaciente")
     private Long idPaciente;
 
     @Column(name = "FechaHora")
@@ -53,18 +49,8 @@ public class EscalaGlasgow implements Serializable {
         this.idGlasgow = idGlasgow;
     }
 
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-        if (paciente != null) this.idPaciente = paciente.getIdPaciente();
-    }
-
     public Long getIdPaciente() {
-        if (idPaciente != null) return idPaciente;
-        return paciente != null ? paciente.getIdPaciente() : null;
+        return idPaciente;
     }
 
     public void setIdPaciente(Long idPaciente) {

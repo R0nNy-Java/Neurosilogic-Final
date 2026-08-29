@@ -13,11 +13,7 @@ public class Antecedente implements Serializable {
     @Column(name = "IdAntecedente")
     private Long idAntecedente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IdPaciente")
-    private Paciente paciente;
-
-    @Column(name = "IdPacienteTemp")
+    @Column(name = "IdPaciente")
     private Long idPaciente;
 
     @Column(name = "Tipo", length = 50)
@@ -47,18 +43,8 @@ public class Antecedente implements Serializable {
         this.idAntecedente = idAntecedente;
     }
 
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-        if (paciente != null) this.idPaciente = paciente.getIdPaciente();
-    }
-
     public Long getIdPaciente() {
-        if (idPaciente != null) return idPaciente;
-        return paciente != null ? paciente.getIdPaciente() : null;
+        return idPaciente;
     }
 
     public void setIdPaciente(Long idPaciente) {

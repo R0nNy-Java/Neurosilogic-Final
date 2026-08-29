@@ -13,11 +13,7 @@ public class EvaluacionIMC implements Serializable {
     @Column(name = "IdIMC")
     private Long idIMC;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IdPaciente")
-    private Paciente paciente;
-
-    @Column(name = "IdPacienteTemp")
+    @Column(name = "IdPaciente")
     private Long idPaciente;
 
     @Column(name = "Peso")
@@ -47,18 +43,8 @@ public class EvaluacionIMC implements Serializable {
         this.idIMC = idIMC;
     }
 
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-        if (paciente != null) this.idPaciente = paciente.getIdPaciente();
-    }
-
     public Long getIdPaciente() {
-        if (idPaciente != null) return idPaciente;
-        return paciente != null ? paciente.getIdPaciente() : null;
+        return idPaciente;
     }
 
     public void setIdPaciente(Long idPaciente) {

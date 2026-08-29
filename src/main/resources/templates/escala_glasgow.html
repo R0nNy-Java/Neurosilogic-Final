@@ -131,13 +131,16 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="g : ${historial}">
+                      <tr th:each="g : ${historial}" th:classappend="${g.clasificacion != 'Leve / Normal'} ? 'table-danger'">
                         <td th:text="${#temporals.format(g.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${g.respuestaOcular}">4</td>
                         <td th:text="${g.respuestaVerbal}">5</td>
                         <td th:text="${g.respuestaMotora}">6</td>
                         <td th:text="${g.puntajeTotal}" class="fw-bold">15</td>
-                        <td th:text="${g.clasificacion}">Normal</td>
+                        <td>
+                          <span th:text="${g.clasificacion}">Normal</span>
+                          <i th:if="${g.clasificacion != 'Leve / Normal'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Fuera de rango normal"></i>
+                        </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">
                         <td colspan="6" class="text-center text-muted py-3">Sin historial de Glasgow registrado.</td>

@@ -130,19 +130,23 @@
                         <th>FR</th>
                         <th>Temp</th>
                         <th>Sat. O2</th>
+                        <th class="text-center">Alerta</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="sv : ${historial}">
+                      <tr th:each="sv : ${historial}" th:classappend="${sv.alertaGenerada == 'S'} ? 'table-danger'">
                         <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${sv.presionArterial}">120/80</td>
                         <td th:text="${sv.frecuenciaCardiaca}">75</td>
                         <td th:text="${sv.frecuenciaRespiratoria}">18</td>
                         <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                         <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
+                        <td class="text-center">
+                          <i th:if="${sv.alertaGenerada == 'S'}" class="bi bi-exclamation-triangle-fill text-danger" title="Fuera de rango normal"></i>
+                        </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">
-                        <td colspan="6" class="text-center text-muted py-3">Sin historial de signos vitales registrados.</td>
+                        <td colspan="7" class="text-center text-muted py-3">Sin historial de signos vitales registrados.</td>
                       </tr>
                     </tbody>
                   </table>

@@ -107,12 +107,15 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="i : ${historial}">
+                      <tr th:each="i : ${historial}" th:classappend="${i.diagnostico != 'Peso normal'} ? 'table-danger'">
                         <td th:text="${#temporals.format(i.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${i.pesoKg + ' kg'}">70</td>
                         <td th:text="${i.estaturaM + ' m'}">1.75</td>
                         <td th:text="${#numbers.formatDecimal(i.valorIMC, 1, 2)}" class="fw-bold">22.86</td>
-                        <td th:text="${i.diagnostico}">Normal</td>
+                        <td>
+                          <span th:text="${i.diagnostico}">Normal</span>
+                          <i th:if="${i.diagnostico != 'Peso normal'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Fuera de rango normal"></i>
+                        </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">
                         <td colspan="5" class="text-center text-muted py-3">Sin historial de IMC registrado.</td>

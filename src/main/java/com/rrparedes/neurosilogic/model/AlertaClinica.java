@@ -2,6 +2,7 @@ package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "alerta_clinica")
@@ -11,6 +12,9 @@ public class AlertaClinica implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "IdAlerta")
     private Long idAlerta;
+
+    @Column(name = "IdPaciente")
+    private Long idPaciente;
 
     @Column(name = "Modulo", length = 50, nullable = false)
     private String modulo;
@@ -24,18 +28,30 @@ public class AlertaClinica implements Serializable {
     @Column(name = "ColorCodigo", length = 20)
     private String colorCodigo;
 
-    public AlertaClinica() {}
+    @Column(name = "FechaRegistro")
+    private LocalDateTime fechaRegistro;
 
-    public AlertaClinica(Long idAlerta, String modulo, String nivelAlerta, String mensajeAlerta, String colorCodigo) {
-        this.idAlerta = idAlerta;
+    public AlertaClinica() {
+        this.fechaRegistro = LocalDateTime.now();
+    }
+
+    public AlertaClinica(Long idPaciente, String modulo, String nivelAlerta, String mensajeAlerta, String colorCodigo) {
+        this.idPaciente = idPaciente;
         this.modulo = modulo;
         this.nivelAlerta = nivelAlerta;
         this.mensajeAlerta = mensajeAlerta;
         this.colorCodigo = colorCodigo;
+        this.fechaRegistro = LocalDateTime.now();
     }
 
     public Long getIdAlerta() { return idAlerta; }
     public void setIdAlerta(Long idAlerta) { this.idAlerta = idAlerta; }
+
+    public Long getIdPaciente() { return idPaciente; }
+    public void setIdPaciente(Long idPaciente) { this.idPaciente = idPaciente; }
+
+    public LocalDateTime getFechaRegistro() { return fechaRegistro != null ? fechaRegistro : LocalDateTime.now(); }
+    public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
 
     public String getModulo() { return modulo; }
     public void setModulo(String modulo) { this.modulo = modulo; }
