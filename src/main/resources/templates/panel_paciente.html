@@ -33,7 +33,10 @@
                 <h2 class="fs-4 fw-bold mb-1 text-white" th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</h2>
                 <div class="d-flex gap-3 small text-white-50 mt-2">
                   <span><i class="bi bi-card-heading me-1"></i>Cédula: <strong class="text-white font-monospace" th:text="${paciente.cedula}">0000</strong></span>
-                  <span><i class="bi bi-calendar-event me-1"></i>Edad: <strong class="text-white" th:text="${paciente.edad}">0</strong> años</span>
+                  <span><i class="bi bi-calendar-event me-1"></i>Fecha de Nacimiento:
+                    <strong class="text-white" th:if="${paciente.fechaNacimiento != null}" th:text="${#temporals.format(paciente.fechaNacimiento, 'dd/MM/yyyy')}">01/01/1990</strong>
+                    <strong class="text-white fst-italic" th:if="${paciente.fechaNacimiento == null}">Sin fecha</strong>
+                    (<strong class="text-white" th:text="${paciente.edad}">0</strong> años)</span>
                   <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: <strong class="text-white" th:text="${paciente.sexo}">M</strong></span>
                 </div>
               </div>

@@ -29,9 +29,6 @@
             Gestión de Pacientes
           </span>
           <div class="d-flex align-items-center gap-3 ms-auto">
-            <a th:href="@{/pacientes/nuevo}" class="btn btn-light btn-sm fw-bold d-flex align-items-center gap-1">
-              <i class="bi bi-person-plus-fill"></i>Nuevo Paciente
-            </a>
             <a th:href="@{/logout}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
               <i class="bi bi-box-arrow-right"></i>Salir
             </a>
@@ -54,7 +51,7 @@
                             <th># ID</th>
                             <th>Cédula</th>
                             <th>Nombres Completos</th>
-                            <th>Edad</th>
+                            <th>Fecha de Nacimiento / Edad</th>
                             <th>Sexo</th>
                             <th class="text-center">Ficha Clínica</th>
                         </tr>
@@ -64,7 +61,11 @@
                             <td th:text="${p.idPaciente}">1</td>
                             <td th:text="${p.cedula}" class="fw-bold font-monospace">1723456789</td>
                             <td th:text="${p.nombres + ' ' + p.apellidos}">Nombre</td>
-                            <td th:text="${p.edad + ' años'}">0</td>
+                            <td>
+                                <span th:if="${p.fechaNacimiento != null}" th:text="${#temporals.format(p.fechaNacimiento, 'dd/MM/yyyy')}">01/01/1990</span>
+                                <span th:if="${p.fechaNacimiento == null}" class="text-muted fst-italic">Sin fecha</span>
+                                <span class="text-muted"> (<span th:text="${p.edad}">0</span> años)</span>
+                            </td>
                             <td><span class="badge bg-secondary" th:text="${p.sexo}">M</span></td>
                             <td class="text-center">
                                 <a th:href="@{/paciente/panel(id=${p.idPaciente})}" class="btn btn-outline-success btn-sm">

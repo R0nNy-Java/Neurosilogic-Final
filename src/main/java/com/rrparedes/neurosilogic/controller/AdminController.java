@@ -59,6 +59,9 @@ public class AdminController {
     public String gestionarCatalogo(HttpSession session, Model model) {
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
         if (userLog == null) return "redirect:/login";
+        if (!"ADMINISTRADOR".equalsIgnoreCase(userLog.getRol()) && !"ADMIN".equalsIgnoreCase(userLog.getRol())) {
+            return "redirect:/dashboard";
+        }
 
         model.addAttribute("medicamentos", medicamentoRepository.findAll());
         return "gestionar_catalogo";
@@ -71,6 +74,9 @@ public class AdminController {
                                      HttpSession session) {
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
         if (userLog == null) return "redirect:/login";
+        if (!"ADMINISTRADOR".equalsIgnoreCase(userLog.getRol()) && !"ADMIN".equalsIgnoreCase(userLog.getRol())) {
+            return "redirect:/dashboard";
+        }
 
         Medicamento med = new Medicamento(nombre, composicion, dosisRecomendada);
         medicamentoRepository.save(med);

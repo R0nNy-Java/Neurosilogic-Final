@@ -66,13 +66,12 @@ public class AuthController {
                                      @RequestParam String contrasena,
                                      @RequestParam String nombreCompleto,
                                      @RequestParam String email,
-                                     @RequestParam(defaultValue = "ENFERMERO") String rol,
                                      Model model) {
         if (usuarioRepository.existsByNombreUsuarioIgnoreCase(usuario.trim())) {
             model.addAttribute("error", "El nombre de usuario ya existe.");
             return "nueva_cuenta";
         }
-        Usuario u = new Usuario(usuario.trim(), PasswordUtil.hash(contrasena), rol, nombreCompleto, email, false);
+        Usuario u = new Usuario(usuario.trim(), PasswordUtil.hash(contrasena), "ENFERMERO", nombreCompleto, email, false);
         usuarioRepository.save(u);
         model.addAttribute("mensaje", "Cuenta creada exitosamente. Ya puede iniciar sesión.");
         return "login";
