@@ -1,10 +1,13 @@
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\controller\AdminController.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\model\Paciente.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\repository\AlertaClinicaRepository.java
+C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\repository\AuditoriaAccesoRepository.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\controller\AuthController.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\repository\SignoVitalRepository.java
+C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\service\AuditoriaAccesoService.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\repository\PacienteRepository.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\repository\AntecedenteRepository.java
+C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\service\EmailService.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\model\EscalaGlasgow.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\model\Enfermedad.java
 C:\Users\Adrian Alexander\Desktop\POO\Neurosilogic-Final\src\main\java\com\rrparedes\neurosilogic\controller\PacienteController.java

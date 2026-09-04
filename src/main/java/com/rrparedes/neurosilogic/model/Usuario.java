@@ -33,6 +33,9 @@ public class Usuario implements Serializable {
     @Column(name = "Email", length = 100)
     private String email;
 
+    @Column(name = "IntentosFallidos", nullable = false)
+    private int intentosFallidos = 0;
+
     // Constructor por defecto (requerido por JPA)
     public Usuario() {
     }
@@ -156,5 +159,18 @@ public class Usuario implements Serializable {
 
     public void setBloqueado(boolean bloqueado) {
         this.estado = bloqueado ? "B" : "A";
+    }
+
+    public int getIntentosFallidos() {
+        return intentosFallidos;
+    }
+
+    public void setIntentosFallidos(int intentosFallidos) {
+        this.intentosFallidos = intentosFallidos;
+    }
+
+    // Centraliza el chequeo de rol administrador para no repetirlo en cada controlador
+    public boolean isAdministrador() {
+        return "ADMINISTRADOR".equalsIgnoreCase(rol) || "ADMIN".equalsIgnoreCase(rol);
     }
 }
