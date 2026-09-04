@@ -14,6 +14,7 @@ com\rrparedes\neurosilogic\controller\AdminController.class
 com\rrparedes\neurosilogic\util\PasswordUtil.class
 com\rrparedes\neurosilogic\repository\UsuarioRepository.class
 com\rrparedes\neurosilogic\model\Enfermedad.class
+com\rrparedes\neurosilogic\repository\DosificacionRepository.class
 com\rrparedes\neurosilogic\model\Usuario.class
 com\rrparedes\neurosilogic\model\Antecedente.class
 com\rrparedes\neurosilogic\NeurosilogicFinalApplication.class

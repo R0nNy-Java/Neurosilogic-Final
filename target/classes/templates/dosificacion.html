@@ -28,36 +28,139 @@
             <i class="bi bi-calculator"></i>
             Calculadora de Dosificación
           </span>
+          <div class="d-flex align-items-center gap-3 ms-auto">
+            <a th:if="${paciente != null}" th:href="@{/paciente/panel(id=${paciente.idPaciente})}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-arrow-left"></i>Volver a la Ficha
+            </a>
+            <a th:if="${paciente == null}" th:href="@{/pacientes}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+              <i class="bi bi-person-badge"></i>Ver Pacientes
+            </a>
+          </div>
         </header>
 
         <main class="p-4">
-          <div class="card border-0 shadow-sm p-4 rounded-4" style="max-width: 700px;">
-            <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-calculator me-2"></i>Calculadora de Dosificación de Medicamentos</h3>
-            <p class="text-muted small">Fórmula de Regla de Tres: <code>Dosis a administrar = (Dosis deseada * Volumen disponible) / Dosis disponible</code></p>
+          <!-- Alerta de error si no se encuentra cédula -->
+          <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
 
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Dosis Deseada (mg)</label>
-                <input type="number" id="dosisDeseada" class="form-control" placeholder="Ej. 250" value="250">
+          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
+          <div th:if="${paciente == null}" class="row justify-content-center py-4">
+            <div class="col-md-7 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
+                  <i class="bi bi-search text-primary fs-2"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
+                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y calcular la dosificación.</p>
+
+                <form th:action="@{/dosificacion}" method="get" class="mb-3">
+                  <div class="input-group input-group-lg mb-3">
+                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Número de cédula" required autofocus>
+                    <button class="btn btn-primary fw-bold px-4" type="submit">
+                      <i class="bi bi-search me-1"></i> Buscar Paciente
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div class="col-md-6">
-                <label class="form-label">Dosis Disponible en Presentación (mg)</label>
-                <input type="number" id="dosisDisponible" class="form-control" placeholder="Ej. 500" value="500">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Volumen Disponible (ml / solución)</label>
-                <input type="number" id="volumenDisponible" class="form-control" placeholder="Ej. 5" value="5">
-              </div>
-              <div class="col-md-6 d-flex align-items-end">
-                <button type="button" onclick="calcularDosis()" class="btn btn-primary w-100">
-                  <i class="fa-solid fa-square-root-variable me-1"></i> Calcular Dosis
-                </button>
+            </div>
+          </div>
+
+          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <div th:if="${paciente != null}" class="row">
+            <div class="col-md-5">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-1 text-primary"><i class="fa-solid fa-calculator me-2"></i>Calculadora de Dosificación</h4>
+                <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong> (Cédula: <span th:text="${paciente.cedula}"></span>)</p>
+                <p class="text-muted small">Fórmula: <code>Volumen a administrar = (Dosis indicada * Diluyente) / Presentación</code></p>
+
+                <form th:action="@{/dosificacion/guardar}" method="post">
+                  <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+
+                  <div class="mb-3">
+                    <label class="form-label">Medicamento</label>
+                    <input type="text" name="medicamento" class="form-control" placeholder="Ej. Ampicilina" required>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-8">
+                      <label class="form-label">Dosis Indicada</label>
+                      <input type="number" step="0.01" name="dosisIndicada" class="form-control" placeholder="Ej. 250" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label">Unidad</label>
+                      <select name="unidadDosis" class="form-select" required>
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="mcg">mcg</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row g-2 mt-1">
+                    <div class="col-8">
+                      <label class="form-label">Presentación Disponible</label>
+                      <input type="number" step="0.01" name="presentacion" class="form-control" placeholder="Ej. 500" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label">Unidad</label>
+                      <select name="unidadPresentacion" class="form-select" required>
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="mcg">mcg</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="mb-3 mt-2">
+                    <label class="form-label">Volumen del Diluyente (ml)</label>
+                    <input type="number" step="0.01" name="diluyenteMl" class="form-control" placeholder="Ej. 5" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Horas Totales de Infusión <span class="text-muted">(opcional, para goteo)</span></label>
+                    <input type="number" step="0.01" name="horasTotales" class="form-control" placeholder="Ej. 8">
+                  </div>
+
+                  <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-square-root-variable me-1"></i> Calcular y Guardar</button>
+                </form>
               </div>
             </div>
 
-            <div id="resultadoBox" class="alert alert-success mt-4 d-none">
-              <h5 class="fw-bold mb-1"><i class="fa-solid fa-syringe me-2"></i>Resultado de la Dosis:</h5>
-              <h3 id="resultadoTexto" class="fw-bold text-success mb-0">0 ml</h3>
+            <div class="col-md-7">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-list me-2"></i>Historial de Dosificaciones</h4>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle">
+                    <thead class="bg-primary text-white">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Medicamento</th>
+                        <th>Dosis Indicada</th>
+                        <th>Volumen a Administrar</th>
+                        <th>Gotas/min</th>
+                        <th>Microgotas/min</th>
+                        <th>ml/hora</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="d : ${historial}">
+                        <td th:text="${#temporals.format(d.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                        <td th:text="${d.medicamento}">Medicamento</td>
+                        <td th:text="${d.dosisIndicada + ' ' + d.unidadDosis}">250 mg</td>
+                        <td class="fw-bold" th:text="${#numbers.formatDecimal(d.volumenAdministrarMl, 1, 2) + ' ml'}">2.50 ml</td>
+                        <td th:text="${d.gotasPorMinuto != null ? #numbers.formatDecimal(d.gotasPorMinuto, 1, 1) : '—'}">—</td>
+                        <td th:text="${d.microgotasPorMinuto != null ? #numbers.formatDecimal(d.microgotasPorMinuto, 1, 1) : '—'}">—</td>
+                        <td th:text="${d.mlPorHora != null ? #numbers.formatDecimal(d.mlPorHora, 1, 1) : '—'}">—</td>
+                      </tr>
+                      <tr th:if="${historial.isEmpty()}">
+                        <td colspan="7" class="text-center text-muted py-3">Sin dosificaciones registradas.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -67,21 +170,5 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-  <script>
-    function calcularDosis() {
-      const deseada = parseFloat(document.getElementById('dosisDeseada').value) || 0;
-      const disponible = parseFloat(document.getElementById('dosisDisponible').value) || 0;
-      const volumen = parseFloat(document.getElementById('volumenDisponible').value) || 0;
-
-      if (disponible <= 0) {
-        alert('La dosis disponible debe ser mayor a 0');
-        return;
-      }
-
-      const resultado = (deseada * volumen) / disponible;
-      document.getElementById('resultadoTexto').innerText = resultado.toFixed(2) + ' ml a administrar';
-      document.getElementById('resultadoBox').classList.remove('d-none');
-    }
-  </script>
 </body>
 </html>
