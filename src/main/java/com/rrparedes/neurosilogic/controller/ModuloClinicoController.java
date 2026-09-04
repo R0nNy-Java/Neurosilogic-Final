@@ -18,6 +18,7 @@ public class ModuloClinicoController {
     private final EscalaGlasgowRepository escalaGlasgowRepository;
     private final EvaluacionIMCRepository evaluacionIMCRepository;
     private final AntecedenteRepository antecedenteRepository;
+    private final DosificacionRepository dosificacionRepository;
     private final AlertaClinicaService alertaClinicaService;
 
     public ModuloClinicoController(PacienteRepository pacienteRepository,
@@ -25,12 +26,14 @@ public class ModuloClinicoController {
                                   EscalaGlasgowRepository escalaGlasgowRepository,
                                   EvaluacionIMCRepository evaluacionIMCRepository,
                                   AntecedenteRepository antecedenteRepository,
+                                  DosificacionRepository dosificacionRepository,
                                   AlertaClinicaService alertaClinicaService) {
         this.pacienteRepository = pacienteRepository;
         this.signoVitalRepository = signoVitalRepository;
         this.escalaGlasgowRepository = escalaGlasgowRepository;
         this.evaluacionIMCRepository = evaluacionIMCRepository;
         this.antecedenteRepository = antecedenteRepository;
+        this.dosificacionRepository = dosificacionRepository;
         this.alertaClinicaService = alertaClinicaService;
     }
 
@@ -201,8 +204,52 @@ public class ModuloClinicoController {
 
     // ── Dosificación ──
     @GetMapping("/dosificacion")
-    public String showDosificacion(HttpSession session, Model model) {
+    public String showDosificacion(@RequestParam(required = false) Long idPaciente,
+                                   @RequestParam(required = false) String cedula,
+                                   HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
+
+        Optional<Paciente> pOpt = Optional.empty();
+        if (idPaciente != null) {
+            pOpt = pacienteRepository.findById(idPaciente);
+        } else if (cedula != null && !cedula.trim().isEmpty()) {
+            pOpt = pacienteRepository.findByCedula(cedula.trim());
+            if (pOpt.isEmpty()) {
+                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
+            }
+        }
+
+        if (pOpt.isPresent()) {
+            Paciente p = pOpt.get();
+            model.addAttribute("paciente", p);
+            model.addAttribute("historial", dosificacionRepository.findByIdPacienteOrderByFechaRegistroDesc(p.getIdPaciente()));
+        }
         return "dosificacion";
+    }
+
+    @PostMapping("/dosificacion/guardar")
+    public String registrarDosificacion(@RequestParam Long idPaciente,
+                                        @RequestParam String medicamento,
+                                        @RequestParam Double dosisIndicada,
+                                        @RequestParam String unidadDosis,
+                                        @RequestParam Double presentacion,
+                                        @RequestParam String unidadPresentacion,
+                                        @RequestParam Double diluyenteMl,
+                                        @RequestParam(required = false) Double horasTotales,
+                                        HttpSession session) {
+        if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
+
+        Dosificacion d = new Dosificacion();
+        d.setIdPaciente(idPaciente);
+        d.setMedicamento(medicamento);
+        d.setUnidadDosis(unidadDosis);
+        d.setUnidadPresentacion(unidadPresentacion);
+        d.setPresentacion(presentacion);
+        d.setDiluyenteMl(diluyenteMl);
+        d.setHorasTotales(horasTotales);
+        d.setDosisIndicada(dosisIndicada);
+
+        dosificacionRepository.save(d);
+        return "redirect:/dosificacion?idPaciente=" + idPaciente;
     }
 }
