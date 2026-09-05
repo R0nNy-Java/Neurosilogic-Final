@@ -110,7 +110,12 @@
                     </select>
                   </div>
 
-                  <button type="submit" class="btn btn-warning w-100 fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Glasgow</button>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning flex-grow-1 fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Glasgow</button>
+                    <a th:href="@{/paciente/panel(id=${paciente.idPaciente})}" class="btn btn-outline-dark d-flex align-items-center gap-1" title="Finalizar Flujo y Ver Ficha">
+                      Finalizar <i class="bi bi-check-lg fs-5 text-success"></i>
+                    </a>
+                  </div>
                 </form>
               </div>
             </div>

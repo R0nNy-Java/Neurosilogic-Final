@@ -47,21 +47,35 @@
 
                   <div class="mb-3">
                     <label class="form-label">Tipo de Antecedente</label>
-                    <select name="tipo" class="form-select" required>
-                      <option value="Patológico">Patológico (Enfermedades previas)</option>
+                    <select name="tipo" id="selectTipo" class="form-select" required onchange="toggleFormAntecedente()">
+                      <option value="Patológico">Patológico (Enfermedades crónicas asociadas)</option>
+                      <option value="Alergia">Alergia (Medicamento / Alimento / Sustancia)</option>
+                      <option value="Quirúrgico">Quirúrgico (Procedimientos quirúrgicos)</option>
                       <option value="No Patológico">No Patológico (Hábitos, estilo de vida)</option>
-                      <option value="Quirúrgico">Quirúrgico (Operaciones)</option>
-                      <option value="Alergia">Alergia (Medicamentos/Alimentos)</option>
                       <option value="Familiar">Heredofamiliar</option>
                     </select>
                   </div>
 
-                  <div class="mb-3">
-                    <label class="form-label">Descripción Detallada</label>
-                    <textarea name="descripcion" class="form-control" rows="3" placeholder="Ej. Alergia a la Penicilina desde los 10 años" required></textarea>
+                  <!-- Campo de Selección de Enfermedad Inscrita -->
+                  <div class="mb-3" id="groupEnfermedad">
+                    <label class="form-label">Seleccionar Enfermedad Inscrita *</label>
+                    <select name="enfermedadSeleccionada" class="form-select">
+                      <option value="">-- Seleccionar Patología Inscrita --</option>
+                      <option th:each="enf : ${enfermedades}" th:value="${enf.nombreEnfermedad}" th:text="${enf.nombreEnfermedad + ' (' + enf.categoria + ')'}"></option>
+                    </select>
                   </div>
 
-                  <button type="submit" class="btn btn-info text-white w-100"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Antecedente</button>
+                  <div class="mb-3">
+                    <label class="form-label">Descripción Detallada / Observación</label>
+                    <textarea name="descripcion" class="form-control" rows="3" placeholder="Detalles de diagnóstico, tratamiento o nivel de alergia" required></textarea>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-info text-white flex-grow-1"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Antecedente</button>
+                    <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="btn btn-outline-info d-flex align-items-center gap-1" title="Ir al Paso 2: Evaluación IMC">
+                      Paso Siguiente <i class="bi bi-arrow-right-short fs-5"></i>
+                    </a>
+                  </div>
                 </form>
               </div>
             </div>

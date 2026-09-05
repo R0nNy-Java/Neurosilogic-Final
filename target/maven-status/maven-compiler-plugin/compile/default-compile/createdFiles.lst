@@ -11,6 +11,7 @@ com\rrparedes\neurosilogic\model\SignoVital.class
 com\rrparedes\neurosilogic\controller\DashboardController.class
 com\rrparedes\neurosilogic\model\EscalaGlasgow.class
 com\rrparedes\neurosilogic\controller\PacienteController.class
+com\rrparedes\neurosilogic\model\RangoSignoNormal.class
 com\rrparedes\neurosilogic\controller\AdminController.class
 com\rrparedes\neurosilogic\util\PasswordUtil.class
 com\rrparedes\neurosilogic\repository\UsuarioRepository.class
@@ -23,6 +24,7 @@ com\rrparedes\neurosilogic\model\EvaluacionIMC.class
 com\rrparedes\neurosilogic\service\AlertaClinicaService.class
 com\rrparedes\neurosilogic\repository\MedicamentoRepository.class
 com\rrparedes\neurosilogic\repository\AuditoriaAccesoRepository.class
+com\rrparedes\neurosilogic\repository\RangoSignoNormalRepository.class
 com\rrparedes\neurosilogic\repository\EvaluacionIMCRepository.class
 com\rrparedes\neurosilogic\repository\PacienteRepository.class
 com\rrparedes\neurosilogic\model\AlertaClinica.class
@@ -31,6 +33,7 @@ com\rrparedes\neurosilogic\model\AuditoriaAcceso.class
 com\rrparedes\neurosilogic\repository\SignoVitalRepository.class
 com\rrparedes\neurosilogic\model\AdministracionMedicamento.class
 com\rrparedes\neurosilogic\model\CierreFicha.class
+com\rrparedes\neurosilogic\repository\EnfermedadRepository.class
 com\rrparedes\neurosilogic\config\DataInitializer.class
 com\rrparedes\neurosilogic\repository\AntecedenteRepository.class
 com\rrparedes\neurosilogic\service\EmailService.class

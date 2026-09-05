@@ -79,15 +79,20 @@
 
                   <div class="mb-3">
                     <label class="form-label">Peso (Kg)</label>
-                    <input type="number" step="0.1" name="pesoKg" class="form-control" placeholder="Ej. 70.5" required>
+                    <input type="number" step="0.1" name="pesoKg" class="form-control" placeholder="Ej. 70.5" min="1.0" max="350.0" required>
                   </div>
 
                   <div class="mb-3">
                     <label class="form-label">Estatura (Metros)</label>
-                    <input type="number" step="0.01" name="estaturaM" class="form-control" placeholder="Ej. 1.75" required>
+                    <input type="number" step="0.01" name="estaturaM" class="form-control" placeholder="Ej. 1.75" min="0.30" max="2.50" required>
                   </div>
 
-                  <button type="submit" class="btn btn-success w-100"><i class="fa-solid fa-calculator me-1"></i> Calcular y Guardar IMC</button>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1"><i class="fa-solid fa-calculator me-1"></i> Calcular y Guardar IMC</button>
+                    <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="btn btn-outline-success d-flex align-items-center gap-1" title="Ir al Paso 3: Signos Vitales">
+                      Paso Siguiente <i class="bi bi-arrow-right-short fs-5"></i>
+                    </a>
+                  </div>
                 </form>
               </div>
             </div>

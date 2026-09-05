@@ -98,34 +98,43 @@
             </div>
           </div>
 
-          <!-- MÓDULOS DE REGISTRO RÁPIDO -->
+          <!-- MÓDULOS DE REGISTRO RÁPIDO (PASO A PASO CLÍNICO RECOMENDADO) -->
+          <p class="small fw-bold text-uppercase text-muted mb-2"><i class="bi bi-diagram-3-fill me-1"></i>Flujo Asistencial del Paciente</p>
           <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+            <!-- PASO 1: ANTECEDENTES Y PATOLOGÍAS PREVIAS -->
             <div class="col">
-              <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
-                <i class="bi bi-activity text-danger fs-1 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1">Signos Vitales</h6>
+              <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-info">
+                <span class="badge bg-info text-white position-absolute top-0 start-0 m-2">Paso 1</span>
+                <i class="bi bi-file-medical text-info fs-1 mb-2 mt-2"></i>
+                <h6 class="fw-bold text-dark mb-1">1. Antecedentes</h6>
+                <small class="text-muted">Patologías previas y Alergias</small>
+              </a>
+            </div>
+            <!-- PASO 2: EVALUACIÓN IMC Y PESO BASE -->
+            <div class="col">
+              <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-success">
+                <span class="badge bg-success text-white position-absolute top-0 start-0 m-2">Paso 2</span>
+                <i class="bi bi-speedometer2 text-success fs-1 mb-2 mt-2"></i>
+                <h6 class="fw-bold text-dark mb-1">2. Evaluación IMC</h6>
+                <small class="text-muted">Peso (kg) y Estatura (m)</small>
+              </a>
+            </div>
+            <!-- PASO 3: SIGNOS VITALES ADAPTATIVOS -->
+            <div class="col">
+              <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-danger">
+                <span class="badge bg-danger text-white position-absolute top-0 start-0 m-2">Paso 3</span>
+                <i class="bi bi-activity text-danger fs-1 mb-2 mt-2"></i>
+                <h6 class="fw-bold text-dark mb-1">3. Signos Vitales</h6>
                 <small class="text-muted">Presión, Pulso, Temp, Sat. O2</small>
               </a>
             </div>
+            <!-- PASO 4: VALORACIÓN NEUROLÓGICA (GLASGOW) -->
             <div class="col">
-              <a th:href="@{/escala-glasgow(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
-                <i class="bi bi-file-earmark-bar-graph text-warning fs-1 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1">Escala Glasgow</h6>
+              <a th:href="@{/escala-glasgow(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-warning">
+                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Paso 4</span>
+                <i class="bi bi-clipboard-pulse text-warning fs-1 mb-2 mt-2"></i>
+                <h6 class="fw-bold text-dark mb-1">4. Escala Glasgow</h6>
                 <small class="text-muted">Evaluación Neurológica</small>
-              </a>
-            </div>
-            <div class="col">
-              <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
-                <i class="bi bi-calculator text-success fs-1 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1">Evaluación IMC</h6>
-                <small class="text-muted">Peso (kg) / Estatura (m)²</small>
-              </a>
-            </div>
-            <div class="col">
-              <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center">
-                <i class="bi bi-file-medical text-info fs-1 mb-2"></i>
-                <h6 class="fw-bold text-dark mb-1">Antecedentes</h6>
-                <small class="text-muted">Alergias y Patologías</small>
               </a>
             </div>
           </div>

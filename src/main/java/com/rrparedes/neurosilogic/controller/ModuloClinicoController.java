@@ -19,6 +19,7 @@ public class ModuloClinicoController {
     private final EvaluacionIMCRepository evaluacionIMCRepository;
     private final AntecedenteRepository antecedenteRepository;
     private final DosificacionRepository dosificacionRepository;
+    private final EnfermedadRepository enfermedadRepository;
     private final AlertaClinicaService alertaClinicaService;
 
     public ModuloClinicoController(PacienteRepository pacienteRepository,
@@ -27,6 +28,7 @@ public class ModuloClinicoController {
                                   EvaluacionIMCRepository evaluacionIMCRepository,
                                   AntecedenteRepository antecedenteRepository,
                                   DosificacionRepository dosificacionRepository,
+                                  EnfermedadRepository enfermedadRepository,
                                   AlertaClinicaService alertaClinicaService) {
         this.pacienteRepository = pacienteRepository;
         this.signoVitalRepository = signoVitalRepository;
@@ -34,6 +36,7 @@ public class ModuloClinicoController {
         this.evaluacionIMCRepository = evaluacionIMCRepository;
         this.antecedenteRepository = antecedenteRepository;
         this.dosificacionRepository = dosificacionRepository;
+        this.enfermedadRepository = enfermedadRepository;
         this.alertaClinicaService = alertaClinicaService;
     }
 
@@ -72,6 +75,12 @@ public class ModuloClinicoController {
                                          @RequestParam Integer saturacionOxigeno,
                                          HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
+
+        // Validación estricta backend: Impedir valores negativos o fuera de rango físico
+        if (presionSistolica <= 0 || presionDiastolica <= 0 || frecuenciaCardiaca <= 0 ||
+            frecuenciaRespiratoria <= 0 || temperatura <= 0 || saturacionOxigeno <= 0 || saturacionOxigeno > 100) {
+            return "redirect:/signos-vitales?idPaciente=" + idPaciente;
+        }
 
         SignoVital sv = new SignoVital();
         sv.setIdPaciente(idPaciente);
@@ -163,6 +172,11 @@ public class ModuloClinicoController {
                                HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
+        // Validación estricta backend: Impedir números negativos o improbables
+        if (pesoKg == null || pesoKg <= 0 || estaturaM == null || estaturaM <= 0) {
+            return "redirect:/evaluacion-imc?idPaciente=" + idPaciente;
+        }
+
         EvaluacionIMC imc = new EvaluacionIMC();
         imc.setIdPaciente(idPaciente);
         imc.setPesoKg(pesoKg);
@@ -170,7 +184,7 @@ public class ModuloClinicoController {
 
         alertaClinicaService.evaluarIMC(idPaciente, imc);
         evaluacionIMCRepository.save(imc);
-        return "redirect:/paciente/panel?id=" + idPaciente;
+        return "redirect:/evaluacion-imc?idPaciente=" + idPaciente;
     }
 
     // ── Antecedentes Médicos ──
@@ -181,6 +195,7 @@ public class ModuloClinicoController {
         if (pOpt.isPresent()) {
             model.addAttribute("paciente", pOpt.get());
             model.addAttribute("historial", antecedenteRepository.findByIdPaciente(idPaciente));
+            model.addAttribute("enfermedades", enfermedadRepository.findAll());
             return "antecedentes";
         }
         return "redirect:/pacientes";
@@ -189,6 +204,7 @@ public class ModuloClinicoController {
     @PostMapping("/antecedentes/guardar")
     public String registrarAntecedente(@RequestParam Long idPaciente,
                                        @RequestParam String tipo,
+                                       @RequestParam(required = false) String enfermedadSeleccionada,
                                        @RequestParam String descripcion,
                                        HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
@@ -196,10 +212,18 @@ public class ModuloClinicoController {
         Antecedente a = new Antecedente();
         a.setIdPaciente(idPaciente);
         a.setTipo(tipo);
-        a.setDescripcion(descripcion);
+
+        if ("Patológico".equalsIgnoreCase(tipo) && enfermedadSeleccionada != null && !enfermedadSeleccionada.trim().isEmpty()) {
+            a.setObservacion(enfermedadSeleccionada.trim() + " - " + descripcion);
+        } else if ("Alergia".equalsIgnoreCase(tipo)) {
+            a.setAlergias(descripcion);
+            a.setObservacion("ALERGIA REGISTRADA: " + descripcion);
+        } else {
+            a.setObservacion(descripcion);
+        }
 
         antecedenteRepository.save(a);
-        return "redirect:/paciente/panel?id=" + idPaciente;
+        return "redirect:/antecedentes?idPaciente=" + idPaciente;
     }
 
     // ── Dosificación ──

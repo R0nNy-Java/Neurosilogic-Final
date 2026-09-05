@@ -42,6 +42,46 @@ f) Conexión a Base de Datos MySQL (neurosilogic_db):
    - Se actualizó `application.properties` para apuntar al servidor local de MySQL Workbench
      en la base de datos `neurosilogic_db`.
 
+g) Inscripción de 10 Enfermedades Clínicas y Motor de Rangos Adaptativos:
+   - Se inscribieron 10 enfermedades clínicas base en la BD (HTA, DM2, EPOC, ICC, Asma, Hipotiroidismo, IRC, Angina, Neumonía, Obesidad).
+   - Se creó la entidad `RangoSignoNormal.java` y `RangoSignoNormalRepository.java` para almacenar rangos estándar y adaptativos.
+   - `AlertaClinicaService.java` evalúa dinámicamente si los signos vitales (SatO2, PA, FC, FR, Temp) están fuera de norma según las patologías antecedentes del paciente.
+   - Se integró la selección de enfermedad inscrita y la separación explícita de alergias en `antecedentes.html`.
+
+h) Invalidación Obligatoria de Sesiones al Reiniciar el Servidor:
+   - Se configuró `server.servlet.session.persistent=false` y `spring.session.store-type=none` en `application.properties`.
+   - Al detener o reiniciar el servidor Spring Boot, todas las sesiones activas en el navegador se invalidan automáticamente, solicitando usuario y contraseña obligatoriamente.
+
+i) Flujo Asistencial Clínico Paso a Paso en la Ficha del Paciente:
+   - Se reordenó la presentación de módulos de la Ficha Clínica (`panel_paciente.html`) estableciendo el orden asistencial recomendado:
+     1. Antecedentes (Patologías crónicas y Alergias)
+     2. Evaluación IMC (Peso y Estatura base)
+     3. Signos Vitales (Con rangos adaptativos según Paso 1)
+     4. Escala de Glasgow (Valoración neurológica)
+
+j) Bloqueo y Validación Fisiológica de Signos Vitales Negativos:
+   - Se añadieron restricciones HTML5 `min="1"` y `max="..."` en `signos_vitales.html` e inspección en `ModuloClinicoController.java` para rechazar números negativos o ceros en presión arterial, frecuencia cardíaca, respiratoria, temperatura y saturación.
+
+k) Bloqueo de Valores Negativos en IMC y Estatura:
+   - En `evaluacion_imc.html` se agregaron restricciones `min="1.0"` (Peso en Kg) y `min="0.30"` (Estatura en Metros) tanto en frontend como validación en `ModuloClinicoController.java`.
+
+l) Permanencia en Pantalla al Guardar y Botón de Paso Siguiente:
+   - Se corrigió el comportamiento del guardado en `evaluacion_imc.html` y `antecedentes.html` para que el controlador no redirija a la ficha general, sino que recargue la misma vista y el usuario visualice el nuevo registro ingresado en la tabla derecha.
+   - Se añadió un botón al lado del botón de guardado denominado "Paso Siguiente", el cual conduce fluidamente al siguiente paso del flujo asistencial sin romper la secuencia clínica.
+
+m) Estandarización de Precisión Numérica Clínica (Enteros vs Decimales):
+   - Se investigaron e implementaron los estándares de enfermería e informática médica:
+     1. Signos Vitales Fisiológicos: Restringidos estrictamente a NÚMEROS ENTEROS (`step="1"`), ya que en clínica no se registran decimales para pulso, presión o respiraciones.
+     2. Temperatura Corporal: Permite exactitud clínica de 1 DECIMAL (`step="0.1"`, ej. `36.5 °C`).
+     3. Evaluación IMC: Peso y Estatura con 2 DECIMALES (`step="0.1"` para peso y `step="0.01"` para metros, ej. `1.75 m`, `70.5 kg`).
+     4. Dosificación: Dosis y dilución con precisión de 2 DECIMALES (`step="0.01"`).
+   - Se aplicó la restricción en los inputs HTML5 evitando que el navegador extienda innecesariamente decimales infinitos (ej. `70.3000000000` o `12.22222222`).
+
+n) Sistema Dinámico de Resolución de Alertas por Re-evaluación Fisiológica:
+   - Se actualizó `AlertaClinicaService.java` y `AlertaClinicaRepository.java` con anotaciones `@Transactional`.
+   - Cuando al paciente se le vuelve a tomar los Signos Vitales, IMC o Escala Glasgow y los nuevos valores se encuentran dentro de los parámetros estables esperados (según su condición sana o patología adaptativa), el sistema automáticamente ELIMINA y RESUELVE la alerta anterior del panel.
+   - Si el valor continúa descompensado, la alerta se actualiza dinámicamente con los datos de la última toma.
+
 --------------------------------------------------------------------------------
 2. ESTRUCTURA DE PANELES Y NAVEGACIÓN SEGÚN EL ROL DE USUARIO
 --------------------------------------------------------------------------------

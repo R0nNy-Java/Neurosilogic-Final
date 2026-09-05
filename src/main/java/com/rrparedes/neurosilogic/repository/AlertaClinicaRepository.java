@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AlertaClinicaRepository extends JpaRepository<AlertaClinica, Long> {
     List<AlertaClinica> findByIdPacienteOrderByFechaRegistroDesc(Long idPaciente);
+    void deleteByIdPacienteAndModulo(Long idPaciente, String modulo);
 }
