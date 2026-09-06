@@ -44,15 +44,33 @@
                 </a>
             </div>
 
+            <!-- Barra de filtro: cantidad de registros por página + buscador en vivo -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2" th:if="${not #lists.isEmpty(pacientes)}">
+              <div class="d-flex align-items-center gap-2 small text-muted">
+                <span>Mostrar</span>
+                <select id="tablaPageSize" class="form-select form-select-sm" style="width:auto;">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="-1">Todos</option>
+                </select>
+                <span>registros</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 small text-muted">
+                <label for="tablaBuscar" class="mb-0">Buscar:</label>
+                <input type="search" id="tablaBuscar" class="form-control form-control-sm" style="width:220px;" placeholder="Cédula, nombre, sexo...">
+              </div>
+            </div>
+
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle" id="tablaPacientes">
                     <thead class="bg-success text-white">
                         <tr>
-                            <th># ID</th>
-                            <th>Cédula</th>
-                            <th>Nombres Completos</th>
-                            <th>Fecha de Nacimiento / Edad</th>
-                            <th>Sexo</th>
+                            <th data-sort="text" class="sortable"># ID</th>
+                            <th data-sort="text" class="sortable">Cédula</th>
+                            <th data-sort="text" class="sortable">Nombres Completos</th>
+                            <th data-sort="text" class="sortable">Fecha de Nacimiento / Edad</th>
+                            <th data-sort="text" class="sortable">Sexo</th>
                             <th class="text-center">Ficha Clínica</th>
                         </tr>
                     </thead>
@@ -79,6 +97,17 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pie de tabla: resumen + paginación -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2" th:if="${not #lists.isEmpty(pacientes)}">
+              <div class="small text-muted" id="tablaResumen">Mostrando 0 de 0 registros</div>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary" id="tablaPrimero">Primero</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaAnterior">Anterior</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaSiguiente">Siguiente</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaUltimo">Último</button>
+              </div>
+            </div>
           </div>
         </main>
       </div>
@@ -87,5 +116,99 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script th:inline="javascript">
+    // Filtro de tabla en vivo con orden por columna y paginación (equivalente ligero a
+    // un plugin tipo DataTables, sin agregar jQuery como dependencia nueva).
+    (function () {
+      var tabla = document.getElementById('tablaPacientes');
+      if (!tabla) return;
+
+      var tbody = tabla.querySelector('tbody');
+      var filasOriginales = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+          .filter(function (fila) { return fila.children.length > 1; }); // excluye la fila "sin registros"
+      if (filasOriginales.length === 0) return;
+
+      var inputBuscar = document.getElementById('tablaBuscar');
+      var selectPageSize = document.getElementById('tablaPageSize');
+      var resumen = document.getElementById('tablaResumen');
+      var btnPrimero = document.getElementById('tablaPrimero');
+      var btnAnterior = document.getElementById('tablaAnterior');
+      var btnSiguiente = document.getElementById('tablaSiguiente');
+      var btnUltimo = document.getElementById('tablaUltimo');
+
+      var columnaOrden = -1;
+      var ordenAscendente = true;
+      var paginaActual = 1;
+
+      function filasVisiblesPorBusqueda() {
+        var termino = (inputBuscar.value || '').trim().toLowerCase();
+        if (!termino) return filasOriginales.slice();
+        return filasOriginales.filter(function (fila) {
+          return fila.textContent.toLowerCase().indexOf(termino) !== -1;
+        });
+      }
+
+      function ordenar(filas) {
+        if (columnaOrden === -1) return filas;
+        var factor = ordenAscendente ? 1 : -1;
+        return filas.slice().sort(function (a, b) {
+          var textoA = a.children[columnaOrden].textContent.trim().toLowerCase();
+          var textoB = b.children[columnaOrden].textContent.trim().toLowerCase();
+          var numA = parseFloat(textoA), numB = parseFloat(textoB);
+          if (!isNaN(numA) && !isNaN(numB)) return (numA - numB) * factor;
+          return textoA.localeCompare(textoB) * factor;
+        });
+      }
+
+      function render() {
+        var filtradas = ordenar(filasVisiblesPorBusqueda());
+        var tamanoPagina = parseInt(selectPageSize.value, 10);
+        var total = filtradas.length;
+        var totalPaginas = tamanoPagina === -1 ? 1 : Math.max(1, Math.ceil(total / tamanoPagina));
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+
+        var inicio = tamanoPagina === -1 ? 0 : (paginaActual - 1) * tamanoPagina;
+        var fin = tamanoPagina === -1 ? total : Math.min(inicio + tamanoPagina, total);
+        var paginaFilas = filtradas.slice(inicio, fin);
+
+        filasOriginales.forEach(function (fila) { fila.style.display = 'none'; });
+        paginaFilas.forEach(function (fila) { fila.style.display = ''; });
+
+        resumen.textContent = total === 0
+            ? 'No se encontraron resultados'
+            : 'Mostrando ' + (inicio + 1) + ' a ' + fin + ' de ' + total + ' registros';
+
+        btnPrimero.disabled = btnAnterior.disabled = paginaActual <= 1;
+        btnSiguiente.disabled = btnUltimo.disabled = paginaActual >= totalPaginas;
+
+        tabla.querySelectorAll('thead th.sortable').forEach(function (th, idx) {
+          th.classList.toggle('table-active', idx === columnaOrden);
+        });
+      }
+
+      inputBuscar.addEventListener('input', function () { paginaActual = 1; render(); });
+      selectPageSize.addEventListener('change', function () { paginaActual = 1; render(); });
+      btnPrimero.addEventListener('click', function () { paginaActual = 1; render(); });
+      btnAnterior.addEventListener('click', function () { paginaActual--; render(); });
+      btnSiguiente.addEventListener('click', function () { paginaActual++; render(); });
+      btnUltimo.addEventListener('click', function () { paginaActual = Number.MAX_SAFE_INTEGER; render(); });
+
+      tabla.querySelectorAll('thead th.sortable').forEach(function (th, idx) {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function () {
+          if (columnaOrden === idx) {
+            ordenAscendente = !ordenAscendente;
+          } else {
+            columnaOrden = idx;
+            ordenAscendente = true;
+          }
+          render();
+        });
+      });
+
+      render();
+    })();
+  </script>
 </body>
 </html>
