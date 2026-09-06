@@ -1,6 +1,10 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import org.hibernate.validator.constraints.Range;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,27 +18,35 @@ public class SignoVital implements Serializable {
     @Column(name = "IdSignoVital")
     private Long idSignoVital;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
 
     @Column(name = "FechaHora")
     private LocalDateTime fechaHora;
 
+    @DecimalMin(value = "25.0", message = "La temperatura no puede ser menor a 25.0°C")
+    @DecimalMax(value = "45.0", message = "La temperatura no puede ser mayor a 45.0°C")
     @Column(name = "Temperatura", precision = 4, scale = 2)
     private BigDecimal temperatura;
 
+    @Range(min = 30, max = 250, message = "La presión sistólica debe estar entre 30 y 250 mmHg")
     @Column(name = "PresionSistolica")
     private Integer presionSistolica;
 
+    @Range(min = 30, max = 250, message = "La presión diastólica debe estar entre 30 y 250 mmHg")
     @Column(name = "PresionDiastolica")
     private Integer presionDiastolica;
 
+    @Range(min = 20, max = 250, message = "La frecuencia cardiaca debe estar entre 20 y 250 lpm")
     @Column(name = "FrecuenciaCardiaca")
     private Integer frecuenciaCardiaca;
 
+    @Range(min = 5, max = 60, message = "La frecuencia respiratoria debe estar entre 5 y 60 rpm")
     @Column(name = "FrecuenciaRespiratoria")
     private Integer frecuenciaRespiratoria;
 
+    @Range(min = 0, max = 100, message = "La saturación de oxígeno debe estar entre 0 y 100%")
     @Column(name = "SaturacionO2")
     private Integer saturacionO2;
 
@@ -56,12 +68,12 @@ public class SignoVital implements Serializable {
         this.idSignoVital = idSignoVital;
     }
 
-    public Long getIdPaciente() {
-        return idPaciente;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setIdPaciente(Long idPaciente) {
-        this.idPaciente = idPaciente;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
     }
 
     public LocalDateTime getFechaHora() {

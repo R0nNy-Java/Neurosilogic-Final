@@ -1,8 +1,8 @@
 package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.Usuario;
-import com.rrparedes.neurosilogic.repository.PacienteRepository;
-import com.rrparedes.neurosilogic.repository.UsuarioRepository;
+import com.rrparedes.neurosilogic.service.PacienteService;
+import com.rrparedes.neurosilogic.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class DashboardController {
 
-    private final PacienteRepository pacienteRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final PacienteService pacienteService;
+    private final UsuarioService usuarioService;
 
-    public DashboardController(PacienteRepository pacienteRepository, UsuarioRepository usuarioRepository) {
-        this.pacienteRepository = pacienteRepository;
-        this.usuarioRepository = usuarioRepository;
+    public DashboardController(PacienteService pacienteService, UsuarioService usuarioService) {
+        this.pacienteService = pacienteService;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping("/dashboard")
@@ -26,9 +26,9 @@ public class DashboardController {
             return "redirect:/login";
         }
         model.addAttribute("usuario", usuarioLogueado);
-        model.addAttribute("totalPacientes", pacienteRepository.count());
-        model.addAttribute("totalUsuarios", usuarioRepository.count());
-        model.addAttribute("pacientes", pacienteRepository.findAll());
+        model.addAttribute("totalPacientes", pacienteService.contarTodos());
+        model.addAttribute("totalUsuarios", usuarioService.contarTodos());
+        model.addAttribute("pacientes", pacienteService.listarTodos());
         return "dashboard";
     }
 

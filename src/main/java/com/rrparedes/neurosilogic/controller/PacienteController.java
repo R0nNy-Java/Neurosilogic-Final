@@ -1,43 +1,27 @@
 package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.Paciente;
-import com.rrparedes.neurosilogic.model.Usuario;
-import com.rrparedes.neurosilogic.repository.*;
+import com.rrparedes.neurosilogic.service.NegocioException;
+import com.rrparedes.neurosilogic.service.PacienteService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @Controller
 public class PacienteController {
 
-    private final PacienteRepository pacienteRepository;
-    private final SignoVitalRepository signoVitalRepository;
-    private final EscalaGlasgowRepository escalaGlasgowRepository;
-    private final EvaluacionIMCRepository evaluacionIMCRepository;
-    private final AntecedenteRepository antecedenteRepository;
-    private final AlertaClinicaRepository alertaClinicaRepository;
+    private final PacienteService pacienteService;
 
-    public PacienteController(PacienteRepository pacienteRepository,
-                              SignoVitalRepository signoVitalRepository,
-                              EscalaGlasgowRepository escalaGlasgowRepository,
-                              EvaluacionIMCRepository evaluacionIMCRepository,
-                              AntecedenteRepository antecedenteRepository,
-                              AlertaClinicaRepository alertaClinicaRepository) {
-        this.pacienteRepository = pacienteRepository;
-        this.signoVitalRepository = signoVitalRepository;
-        this.escalaGlasgowRepository = escalaGlasgowRepository;
-        this.evaluacionIMCRepository = evaluacionIMCRepository;
-        this.antecedenteRepository = antecedenteRepository;
-        this.alertaClinicaRepository = alertaClinicaRepository;
+    public PacienteController(PacienteService pacienteService) {
+        this.pacienteService = pacienteService;
     }
 
     @GetMapping("/pacientes")
     public String listarPacientes(HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        model.addAttribute("pacientes", pacienteRepository.findAll());
+        model.addAttribute("pacientes", pacienteService.listarTodos());
         return "pacientes";
     }
 
@@ -49,32 +33,29 @@ public class PacienteController {
     }
 
     @PostMapping("/pacientes/guardar")
-    public String guardarPaciente(@ModelAttribute Paciente paciente, HttpSession session, Model model) {
+    public String guardarPaciente(@Valid @ModelAttribute Paciente paciente, HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        if (paciente.getIdPaciente() == null && pacienteRepository.existsByCedula(paciente.getCedula())) {
-            model.addAttribute("error", "Ya existe un paciente registrado con la cédula ingresada.");
+        try {
+            pacienteService.registrar(paciente);
+        } catch (NegocioException ex) {
+            model.addAttribute("error", ex.getMessage());
             model.addAttribute("paciente", paciente);
             return "registro_paciente";
         }
-        paciente.setEstado("A");
-        pacienteRepository.save(paciente);
         return "redirect:/pacientes";
     }
 
     @GetMapping("/paciente/panel")
     public String panelPaciente(@RequestParam Long id, HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        Optional<Paciente> pOpt = pacienteRepository.findById(id);
-        if (pOpt.isPresent()) {
-            Paciente paciente = pOpt.get();
-            model.addAttribute("paciente", paciente);
-            model.addAttribute("signosVitales", signoVitalRepository.findByIdPaciente(id));
-            model.addAttribute("glasgowList", escalaGlasgowRepository.findByIdPaciente(id));
-            model.addAttribute("imcList", evaluacionIMCRepository.findByIdPaciente(id));
-            model.addAttribute("antecedentesList", antecedenteRepository.findByIdPaciente(id));
-            model.addAttribute("alertas", alertaClinicaRepository.findByIdPacienteOrderByFechaRegistroDesc(id));
+        return pacienteService.obtenerPanel(id).map(panel -> {
+            model.addAttribute("paciente", panel.paciente());
+            model.addAttribute("signosVitales", panel.signosVitales());
+            model.addAttribute("glasgowList", panel.glasgowList());
+            model.addAttribute("imcList", panel.imcList());
+            model.addAttribute("antecedentesList", panel.antecedentesList());
+            model.addAttribute("alertas", panel.alertas());
             return "panel_paciente";
-        }
-        return "redirect:/pacientes";
+        }).orElse("redirect:/pacientes");
     }
 }

@@ -13,8 +13,9 @@ public class AlertaClinica implements Serializable {
     @Column(name = "IdAlerta")
     private Long idAlerta;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
 
     @Column(name = "Modulo", length = 50, nullable = false)
     private String modulo;
@@ -35,8 +36,8 @@ public class AlertaClinica implements Serializable {
         this.fechaRegistro = LocalDateTime.now();
     }
 
-    public AlertaClinica(Long idPaciente, String modulo, String nivelAlerta, String mensajeAlerta, String colorCodigo) {
-        this.idPaciente = idPaciente;
+    public AlertaClinica(Paciente paciente, String modulo, String nivelAlerta, String mensajeAlerta, String colorCodigo) {
+        this.paciente = paciente;
         this.modulo = modulo;
         this.nivelAlerta = nivelAlerta;
         this.mensajeAlerta = mensajeAlerta;
@@ -47,8 +48,8 @@ public class AlertaClinica implements Serializable {
     public Long getIdAlerta() { return idAlerta; }
     public void setIdAlerta(Long idAlerta) { this.idAlerta = idAlerta; }
 
-    public Long getIdPaciente() { return idPaciente; }
-    public void setIdPaciente(Long idPaciente) { this.idPaciente = idPaciente; }
+    public Paciente getPaciente() { return paciente; }
+    public void setPaciente(Paciente paciente) { this.paciente = paciente; }
 
     public LocalDateTime getFechaRegistro() { return fechaRegistro != null ? fechaRegistro : LocalDateTime.now(); }
     public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }

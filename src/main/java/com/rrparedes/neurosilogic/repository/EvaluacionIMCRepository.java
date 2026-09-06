@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface EvaluacionIMCRepository extends JpaRepository<EvaluacionIMC, Long> {
-    List<EvaluacionIMC> findByIdPaciente(Long idPaciente);
+    List<EvaluacionIMC> findByPacienteIdPaciente(Long idPaciente);
 }

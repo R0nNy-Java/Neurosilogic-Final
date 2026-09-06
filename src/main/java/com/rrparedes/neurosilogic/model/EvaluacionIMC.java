@@ -1,6 +1,9 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -13,12 +16,17 @@ public class EvaluacionIMC implements Serializable {
     @Column(name = "IdIMC")
     private Long idIMC;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
 
+    @DecimalMin(value = "0.5", message = "El peso no puede ser menor a 0.5 kg")
+    @DecimalMax(value = "300.0", message = "El peso no puede ser mayor a 300.0 kg")
     @Column(name = "Peso")
     private Double peso;
 
+    @DecimalMin(value = "0.3", message = "La estatura no puede ser menor a 0.3 m")
+    @DecimalMax(value = "2.5", message = "La estatura no puede ser mayor a 2.5 m")
     @Column(name = "Estatura")
     private Double estatura;
 
@@ -43,12 +51,12 @@ public class EvaluacionIMC implements Serializable {
         this.idIMC = idIMC;
     }
 
-    public Long getIdPaciente() {
-        return idPaciente;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setIdPaciente(Long idPaciente) {
-        this.idPaciente = idPaciente;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
     }
 
     public Double getPeso() {

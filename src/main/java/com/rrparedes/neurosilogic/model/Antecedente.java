@@ -13,8 +13,15 @@ public class Antecedente implements Serializable {
     @Column(name = "IdAntecedente")
     private Long idAntecedente;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
+
+    // Relación real a la enfermedad inscrita (cuando el antecedente es "Patológico"), en vez de
+    // guardar el nombre de la enfermedad concatenado dentro del texto libre de "Observacion".
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdEnfermedad")
+    private Enfermedad enfermedad;
 
     @Column(name = "Tipo", length = 50)
     private String tipo;
@@ -43,12 +50,20 @@ public class Antecedente implements Serializable {
         this.idAntecedente = idAntecedente;
     }
 
-    public Long getIdPaciente() {
-        return idPaciente;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setIdPaciente(Long idPaciente) {
-        this.idPaciente = idPaciente;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
+    }
+
+    public Enfermedad getEnfermedad() {
+        return enfermedad;
+    }
+
+    public void setEnfermedad(Enfermedad enfermedad) {
+        this.enfermedad = enfermedad;
     }
 
     public String getTipo() {
@@ -79,7 +94,13 @@ public class Antecedente implements Serializable {
         return observacion;
     }
 
+    // Compone la descripción visible a partir de la relación real con Enfermedad (si aplica),
+    // en vez de depender de que el nombre de la enfermedad venga incrustado en "Observacion".
     public String getDescripcion() {
+        if (enfermedad != null) {
+            String nombre = enfermedad.getNombreEnfermedad();
+            return (observacion != null && !observacion.isBlank()) ? nombre + " - " + observacion : nombre;
+        }
         return observacion != null ? observacion : alergias;
     }
 

@@ -1,6 +1,10 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -16,19 +20,28 @@ public class Paciente implements Serializable {
     @Column(name = "IdPaciente")
     private Long idPaciente;
 
+    @NotBlank(message = "La cédula es obligatoria")
+    @Size(min = 10, max = 10, message = "La cédula debe tener exactamente 10 dígitos")
     @Column(name = "Cedula", length = 10, nullable = false, unique = true)
     private String cedula;
 
+    @NotBlank(message = "Los nombres son obligatorios")
     @Column(name = "Nombres", length = 50, nullable = false)
     private String nombres;
 
+    @NotBlank(message = "Los apellidos son obligatorios")
     @Column(name = "Apellidos", length = 50, nullable = false)
     private String apellidos;
 
+    // No existe un campo "edad" persistido (se calcula en getEdad() a partir de esta fecha),
+    // por lo que la restricción de edad válida [0-120] se aplica aquí como fecha no futura.
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @Past(message = "La fecha de nacimiento debe ser anterior a hoy")
     @Column(name = "FechaNacimiento")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaNacimiento;
 
+    @NotBlank(message = "El sexo es obligatorio")
     @Column(name = "Sexo", length = 1, nullable = false)
     private String sexo;
 

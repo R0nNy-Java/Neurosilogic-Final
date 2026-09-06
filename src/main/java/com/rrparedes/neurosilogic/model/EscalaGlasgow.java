@@ -1,6 +1,8 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import org.hibernate.validator.constraints.Range;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -13,18 +15,22 @@ public class EscalaGlasgow implements Serializable {
     @Column(name = "IdGlasgow")
     private Long idGlasgow;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
 
     @Column(name = "FechaHora")
     private LocalDateTime fechaHora;
 
+    @Range(min = 1, max = 4, message = "La respuesta ocular debe estar entre 1 y 4")
     @Column(name = "RespuestaOcular")
     private Integer respuestaOcular;
 
+    @Range(min = 1, max = 5, message = "La respuesta verbal debe estar entre 1 y 5")
     @Column(name = "RespuestaVerbal")
     private Integer respuestaVerbal;
 
+    @Range(min = 1, max = 6, message = "La respuesta motora debe estar entre 1 y 6")
     @Column(name = "RespuestaMotora")
     private Integer respuestaMotora;
 
@@ -49,12 +55,12 @@ public class EscalaGlasgow implements Serializable {
         this.idGlasgow = idGlasgow;
     }
 
-    public Long getIdPaciente() {
-        return idPaciente;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setIdPaciente(Long idPaciente) {
-        this.idPaciente = idPaciente;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
     }
 
     public LocalDateTime getFechaHora() {

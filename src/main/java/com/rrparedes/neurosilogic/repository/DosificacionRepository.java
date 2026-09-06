@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface DosificacionRepository extends JpaRepository<Dosificacion, Long> {
-    List<Dosificacion> findByIdPacienteOrderByFechaRegistroDesc(Long idPaciente);
+    List<Dosificacion> findByPacienteIdPacienteOrderByFechaRegistroDesc(Long idPaciente);
 }

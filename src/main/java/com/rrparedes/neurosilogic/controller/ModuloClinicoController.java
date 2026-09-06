@@ -1,8 +1,8 @@
 package com.rrparedes.neurosilogic.controller;
 
-import com.rrparedes.neurosilogic.model.*;
-import com.rrparedes.neurosilogic.repository.*;
-import com.rrparedes.neurosilogic.service.AlertaClinicaService;
+import com.rrparedes.neurosilogic.model.Paciente;
+import com.rrparedes.neurosilogic.service.DosificacionService;
+import com.rrparedes.neurosilogic.service.ModuloClinicoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,31 +13,12 @@ import java.util.Optional;
 @Controller
 public class ModuloClinicoController {
 
-    private final PacienteRepository pacienteRepository;
-    private final SignoVitalRepository signoVitalRepository;
-    private final EscalaGlasgowRepository escalaGlasgowRepository;
-    private final EvaluacionIMCRepository evaluacionIMCRepository;
-    private final AntecedenteRepository antecedenteRepository;
-    private final DosificacionRepository dosificacionRepository;
-    private final EnfermedadRepository enfermedadRepository;
-    private final AlertaClinicaService alertaClinicaService;
+    private final ModuloClinicoService moduloClinicoService;
+    private final DosificacionService dosificacionService;
 
-    public ModuloClinicoController(PacienteRepository pacienteRepository,
-                                  SignoVitalRepository signoVitalRepository,
-                                  EscalaGlasgowRepository escalaGlasgowRepository,
-                                  EvaluacionIMCRepository evaluacionIMCRepository,
-                                  AntecedenteRepository antecedenteRepository,
-                                  DosificacionRepository dosificacionRepository,
-                                  EnfermedadRepository enfermedadRepository,
-                                  AlertaClinicaService alertaClinicaService) {
-        this.pacienteRepository = pacienteRepository;
-        this.signoVitalRepository = signoVitalRepository;
-        this.escalaGlasgowRepository = escalaGlasgowRepository;
-        this.evaluacionIMCRepository = evaluacionIMCRepository;
-        this.antecedenteRepository = antecedenteRepository;
-        this.dosificacionRepository = dosificacionRepository;
-        this.enfermedadRepository = enfermedadRepository;
-        this.alertaClinicaService = alertaClinicaService;
+    public ModuloClinicoController(ModuloClinicoService moduloClinicoService, DosificacionService dosificacionService) {
+        this.moduloClinicoService = moduloClinicoService;
+        this.dosificacionService = dosificacionService;
     }
 
     // ── Signos Vitales ──
@@ -47,20 +28,15 @@ public class ModuloClinicoController {
                                     HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Optional<Paciente> pOpt = Optional.empty();
-        if (idPaciente != null) {
-            pOpt = pacienteRepository.findById(idPaciente);
-        } else if (cedula != null && !cedula.trim().isEmpty()) {
-            pOpt = pacienteRepository.findByCedula(cedula.trim());
-            if (pOpt.isEmpty()) {
-                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
-            }
+        Optional<Paciente> pOpt = moduloClinicoService.buscarPaciente(idPaciente, cedula);
+        if (pOpt.isEmpty() && cedula != null && !cedula.trim().isEmpty()) {
+            model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
         }
 
         if (pOpt.isPresent()) {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
-            model.addAttribute("historial", signoVitalRepository.findByIdPaciente(p.getIdPaciente()));
+            model.addAttribute("historial", moduloClinicoService.historialSignosVitales(p.getIdPaciente()));
         }
         return "signos_vitales";
     }
@@ -76,23 +52,8 @@ public class ModuloClinicoController {
                                          HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        // Validación estricta backend: Impedir valores negativos o fuera de rango físico
-        if (presionSistolica <= 0 || presionDiastolica <= 0 || frecuenciaCardiaca <= 0 ||
-            frecuenciaRespiratoria <= 0 || temperatura <= 0 || saturacionOxigeno <= 0 || saturacionOxigeno > 100) {
-            return "redirect:/signos-vitales?idPaciente=" + idPaciente;
-        }
-
-        SignoVital sv = new SignoVital();
-        sv.setIdPaciente(idPaciente);
-        sv.setPresionArterial(presionSistolica + "/" + presionDiastolica);
-        sv.setFrecuenciaCardiaca(frecuenciaCardiaca);
-        sv.setFrecuenciaRespiratoria(frecuenciaRespiratoria);
-        sv.setTemperatura(temperatura);
-        sv.setSaturacionOxigeno(saturacionOxigeno);
-
-        boolean hayAlerta = alertaClinicaService.evaluarSignosVitales(idPaciente, sv);
-        sv.setAlertaGenerada(hayAlerta ? "S" : "N");
-        signoVitalRepository.save(sv);
+        moduloClinicoService.registrarSignoVital(idPaciente, presionSistolica, presionDiastolica,
+                frecuenciaCardiaca, frecuenciaRespiratoria, temperatura, saturacionOxigeno);
         return "redirect:/signos-vitales?idPaciente=" + idPaciente;
     }
 
@@ -103,20 +64,15 @@ public class ModuloClinicoController {
                               HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Optional<Paciente> pOpt = Optional.empty();
-        if (idPaciente != null) {
-            pOpt = pacienteRepository.findById(idPaciente);
-        } else if (cedula != null && !cedula.trim().isEmpty()) {
-            pOpt = pacienteRepository.findByCedula(cedula.trim());
-            if (pOpt.isEmpty()) {
-                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
-            }
+        Optional<Paciente> pOpt = moduloClinicoService.buscarPaciente(idPaciente, cedula);
+        if (pOpt.isEmpty() && cedula != null && !cedula.trim().isEmpty()) {
+            model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
         }
 
         if (pOpt.isPresent()) {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
-            model.addAttribute("historial", escalaGlasgowRepository.findByIdPaciente(p.getIdPaciente()));
+            model.addAttribute("historial", moduloClinicoService.historialGlasgow(p.getIdPaciente()));
         }
         return "escala_glasgow";
     }
@@ -129,14 +85,7 @@ public class ModuloClinicoController {
                                    HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        EscalaGlasgow eg = new EscalaGlasgow();
-        eg.setIdPaciente(idPaciente);
-        eg.setRespuestaOcular(respuestaOcular);
-        eg.setRespuestaVerbal(respuestaVerbal);
-        eg.setRespuestaMotora(respuestaMotora);
-
-        alertaClinicaService.evaluarGlasgow(idPaciente, eg);
-        escalaGlasgowRepository.save(eg);
+        moduloClinicoService.registrarGlasgow(idPaciente, respuestaOcular, respuestaVerbal, respuestaMotora);
         return "redirect:/escala-glasgow?idPaciente=" + idPaciente;
     }
 
@@ -147,20 +96,15 @@ public class ModuloClinicoController {
                           HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Optional<Paciente> pOpt = Optional.empty();
-        if (idPaciente != null) {
-            pOpt = pacienteRepository.findById(idPaciente);
-        } else if (cedula != null && !cedula.trim().isEmpty()) {
-            pOpt = pacienteRepository.findByCedula(cedula.trim());
-            if (pOpt.isEmpty()) {
-                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
-            }
+        Optional<Paciente> pOpt = moduloClinicoService.buscarPaciente(idPaciente, cedula);
+        if (pOpt.isEmpty() && cedula != null && !cedula.trim().isEmpty()) {
+            model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
         }
 
         if (pOpt.isPresent()) {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
-            model.addAttribute("historial", evaluacionIMCRepository.findByIdPaciente(p.getIdPaciente()));
+            model.addAttribute("historial", moduloClinicoService.historialIMC(p.getIdPaciente()));
         }
         return "evaluacion_imc";
     }
@@ -172,18 +116,7 @@ public class ModuloClinicoController {
                                HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        // Validación estricta backend: Impedir números negativos o improbables
-        if (pesoKg == null || pesoKg <= 0 || estaturaM == null || estaturaM <= 0) {
-            return "redirect:/evaluacion-imc?idPaciente=" + idPaciente;
-        }
-
-        EvaluacionIMC imc = new EvaluacionIMC();
-        imc.setIdPaciente(idPaciente);
-        imc.setPesoKg(pesoKg);
-        imc.setEstaturaM(estaturaM);
-
-        alertaClinicaService.evaluarIMC(idPaciente, imc);
-        evaluacionIMCRepository.save(imc);
+        moduloClinicoService.registrarIMC(idPaciente, pesoKg, estaturaM);
         return "redirect:/evaluacion-imc?idPaciente=" + idPaciente;
     }
 
@@ -191,11 +124,11 @@ public class ModuloClinicoController {
     @GetMapping("/antecedentes")
     public String showAntecedentes(@RequestParam Long idPaciente, HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
-        Optional<Paciente> pOpt = pacienteRepository.findById(idPaciente);
+        Optional<Paciente> pOpt = moduloClinicoService.buscarPaciente(idPaciente, null);
         if (pOpt.isPresent()) {
             model.addAttribute("paciente", pOpt.get());
-            model.addAttribute("historial", antecedenteRepository.findByIdPaciente(idPaciente));
-            model.addAttribute("enfermedades", enfermedadRepository.findAll());
+            model.addAttribute("historial", moduloClinicoService.historialAntecedentes(idPaciente));
+            model.addAttribute("enfermedades", moduloClinicoService.listarEnfermedades());
             return "antecedentes";
         }
         return "redirect:/pacientes";
@@ -209,20 +142,7 @@ public class ModuloClinicoController {
                                        HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Antecedente a = new Antecedente();
-        a.setIdPaciente(idPaciente);
-        a.setTipo(tipo);
-
-        if ("Patológico".equalsIgnoreCase(tipo) && enfermedadSeleccionada != null && !enfermedadSeleccionada.trim().isEmpty()) {
-            a.setObservacion(enfermedadSeleccionada.trim() + " - " + descripcion);
-        } else if ("Alergia".equalsIgnoreCase(tipo)) {
-            a.setAlergias(descripcion);
-            a.setObservacion("ALERGIA REGISTRADA: " + descripcion);
-        } else {
-            a.setObservacion(descripcion);
-        }
-
-        antecedenteRepository.save(a);
+        moduloClinicoService.registrarAntecedente(idPaciente, tipo, enfermedadSeleccionada, descripcion);
         return "redirect:/antecedentes?idPaciente=" + idPaciente;
     }
 
@@ -233,20 +153,15 @@ public class ModuloClinicoController {
                                    HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Optional<Paciente> pOpt = Optional.empty();
-        if (idPaciente != null) {
-            pOpt = pacienteRepository.findById(idPaciente);
-        } else if (cedula != null && !cedula.trim().isEmpty()) {
-            pOpt = pacienteRepository.findByCedula(cedula.trim());
-            if (pOpt.isEmpty()) {
-                model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
-            }
+        Optional<Paciente> pOpt = dosificacionService.buscarPaciente(idPaciente, cedula);
+        if (pOpt.isEmpty() && cedula != null && !cedula.trim().isEmpty()) {
+            model.addAttribute("error", "No se encontró ningún paciente registrado con la cédula " + cedula);
         }
 
         if (pOpt.isPresent()) {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
-            model.addAttribute("historial", dosificacionRepository.findByIdPacienteOrderByFechaRegistroDesc(p.getIdPaciente()));
+            model.addAttribute("historial", dosificacionService.historial(p.getIdPaciente()));
         }
         return "dosificacion";
     }
@@ -263,17 +178,8 @@ public class ModuloClinicoController {
                                         HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        Dosificacion d = new Dosificacion();
-        d.setIdPaciente(idPaciente);
-        d.setMedicamento(medicamento);
-        d.setUnidadDosis(unidadDosis);
-        d.setUnidadPresentacion(unidadPresentacion);
-        d.setPresentacion(presentacion);
-        d.setDiluyenteMl(diluyenteMl);
-        d.setHorasTotales(horasTotales);
-        d.setDosisIndicada(dosisIndicada);
-
-        dosificacionRepository.save(d);
+        dosificacionService.registrar(idPaciente, medicamento, dosisIndicada, unidadDosis,
+                presentacion, unidadPresentacion, diluyenteMl, horasTotales);
         return "redirect:/dosificacion?idPaciente=" + idPaciente;
     }
 }

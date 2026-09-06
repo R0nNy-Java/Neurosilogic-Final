@@ -1,6 +1,8 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -13,24 +15,28 @@ public class Dosificacion implements Serializable {
     @Column(name = "IdDosificacion")
     private Long idDosificacion;
 
-    @Column(name = "IdPaciente")
-    private Long idPaciente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "IdPaciente", nullable = false)
+    private Paciente paciente;
 
     @Column(name = "Medicamento", length = 100)
     private String medicamento;
 
+    @Positive(message = "La dosis indicada debe ser mayor a 0")
     @Column(name = "DosisIndicada")
     private Double dosisIndicada;
 
     @Column(name = "UnidadDosis", length = 10)
     private String unidadDosis;
 
+    @Positive(message = "La presentación debe ser mayor a 0")
     @Column(name = "Presentacion")
     private Double presentacion;
 
     @Column(name = "UnidadPresentacion", length = 10)
     private String unidadPresentacion;
 
+    @Positive(message = "El volumen del diluyente debe ser mayor a 0")
     @Column(name = "DiluyenteMl")
     private Double diluyenteMl;
 
@@ -127,12 +133,12 @@ public class Dosificacion implements Serializable {
         this.idDosificacion = idDosificacion;
     }
 
-    public Long getIdPaciente() {
-        return idPaciente;
+    public Paciente getPaciente() {
+        return paciente;
     }
 
-    public void setIdPaciente(Long idPaciente) {
-        this.idPaciente = idPaciente;
+    public void setPaciente(Paciente paciente) {
+        this.paciente = paciente;
     }
 
     public String getMedicamento() {

@@ -1,12 +1,38 @@
 package com.rrparedes.neurosilogic.util;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 public class PasswordUtil {
 
+    private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
+
+    /** Genera un hash BCrypt (con salt aleatorio incluido) para toda contraseña nueva. */
     public static String hash(String text) {
         if (text == null) return "";
+        return ENCODER.encode(text);
+    }
+
+    public static boolean verificar(String textPlano, String textHash) {
+        if (textPlano == null || textHash == null) return false;
+
+        // Hash BCrypt (formato estándar, empieza con $2a$/$2b$/$2y$)
+        if (textHash.startsWith("$2")) {
+            return ENCODER.matches(textPlano, textHash);
+        }
+
+        // Compatibilidad con datos de la semilla antigua guardados sin encriptar
+        if (textHash.length() < 30) {
+            return textPlano.equals(textHash);
+        }
+
+        // Compatibilidad con hashes SHA-256 (sin salt) generados antes de migrar a BCrypt
+        return sha256Legado(textPlano).equalsIgnoreCase(textHash);
+    }
+
+    private static String sha256Legado(String text) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
@@ -20,13 +46,5 @@ public class PasswordUtil {
         } catch (Exception e) {
             return text;
         }
-    }
-
-    public static boolean verificar(String textPlano, String textHash) {
-        if (textPlano == null || textHash == null) return false;
-        if (textHash.length() < 30) { // Si no está encriptado en la semilla antigua
-            return textPlano.equals(textHash);
-        }
-        return hash(textPlano).equalsIgnoreCase(textHash);
     }
 }

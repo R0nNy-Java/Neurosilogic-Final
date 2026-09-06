@@ -1,29 +1,22 @@
 package com.rrparedes.neurosilogic.controller;
 
-import com.rrparedes.neurosilogic.model.Medicamento;
 import com.rrparedes.neurosilogic.model.Usuario;
-import com.rrparedes.neurosilogic.repository.MedicamentoRepository;
-import com.rrparedes.neurosilogic.repository.UsuarioRepository;
-import com.rrparedes.neurosilogic.service.AuditoriaAccesoService;
+import com.rrparedes.neurosilogic.service.MedicamentoService;
+import com.rrparedes.neurosilogic.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @Controller
 public class AdminController {
 
-    private final UsuarioRepository usuarioRepository;
-    private final MedicamentoRepository medicamentoRepository;
-    private final AuditoriaAccesoService auditoriaAccesoService;
+    private final UsuarioService usuarioService;
+    private final MedicamentoService medicamentoService;
 
-    public AdminController(UsuarioRepository usuarioRepository, MedicamentoRepository medicamentoRepository,
-                           AuditoriaAccesoService auditoriaAccesoService) {
-        this.usuarioRepository = usuarioRepository;
-        this.medicamentoRepository = medicamentoRepository;
-        this.auditoriaAccesoService = auditoriaAccesoService;
+    public AdminController(UsuarioService usuarioService, MedicamentoService medicamentoService) {
+        this.usuarioService = usuarioService;
+        this.medicamentoService = medicamentoService;
     }
 
     // Verifica sesión activa y rol de administrador; retorna la ruta de redirección si el acceso
@@ -42,7 +35,7 @@ public class AdminController {
         String rechazo = verificarAcceso(session);
         if (rechazo != null) return rechazo;
 
-        model.addAttribute("usuarios", usuarioRepository.findAll());
+        model.addAttribute("usuarios", usuarioService.listarTodos());
         return "gestionar_usuarios";
     }
 
@@ -52,19 +45,7 @@ public class AdminController {
         if (rechazo != null) return rechazo;
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
 
-        Optional<Usuario> uOpt = usuarioRepository.findById(idUsuario);
-        if (uOpt.isPresent()) {
-            Usuario u = uOpt.get();
-            u.setEstado(nuevoEstado);
-            u.setBloqueado("B".equalsIgnoreCase(nuevoEstado));
-            if (!u.isBloqueado()) {
-                u.setIntentosFallidos(0); // desbloqueo manual también reinicia el contador de intentos
-            }
-            usuarioRepository.save(u);
-            auditoriaAccesoService.registrar(userLog,
-                    u.isBloqueado() ? "BLOQUEO_MANUAL_USUARIO" : "DESBLOQUEO_MANUAL_USUARIO",
-                    "Usuario afectado: " + u.getNombreUsuario());
-        }
+        usuarioService.cambiarEstado(userLog, idUsuario, nuevoEstado);
         return "redirect:/gestionar-usuarios";
     }
 
@@ -74,7 +55,7 @@ public class AdminController {
         String rechazo = verificarAcceso(session);
         if (rechazo != null) return rechazo;
 
-        model.addAttribute("medicamentos", medicamentoRepository.findAll());
+        model.addAttribute("medicamentos", medicamentoService.listarTodos());
         return "gestionar_catalogo";
     }
 
@@ -87,9 +68,7 @@ public class AdminController {
         if (rechazo != null) return rechazo;
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
 
-        Medicamento med = new Medicamento(nombre, composicion, dosisRecomendada);
-        medicamentoRepository.save(med);
-        auditoriaAccesoService.registrar(userLog, "ALTA_MEDICAMENTO_CATALOGO", "Medicamento: " + nombre);
+        medicamentoService.registrar(userLog, nombre, composicion, dosisRecomendada);
         return "redirect:/gestionar-catalogo";
     }
 }

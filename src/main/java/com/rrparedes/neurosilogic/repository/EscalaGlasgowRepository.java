@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface EscalaGlasgowRepository extends JpaRepository<EscalaGlasgow, Long> {
-    List<EscalaGlasgow> findByIdPaciente(Long idPaciente);
+    List<EscalaGlasgow> findByPacienteIdPaciente(Long idPaciente);
 }

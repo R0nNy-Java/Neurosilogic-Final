@@ -46,8 +46,8 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (pacienteRepository.count() == 0) {
-            Paciente p1 = new Paciente("1723456789", "Juan Carlos", "Pérez Gómez", java.time.LocalDate.of(1979, 5, 15), "M", "A");
-            Paciente p2 = new Paciente("1712345678", "Ana María", "Torres Silva", java.time.LocalDate.of(1992, 8, 20), "F", "A");
+            Paciente p1 = new Paciente("1752345676", "Juan Carlos", "Pérez Gómez", java.time.LocalDate.of(1979, 5, 15), "M", "A");
+            Paciente p2 = new Paciente("0938765435", "Ana María", "Torres Silva", java.time.LocalDate.of(1992, 8, 20), "F", "A");
             pacienteRepository.save(p1);
             pacienteRepository.save(p2);
             System.out.println(">>> Seed Data: 2 pacientes iniciales creados.");

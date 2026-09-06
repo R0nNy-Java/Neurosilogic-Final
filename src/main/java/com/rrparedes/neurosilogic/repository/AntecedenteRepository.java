@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface AntecedenteRepository extends JpaRepository<Antecedente, Long> {
-    List<Antecedente> findByIdPaciente(Long idPaciente);
+    List<Antecedente> findByPacienteIdPaciente(Long idPaciente);
 }
