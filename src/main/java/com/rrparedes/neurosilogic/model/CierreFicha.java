@@ -42,6 +42,9 @@ public class CierreFicha implements Serializable {
     @Column(name = "UltimaDosis", length = 255)
     private String ultimaDosis;
 
+    @Column(name = "TieneAlertaActiva")
+    private Boolean tieneAlertaActiva;
+
     public CierreFicha() {
         this.fechaCierre = LocalDateTime.now();
     }
@@ -136,5 +139,13 @@ public class CierreFicha implements Serializable {
 
     public void setUltimaDosis(String ultimaDosis) {
         this.ultimaDosis = ultimaDosis;
+    }
+
+    public Boolean getTieneAlertaActiva() {
+        return tieneAlertaActiva != null ? tieneAlertaActiva : false;
+    }
+
+    public void setTieneAlertaActiva(Boolean tieneAlertaActiva) {
+        this.tieneAlertaActiva = tieneAlertaActiva;
     }
 }

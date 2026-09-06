@@ -69,7 +69,7 @@ public class AuthController {
             model.addAttribute("error", ex.getMessage());
             return "nueva_cuenta";
         }
-        model.addAttribute("mensaje", "Cuenta creada exitosamente. Ya puede iniciar sesión.");
+        model.addAttribute("mensaje", "Solicitud de cuenta enviada exitosamente. El administrador debe asignar su rol y activar su cuenta antes de iniciar sesión.");
         return "login";
     }
 

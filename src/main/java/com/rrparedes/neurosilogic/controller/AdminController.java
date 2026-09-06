@@ -49,6 +49,16 @@ public class AdminController {
         return "redirect:/gestionar-usuarios";
     }
 
+    @PostMapping("/gestionar-usuarios/asignar-rol")
+    public String asignarRolUsuario(@RequestParam Long idUsuario, @RequestParam String nuevoRol, HttpSession session) {
+        String rechazo = verificarAcceso(session);
+        if (rechazo != null) return rechazo;
+        Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
+
+        usuarioService.asignarRol(userLog, idUsuario, nuevoRol);
+        return "redirect:/gestionar-usuarios";
+    }
+
     // ── Gestión de Catálogo de Medicamentos ──
     @GetMapping("/gestionar-catalogo")
     public String gestionarCatalogo(HttpSession session, Model model) {

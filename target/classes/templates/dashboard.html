@@ -91,15 +91,12 @@
             </div>
           </div>
 
-          <!-- MÓDULOS DE ENFERMERÍA GRID -->
-          <p class="small fw-bold text-uppercase text-muted mb-3 d-flex align-items-center gap-1">
-            <i class="bi bi-lightning-fill"></i><span th:text="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN') ? 'Módulos de Administración' : 'Módulos de Enfermería'}">Módulos</span>
-          </p>
-
-          <div class="row row-cols-2 row-cols-lg-4 g-3">
-
-            <!-- TARJETAS PARA ADMINISTRADOR -->
-            <th:block th:if="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN')}">
+          <!-- MÓDULOS DE ENFERMERÍA GRID PARA ADMIN -->
+          <th:block th:if="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN')}">
+            <p class="small fw-bold text-uppercase text-muted mb-3 d-flex align-items-center gap-1">
+              <i class="bi bi-lightning-fill"></i><span>Módulos de Administración</span>
+            </p>
+            <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
               <div class="col">
                 <a th:href="@{/gestionar-usuarios}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
                   <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
@@ -132,65 +129,174 @@
                   <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
                 </a>
               </div>
-            </th:block>
+            </div>
 
-            <!-- TARJETAS PARA ENFERMERO -->
-            <th:block th:if="${usuario == null or (usuario.rol != 'ADMINISTRADOR' and usuario.rol != 'ADMIN')}">
-              <div class="col">
-                <a th:href="@{/pacientes}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
-                    <i class="bi bi-person-badge text-success fs-5"></i>
+            <!-- REGISTRO Y AUDITORÍA DE ÚLTIMOS MOVIMIENTOS SISTEMA -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                  <i class="bi bi-clock-history text-primary"></i> Últimos Movimientos del Sistema
+                </h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">Auditoría en Vivo</span>
+              </div>
+              <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+                  <thead class="bg-light text-muted sticky-top">
+                    <tr>
+                      <th>Fecha y Hora</th>
+                      <th>Usuario / Enfermero</th>
+                      <th>Acción / Movimiento</th>
+                      <th>Detalle de la Actividad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="mov : ${ultimosMovimientos}">
+                      <td th:text="${#temporals.format(mov.timestamp, 'dd/MM/yyyy HH:mm:ss')}" class="text-nowrap font-monospace text-muted">01/01/2026 00:00</td>
+                      <td>
+                        <strong class="text-dark" th:text="${mov.usuario != null ? mov.usuario.nombreUsuario : 'Sistema'}">Usuario</strong>
+                      </td>
+                      <td>
+                        <span class="badge" 
+                              th:classappend="${mov.accion == 'LOGIN_EXITOSO' ? 'bg-success' : (mov.accion == 'LOGOUT' ? 'bg-secondary' : (mov.accion == 'BLOQUEO_MANUAL_USUARIO' ? 'bg-danger' : 'bg-info'))}"
+                              th:text="${mov.accion}">ACCIÓN</span>
+                      </td>
+                      <td th:text="${mov.motivoAnulacion != null ? mov.motivoAnulacion : 'Sin detalle registrado.'}">Detalle</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(ultimosMovimientos)}">
+                      <td colspan="4" class="text-center text-muted py-3">No hay movimientos registrados en la bitácora aún.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </th:block>
+
+          <!-- TABLERO KANBAN DE ATENCIÓN Y SEGUIMIENTO CLÍNICO PERSONALIZADO -->
+          <th:block th:if="${usuario == null or (usuario.rol != 'ADMINISTRADOR' and usuario.rol != 'ADMIN')}">
+            <p class="small fw-bold text-uppercase text-muted mb-3 d-flex align-items-center gap-1">
+              <i class="bi bi-kanban-fill text-primary"></i><span>Tablero Kanban · Mis Atenciones y Seguimiento</span>
+            </p>
+            <div class="row g-3 mb-4">
+
+              <!-- COLUMNA 1: PENDIENTES (Solo fichas que YO cerré y que aún tienen alerta activa) -->
+              <div class="col-12 col-lg-4">
+                <div class="bg-white p-3 rounded-4 shadow-sm h-100 border-top border-4 border-warning">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold text-uppercase small text-dark d-flex align-items-center gap-1">
+                      <i class="bi bi-clock-history text-warning fs-5"></i> Pendientes / En Espera
+                    </span>
                   </div>
-                  <div class="fw-bold text-dark small">Gestionar Pacientes</div>
-                  <div class="text-muted" style="font-size:.78rem;">Ficha clínica digital con antecedentes</div>
-                  <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
-                </a>
+
+                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
+                    <th:block th:each="cf : ${cierresFicha}">
+                      <div th:if="${cf.tieneAlertaActiva == true}" class="card border border-warning border-opacity-25 bg-warning bg-opacity-10 p-3 rounded-3 shadow-xs">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                          <strong class="text-dark small" th:text="${cf.paciente.nombres + ' ' + cf.paciente.apellidos}">Paciente</strong>
+                          <span class="badge bg-white text-warning border border-warning font-monospace" style="font-size:.65rem;" th:text="${cf.paciente.cedula}">0000</span>
+                        </div>
+
+                        <div class="text-muted mb-2" style="font-size:.75rem;">
+                          <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Re-evaluación sugerida: <strong th:text="${#temporals.format(cf.fechaCierre.plusHours(1), 'HH:mm')}">HH:mm</strong> (+1h)
+                        </div>
+
+                        <div class="mt-auto pt-2 border-top border-warning border-opacity-25 d-flex justify-content-between align-items-center">
+                          <span class="badge bg-warning text-dark" style="font-size: .65rem;"><i class="bi bi-shield-exclamation me-1"></i>No Saludable</span>
+                          <a th:href="@{/paciente/panel(id=${cf.paciente.idPaciente})}" class="btn btn-warning btn-sm py-1 px-3 text-dark fw-bold" style="font-size:.75rem;">
+                            Atender <i class="bi bi-arrow-right-short"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </th:block>
+                    <div th:if="${#lists.isEmpty(cierresFicha)}" class="text-center text-muted small py-4">Sin pacientes pendientes de re-evaluación.</div>
+                  </div>
+                </div>
               </div>
 
-              <div class="col">
-                <a th:href="@{/signos-vitales}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
-                    <i class="bi bi-activity text-success fs-5"></i>
+              <!-- COLUMNA 2: EN EVALUACIÓN CLÍNICA (Fichas activas asignadas a MI sesión) -->
+              <div class="col-12 col-lg-4">
+                <div class="bg-white p-3 rounded-4 shadow-sm h-100 border-top border-4 border-info">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold text-uppercase small text-dark d-flex align-items-center gap-1">
+                      <i class="bi bi-hospital text-info fs-5"></i> En Evaluación Clínica
+                    </span>
+                    <span class="badge bg-info text-white rounded-pill" th:text="${#lists.size(pacientes)}">0</span>
                   </div>
-                  <div class="fw-bold text-dark small">Signos Vitales</div>
-                  <div class="text-muted" style="font-size:.78rem;">Búsqueda por cédula y toma de constantes vitales</div>
-                  <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
-                </a>
+
+                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
+                    <div th:each="p : ${pacientes}" class="card border border-info border-opacity-25 bg-info bg-opacity-10 p-3 rounded-3 shadow-xs">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="text-dark small" th:text="${p.nombres + ' ' + p.apellidos}">Paciente</strong>
+                        <span class="badge bg-info text-white" style="font-size:.65rem;"><i class="bi bi-activity me-1"></i>Ficha Activa</span>
+                      </div>
+                      <div class="text-muted mb-1" style="font-size:.75rem;">
+                        <i class="bi bi-person-check me-1 text-info"></i>Asignado a: <strong th:text="${usuario != null ? (usuario.nombreCompleto != null and !usuario.nombreCompleto.isEmpty() ? usuario.nombreCompleto : usuario.nombreUsuario) : 'Mi Turno'}">Mi Turno</strong>
+                      </div>
+
+                      <div class="mt-auto pt-2 border-top border-info border-opacity-25 d-flex justify-content-between align-items-center">
+                        <span class="text-muted font-monospace" style="font-size:.68rem;">Flujo Pasos 1 a 5</span>
+                      </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(pacientes)}" class="text-center text-muted small py-4">Sin evaluaciones en proceso.</div>
+                  </div>
+                </div>
               </div>
 
-              <div class="col">
-                <a th:href="@{/escala-glasgow}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
-                    <i class="bi bi-clipboard-pulse text-success fs-5"></i>
+              <!-- COLUMNA 3: CIERRE DE FICHA REALIZADO (Solo las fichas que YO cerré) -->
+              <div class="col-12 col-lg-4">
+                <div class="bg-white p-3 rounded-4 shadow-sm h-100 border-top border-4 border-success">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold text-uppercase small text-dark d-flex align-items-center gap-1">
+                      <i class="bi bi-check-circle-fill text-success fs-5"></i> Cierre de Ficha Realizado
+                    </span>
+                    <span class="badge bg-success text-white rounded-pill" th:text="${#lists.size(cierresFicha)}">0</span>
                   </div>
-                  <div class="fw-bold text-dark small">Escala Glasgow</div>
-                  <div class="text-muted" style="font-size:.78rem;">Búsqueda por cédula y valoración neurológica</div>
-                  <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
-                </a>
+
+                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
+                    <div th:each="cf : ${cierresFicha}" class="card border border-success border-opacity-25 bg-success bg-opacity-10 p-3 rounded-3 shadow-xs">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <strong class="text-dark small" th:text="${cf.paciente.nombres + ' ' + cf.paciente.apellidos}">Paciente</strong>
+                        <span class="badge bg-success text-white" style="font-size:.65rem;"><i class="bi bi-check2-circle me-1"></i>Ficha Cerrada</span>
+                      </div>
+
+                      <!-- ATRIBUCIÓN Y HORA EXACTA DE LA ÚLTIMA TOMA -->
+                      <div class="p-2 rounded bg-white bg-opacity-75 border border-success border-opacity-25 mb-2 mt-1">
+                        <div class="fw-bold text-success" style="font-size:.72rem;">
+                          <i class="bi bi-person-badge-fill me-1"></i>Enfermero/a: <span th:text="${cf.nombreEnfermero}">Enfermero</span>
+                        </div>
+                        <div class="text-dark fw-semibold" style="font-size:.70rem;">
+                          <i class="bi bi-clock-history me-1 text-primary"></i>Última Toma: <span th:text="${#temporals.format(cf.fechaCierre, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                        </div>
+                      </div>
+
+                      <!-- RESUMEN REGISTRADO AL MOMENTO DEL CIERRE -->
+                      <div class="d-flex flex-column gap-1 text-muted mb-2" style="font-size:.72rem;">
+                        <div><strong class="text-dark"><i class="bi bi-activity text-danger me-1"></i>SV:</strong> <span th:text="${cf.ultimosSignosVitales}">Signos</span></div>
+                        <div><strong class="text-dark"><i class="bi bi-clipboard-pulse text-warning me-1"></i>Glasgow:</strong> <span th:text="${cf.ultimoGlasgow}">Glasgow</span></div>
+                        <div><strong class="text-dark"><i class="bi bi-speedometer2 text-success me-1"></i>IMC:</strong> <span th:text="${cf.ultimoIMC}">IMC</span></div>
+                        <div><strong class="text-dark"><i class="bi bi-capsule text-primary me-1"></i>Dosis:</strong> <span th:text="${cf.ultimaDosis}">Dosis</span></div>
+                      </div>
+
+                      <!-- RECORDATORIO DE RE-TOMA EN 1 HORA (SOLO SI TIENE ALERTA ACTIVA EN EL CIERRE) -->
+                      <div th:if="${cf.tieneAlertaActiva == true}" class="p-2 rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger mb-2" style="font-size: 0.72rem;">
+                        <div class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>RE-TOMA OBLIGATORIA RECOMENDADA</div>
+                        <div>El paciente presenta alertas alteradas fuera de rango normal. Se sugiere realizar una nueva toma en <strong>1 hora</strong> (<span th:text="${#temporals.format(cf.fechaCierre.plusHours(1), 'HH:mm')}">Hora</span>).</div>
+                      </div>
+
+                      <div class="mt-auto pt-2 border-top border-success border-opacity-25 d-flex justify-content-between align-items-center">
+                        <span class="text-success fw-bold font-monospace" style="font-size:.68rem;">✓ Registro Consolidado</span>
+                      </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(cierresFicha)}" class="text-center text-muted small py-4">
+                      <i class="bi bi-inbox fs-3 d-block mb-1 text-muted"></i>
+                      No ha registrado cierres de ficha todavía.
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div class="col">
-                <a th:href="@{/dosificacion}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
-                    <i class="bi bi-calculator text-success fs-5"></i>
-                  </div>
-                  <div class="fw-bold text-dark small">Calcular Dosis</div>
-                  <div class="text-muted" style="font-size:.78rem;">Regla de tres e infusiones de dosis libre</div>
-                  <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
-                </a>
-              </div>
-
-              <div class="col">
-                <a th:href="@{/evaluacion-imc}" class="card border rounded-3 text-decoration-none h-100 p-3 d-flex flex-column gap-2">
-                  <div class="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 flex-shrink-0" style="width:46px;height:46px;">
-                    <i class="bi bi-speedometer2 text-success fs-5"></i>
-                  </div>
-                  <div class="fw-bold text-dark small">Calculadora IMC</div>
-                  <div class="text-muted" style="font-size:.78rem;">Evaluación del índice de masa corporal</div>
-                  <div class="text-muted small d-flex align-items-center gap-1 mt-auto"><i class="bi bi-arrow-right-circle"></i>Ir al módulo</div>
-                </a>
-              </div>
-            </th:block>
+            </div>
+          </th:block>
 
           </div>
 

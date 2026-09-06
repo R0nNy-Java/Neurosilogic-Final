@@ -124,10 +124,51 @@ public class PacienteServiceImpl implements PacienteService {
         String ultimaDosis = dosList.isEmpty() ? "Sin administración de dosis registrada." :
                 (dosList.get(0).getMedicamento() + " - " + dosList.get(0).getDosisIndicada() + " " + dosList.get(0).getUnidadDosis() + " (" + String.format("%.2f", dosList.get(0).getVolumenAdministrarMl()) + " ml)");
 
-        com.rrparedes.neurosilogic.model.CierreFicha cierre = new com.rrparedes.neurosilogic.model.CierreFicha(
-                paciente, enfermero, nombreEnfermero, ultimosSV, ultimoGlasgow, ultimoIMC, ultimosAntecedentes, ultimaDosis
-        );
+        com.rrparedes.neurosilogic.model.CierreFicha cierre = cierreFichaRepository.findTopByPaciente_IdPacienteOrderByFechaCierreDesc(idPaciente)
+                .orElse(new com.rrparedes.neurosilogic.model.CierreFicha());
+
+        cierre.setPaciente(paciente);
+        cierre.setEnfermero(enfermero);
+        cierre.setNombreEnfermero(nombreEnfermero);
+        cierre.setUltimosSignosVitales(ultimosSV);
+        cierre.setUltimoGlasgow(ultimoGlasgow);
+        cierre.setUltimoIMC(ultimoIMC);
+        cierre.setUltimosAntecedentes(ultimosAntecedentes);
+        cierre.setUltimaDosis(ultimaDosis);
+        cierre.setFechaCierre(java.time.LocalDateTime.now());
+
+        boolean tieneAlertas = !alertaClinicaRepository.findByPacienteIdPacienteOrderByFechaRegistroDesc(idPaciente).isEmpty();
+        cierre.setTieneAlertaActiva(tieneAlertas);
 
         return cierreFichaRepository.save(cierre);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.rrparedes.neurosilogic.model.CierreFicha> obtenerCierresFicha() {
+        return cierreFichaRepository.findAllByOrderByFechaCierreDesc();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.rrparedes.neurosilogic.model.CierreFicha> obtenerCierresFichaPorEnfermero(Long idUsuario) {
+        if (idUsuario == null) return List.of();
+        return cierreFichaRepository.findByEnfermeroIdUsuarioOrderByFechaCierreDesc(idUsuario);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Paciente> obtenerPacientesEnEvaluacionPorEnfermero(Long idUsuario) {
+        if (idUsuario == null) return pacienteRepository.findAll();
+        List<Paciente> todos = pacienteRepository.findAll();
+        List<Paciente> resultado = new java.util.ArrayList<>();
+        for (Paciente p : todos) {
+            Optional<com.rrparedes.neurosilogic.model.CierreFicha> ultimoCierre = cierreFichaRepository.findTopByPaciente_IdPacienteOrderByFechaCierreDesc(p.getIdPaciente());
+            // Si no tiene cierre o si el último cierre fue realizado por ESTE enfermero
+            if (ultimoCierre.isEmpty() || (ultimoCierre.get().getEnfermero() != null && ultimoCierre.get().getEnfermero().getIdUsuario().equals(idUsuario))) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
     }
 }

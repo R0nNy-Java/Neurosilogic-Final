@@ -26,4 +26,13 @@ public interface PacienteService {
 
     /** Registra y guarda el cierre de la ficha del paciente con un resumen del último enfermero y registros. */
     com.rrparedes.neurosilogic.model.CierreFicha registrarCierreFicha(Long idPaciente, com.rrparedes.neurosilogic.model.Usuario enfermero);
+
+    /** Lista todos los cierres de ficha registrados ordenados por fecha descendente para el tablero Kanban. */
+    List<com.rrparedes.neurosilogic.model.CierreFicha> obtenerCierresFicha();
+
+    /** Lista cierres de ficha atribuibles a un enfermero en particular. */
+    List<com.rrparedes.neurosilogic.model.CierreFicha> obtenerCierresFichaPorEnfermero(Long idUsuario);
+
+    /** Lista pacientes cuya ficha activa pertenece al enfermero o no tienen cierre aún. */
+    List<Paciente> obtenerPacientesEnEvaluacionPorEnfermero(Long idUsuario);
 }

@@ -258,6 +258,18 @@ r) Separación entre Evaluadores y Calculadoras Rápidas (Prueba Sin Persistenci
      * Permite al personal clínico realizar evaluaciones de prueba instantáneas, desplegando en pantalla alertas clínicas desglosadas que indican exactamente qué parámetro está alterado (Presión, Pulso, Respiración, Temperatura, SatO2, Glasgow o IMC) y mostrando los valores y rangos normales esperados para una persona sana (ej. Presión Normal: 90/60 a 120/80 mmHg, Pulso Normal: 60-100 ppm, Glasgow Normal: 15/15).
    - **Desde la Ficha del Paciente (Tarjetas de Pasos 1 a 5)**:
      * Al acceder mediante las tarjetas guiadas de la Ficha Clínica (`?idPaciente=X`), opera en **Modo Asistencial Vinculado**.
-     * Guarda los registros formalmente en la Base de Datos, actualiza las Alertas Clínicas adaptativas de la Ficha y consolida los datos para el **Cierre de Ficha**.
+s) Implementación del Tablero Kanban de Gestión de Fichas en el Dashboard de Enfermería:
+   - Se reemplazaron las tarjetas estáticas y redundantes del Dashboard por un **Tablero Kanban dinámico de 3 columnas de flujo clínico**:
+     1. **Pendientes / En Espera (Amarillo)**: Muestra los pacientes que requieren toma de constantes vitales o re-evaluación periódica de enfermería, con botón de acceso directo "Atender".
+     2. **En Evaluación Clínica (Azul)**: Pacientes con Ficha Activa asignados en turno, permitiendo ingresar directamente a sus pasos asistenciales (Pasos 1 a 5).
+     3. **Cierre de Ficha Realizado (Verde)**: Muestra las tarjetas con la atribución explícita del enfermero/a que cerró la atención (`Atribuido a: [Nombre Enfermero/a]`), la fecha y hora exacta del cierre, y el desglose de los últimos registros consolidados (Signos Vitales, Glasgow, IMC y Dosificación).
 
-================================================================================
+x) Protección del Super Administrador e Integración de la Bitácora de Últimos Movimientos:
+   - **Protección del Cuenta Super Administrador (`admin` / ID 1)**:
+     * En `UsuarioServiceImpl.java` ([`cambiarEstado`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/java/com/rrparedes/neurosilogic/service/UsuarioServiceImpl.java#L130) y [`asignarRol`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/java/com/rrparedes/neurosilogic/service/UsuarioServiceImpl.java#L145)) se agregó una barrera de seguridad que impide modificar, degradar o bloquear la cuenta del Administrador principal.
+     * En la interfaz de [`gestionar_usuarios.html`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/resources/templates/gestionar_usuarios.html#L55-L75), los botones de acción para la cuenta `admin` fueron sustituidos por distintivos estáticos de **`Protegido`** y **`ADMINISTRADOR`**, previniendo modificaciones accidentales desde la interfaz.
+   - **Visualización de Últimos Movimientos en el Dashboard de Administración**:
+     * Se integró la tabla **"Últimos Movimientos del Sistema"** en [dashboard.html](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/resources/templates/dashboard.html#L134-L170).
+     * Muestra en tiempo real la auditoría de accesos e interacciones: inicios de sesión (`LOGIN_EXITOSO`), salidas (`LOGOUT`), bloqueos manuales, asignaciones de rol y movimientos asistenciales sobre los pacientes.
+
+================================================================================================

@@ -33,8 +33,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario u = usuarioRepository.findByNombreUsuarioIgnoreCase(usuario.trim())
                 .orElseThrow(() -> new NegocioException("Usuario o contraseña incorrectos."));
 
-        if (u.isBloqueado()) {
-            throw new NegocioException("La cuenta se encuentra bloqueada. Contacte al administrador.");
+        if (u.isBloqueado() || "SIN_ASIGNAR".equalsIgnoreCase(u.getRol()) || u.getRol() == null) {
+            throw new NegocioException("La cuenta está pendiente de aprobación o asignación de rol por el administrador.");
         }
 
         if (PasswordUtil.verificar(contrasena, u.getContrasenaHash())) {
@@ -69,7 +69,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuarioRepository.existsByNombreUsuarioIgnoreCase(usuario.trim())) {
             throw new NegocioException("El nombre de usuario ya existe.");
         }
-        Usuario u = new Usuario(usuario.trim(), PasswordUtil.hash(contrasena), "ENFERMERO", nombreCompleto, email, false);
+        // Las nuevas cuentas nacen con rol 'SIN_ASIGNAR' y estado 'B' (Bloqueado / Pendiente de aprobación)
+        Usuario u = new Usuario(usuario.trim(), PasswordUtil.hash(contrasena), "SIN_ASIGNAR", nombreCompleto, email, true);
         return usuarioRepository.save(u);
     }
 
@@ -128,6 +129,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public void cambiarEstado(Usuario actor, Long idUsuario, String nuevoEstado) {
         usuarioRepository.findById(idUsuario).ifPresent(u -> {
+            if ("admin".equalsIgnoreCase(u.getNombreUsuario()) || (u.getIdUsuario() != null && u.getIdUsuario() == 1L)) {
+                throw new NegocioException("No se permite bloquear ni alterar al Super Administrador principal del sistema.");
+            }
             u.setEstado(nuevoEstado);
             u.setBloqueado("B".equalsIgnoreCase(nuevoEstado));
             if (!u.isBloqueado()) {
@@ -137,6 +141,19 @@ public class UsuarioServiceImpl implements UsuarioService {
             auditoriaAccesoService.registrar(actor,
                     u.isBloqueado() ? "BLOQUEO_MANUAL_USUARIO" : "DESBLOQUEO_MANUAL_USUARIO",
                     "Usuario afectado: " + u.getNombreUsuario());
+        });
+    }
+
+    @Override
+    public void asignarRol(Usuario actor, Long idUsuario, String nuevoRol) {
+        usuarioRepository.findById(idUsuario).ifPresent(u -> {
+            if ("admin".equalsIgnoreCase(u.getNombreUsuario()) || (u.getIdUsuario() != null && u.getIdUsuario() == 1L)) {
+                throw new NegocioException("No se permite cambiar el rol al Super Administrador principal del sistema.");
+            }
+            u.setRol(nuevoRol);
+            usuarioRepository.save(u);
+            auditoriaAccesoService.registrar(actor, "ASIGNACION_ROL",
+                    "Rol '" + nuevoRol + "' asignado a: " + u.getNombreUsuario());
         });
     }
 

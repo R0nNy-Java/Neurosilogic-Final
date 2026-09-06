@@ -53,20 +53,40 @@
                     <td th:text="${u.nombreUsuario}" class="fw-bold">admin</td>
                     <td th:text="${u.nombreCompleto}">Nombre</td>
                     <td th:text="${u.email}">email@domain.com</td>
-                    <td><span class="badge bg-primary" th:text="${u.rol}">ADMINISTRADOR</span></td>
                     <td>
-                      <span th:if="${!u.isBloqueado()}" class="badge bg-success">ACTIVO</span>
-                      <span th:if="${u.isBloqueado()}" class="badge bg-danger">BLOQUEADO</span>
+                      <th:block th:if="${u.nombreUsuario == 'admin' or u.idUsuario == 1}">
+                        <span class="badge bg-primary px-3 py-2 fw-bold" style="font-size:0.8rem;"><i class="bi bi-shield-check me-1"></i>ADMINISTRADOR</span>
+                      </th:block>
+                      <th:block th:if="${u.nombreUsuario != 'admin' and u.idUsuario != 1}">
+                        <form th:action="@{/gestionar-usuarios/asignar-rol}" method="post" class="d-flex align-items-center gap-1">
+                          <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
+                          <select name="nuevoRol" class="form-select form-select-sm border-secondary fw-semibold" onchange="this.form.submit()" style="max-width: 150px; font-size: 0.8rem;">
+                            <option value="SIN_ASIGNAR" th:selected="${u.rol == 'SIN_ASIGNAR' or u.rol == null}">⚠️ Sin Asignar</option>
+                            <option value="ENFERMERO" th:selected="${u.rol == 'ENFERMERO'}">ENFERMERO</option>
+                            <option value="ADMINISTRADOR" th:selected="${u.rol == 'ADMINISTRADOR' or u.rol == 'ADMIN'}">ADMINISTRADOR</option>
+                          </select>
+                        </form>
+                      </th:block>
+                    </td>
+                    <td>
+                      <span th:if="${!u.isBloqueado() and u.rol != 'SIN_ASIGNAR' and u.rol != null}" class="badge bg-success">ACTIVO</span>
+                      <span th:if="${u.isBloqueado() and (u.rol == 'SIN_ASIGNAR' or u.rol == null)}" class="badge bg-warning text-dark">PENDIENTE DE APROBACIÓN</span>
+                      <span th:if="${u.isBloqueado() and u.rol != 'SIN_ASIGNAR' and u.rol != null}" class="badge bg-danger">BLOQUEADO</span>
                     </td>
                     <td class="text-center">
-                      <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
-                        <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
-                        <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
-                        <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">
-                          <i class="fa-solid" th:classappend="${u.isBloqueado() ? 'fa-unlock' : 'fa-lock'}"></i>
-                          <span th:text="${u.isBloqueado() ? ' Desbloquear' : ' Bloquear'}">Acción</span>
-                        </button>
-                      </form>
+                      <th:block th:if="${u.nombreUsuario == 'admin' or u.idUsuario == 1}">
+                        <span class="badge bg-secondary py-2 px-3 text-white" style="font-size:0.75rem;"><i class="bi bi-lock-fill me-1"></i>Protegido</span>
+                      </th:block>
+                      <th:block th:if="${u.nombreUsuario != 'admin' and u.idUsuario != 1}">
+                        <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
+                          <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
+                          <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
+                          <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">
+                            <i class="fa-solid" th:classappend="${u.isBloqueado() ? 'fa-unlock' : 'fa-lock'}"></i>
+                            <span th:text="${u.isBloqueado() ? ' Activar / Desbloquear' : ' Bloquear'}">Acción</span>
+                          </button>
+                        </form>
+                      </th:block>
                     </td>
                   </tr>
                 </tbody>

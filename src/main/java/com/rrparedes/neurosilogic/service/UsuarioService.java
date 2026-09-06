@@ -30,4 +30,7 @@ public interface UsuarioService {
 
     /** Bloquea/desbloquea manualmente a un usuario y audita la acción a nombre de {@code actor}. */
     void cambiarEstado(Usuario actor, Long idUsuario, String nuevoEstado);
+
+    /** Asigna un rol (ej. ENFERMERO, ADMINISTRADOR) a un usuario. */
+    void asignarRol(Usuario actor, Long idUsuario, String nuevoRol);
 }
