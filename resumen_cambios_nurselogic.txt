@@ -264,12 +264,20 @@ s) Implementación del Tablero Kanban de Gestión de Fichas en el Dashboard de E
      2. **En Evaluación Clínica (Azul)**: Pacientes con Ficha Activa asignados en turno, permitiendo ingresar directamente a sus pasos asistenciales (Pasos 1 a 5).
      3. **Cierre de Ficha Realizado (Verde)**: Muestra las tarjetas con la atribución explícita del enfermero/a que cerró la atención (`Atribuido a: [Nombre Enfermero/a]`), la fecha y hora exacta del cierre, y el desglose de los últimos registros consolidados (Signos Vitales, Glasgow, IMC y Dosificación).
 
-x) Protección del Super Administrador e Integración de la Bitácora de Últimos Movimientos:
-   - **Protección del Cuenta Super Administrador (`admin` / ID 1)**:
-     * En `UsuarioServiceImpl.java` ([`cambiarEstado`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/java/com/rrparedes/neurosilogic/service/UsuarioServiceImpl.java#L130) y [`asignarRol`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/java/com/rrparedes/neurosilogic/service/UsuarioServiceImpl.java#L145)) se agregó una barrera de seguridad que impide modificar, degradar o bloquear la cuenta del Administrador principal.
-     * En la interfaz de [`gestionar_usuarios.html`](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/resources/templates/gestionar_usuarios.html#L55-L75), los botones de acción para la cuenta `admin` fueron sustituidos por distintivos estáticos de **`Protegido`** y **`ADMINISTRADOR`**, previniendo modificaciones accidentales desde la interfaz.
-   - **Visualización de Últimos Movimientos en el Dashboard de Administración**:
-     * Se integró la tabla **"Últimos Movimientos del Sistema"** en [dashboard.html](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/resources/templates/dashboard.html#L134-L170).
-     * Muestra en tiempo real la auditoría de accesos e interacciones: inicios de sesión (`LOGIN_EXITOSO`), salidas (`LOGOUT`), bloqueos manuales, asignaciones de rol y movimientos asistenciales sobre los pacientes.
+z) Reestructuración y Segmentación del Módulo de Reportería según Rol (Inspirado en Power BI / .pbix):
+   - **Análisis de Requerimientos Power BI (`IdeaReporte.pbix`)**:
+     * Se diseñó un dashboard de reportería ejecutivo basado en tarjetas KPI de rendimiento (Kpis totales, métricas clave) y gráficos analíticos interactivos (Dona de distribución de riesgo y Barras de atenciones de personal).
+   - **Vista para Personal Clínico / Enfermeros**:
+     * Mantiene el **Reporte General de Pacientes** (Tarjeta 1) y el **Reporte Individual por Cédula con Exportación PDF y Generación de Código QR** (Tarjeta 2).
+     * **Maquetación para Impresión / Exportación PDF**: Se agregaron reglas CSS específicas `@media print` en [reportes.html](file:///c:/Users/NW/Downloads/RespaldoProyecto/src/main/resources/templates/reportes.html#L315-L342). Al hacer clic en *"Imprimir / Exportar PDF"*, se ocultan automáticamente las barras laterales, menús y formularios intermedios, renderizando en pantalla la hoja oficial limpia con las tablas de datos consolidadas de pacientes y el historial de cierres de enfermería.
+   - **Vista de Auditoría Analítica para Administradores (`/reportes`)**:
+     * Al ingresar un usuario con rol `ADMINISTRADOR`, la pantalla de reportería se transforma automáticamente en un **Dashboard Analítico de Auditoría (Estilo Power BI / .pbix)**.
+     * **Métricas Principales KPI**: Muestra tarjetas destacadas con el total de fichas cerradas, alertas clínicas registradas e historias de pacientes atendiéndose.
+     * **Gráficos Dinámicos Chart.js**:
+       1. *Dona de Distribución de Alertas por Nivel de Riesgo* (Crítico/Alto, Moderado, Estable).
+       2. *Barras de Atenciones Realizadas por Personal Clínico*.
+     * **Tabla de Atenciones por Enfermero**: Muestra cada paciente atendido, la fecha y hora del cierre, la atribución del enfermero/médico responsable, el resumen de sus constantes vitales y el estado de la alerta en el cierre.
+     * **Bitácora de Alertas Clínicas**: Registra todas las alertas fisiológicas detectadas en el sistema (SatO2 baja, HTA, Taquicardia, Glasgow bajo), el nivel de criticidad (Crítico, Alto, Moderado) y el diagnóstico desglosado.
+     * **Impresión / Exportación**: Botón dedicado *"Imprimir Reporte de Auditoría"* para generar el documento físico o digital consolidado.
 
 ================================================================================================

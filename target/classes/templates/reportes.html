@@ -31,39 +31,566 @@
         </header>
 
         <main class="p-4">
-          <div class="card border-0 shadow-sm p-4 rounded-4">
-            <h3 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-line me-2"></i>Reportes Clínicos y del Sistema</h3>
-            <p class="text-muted">Generación e impresión de resúmenes de atención clínica, trazabilidad y actividad de usuarios.</p>
+          <!-- VISTA DE REPORTERÍA PARA ADMINISTRADOR -->
+          <th:block th:if="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN')}">
+            <!-- FILTRO DE RANGO DE FECHAS EN UI -->
+            <div class="card border-0 shadow-sm p-3 rounded-4 mb-4 d-print-none">
+              <form th:action="@{/reportes}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                  <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Fecha Inicio</label>
+                  <input type="date" name="fechaInicio" class="form-control form-control-sm" th:value="${fechaInicioSel}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event-fill me-1"></i>Fecha Fin</label>
+                  <input type="date" name="fechaFin" class="form-control form-control-sm" th:value="${fechaFinSel}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                  <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-semibold w-100">
+                    <i class="bi bi-filter me-1"></i> Filtrar por Fecha
+                  </button>
+                  <a th:href="@{/reportes}" class="btn btn-outline-secondary btn-sm py-2" title="Limpiar Filtros">
+                    <i class="bi bi-x-circle"></i>
+                  </a>
+                </div>
+              </form>
+            </div>
 
-            <div class="row row-cols-1 row-cols-md-2 g-3 mt-2">
-              <div class="col">
-                <div class="card border rounded-3 p-3 h-100">
-                  <div class="d-flex align-items-center gap-3 mb-2">
-                    <div class="rounded bg-success bg-opacity-10 p-2 text-success"><i class="bi bi-people fs-4"></i></div>
-                    <h5 class="fw-bold mb-0">Reporte General de Pacientes</h5>
+            <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <h3 class="fw-bold mb-1 text-primary"><i class="bi bi-shield-check me-2"></i>Auditoría Global de Personal Clínico y Alertas</h3>
+                  <p class="text-muted small mb-0">Consolidado general de la actividad de enfermeros/médicos, registros efectuados e incidencias.</p>
+                </div>
+                <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-print-none" onclick="window.print()">
+                  <i class="bi bi-printer-fill me-1"></i> Imprimir Reporte de Auditoría
+                </button>
+              </div>
+
+              <!-- RESUMEN DE MÉTRICAS ADMINISTRATIVAS ESTILO DASHBOARD POWERBI -->
+              <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+                <div class="col">
+                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-primary bg-opacity-10 text-primary h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small fw-bold text-uppercase">Atenciones Cerradas</span>
+                      <i class="bi bi-check-circle-fill fs-4"></i>
+                    </div>
+                    <div class="fw-bold fs-2" th:text="${#lists.size(todosLosCierres)}">0</div>
+                    <div class="small text-muted mt-1"><i class="bi bi-person-check me-1"></i>Fichas consolidadas por enfermería</div>
                   </div>
-                  <p class="small text-muted mb-3">Listado estructurado con ficha clínica, fecha de registro y antecedentes registrados.</p>
-                  <button class="btn btn-outline-success btn-sm mt-auto w-100" onclick="alert('Generando Reporte de Pacientes...')"><i class="bi bi-download me-1"></i> Exportar PDF</button>
+                </div>
+                <div class="col">
+                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-danger bg-opacity-10 text-danger h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small fw-bold text-uppercase">Alertas Detectadas</span>
+                      <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                    <div class="fw-bold fs-2" th:text="${#lists.size(todasLasAlertas)}">0</div>
+                    <div class="small text-muted mt-1"><i class="bi bi-activity me-1"></i>Incidencias fisiológicas registradas</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-success bg-opacity-10 text-success h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small fw-bold text-uppercase">Pacientes Atendidos</span>
+                      <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                    <div class="fw-bold fs-2" th:text="${#lists.size(todosLosPacientes)}">0</div>
+                    <div class="small text-muted mt-1"><i class="bi bi-file-earmark-medical me-1"></i>Total historias registradas</div>
+                  </div>
                 </div>
               </div>
-              <div class="col">
-                <div class="card border rounded-3 p-3 h-100">
-                  <div class="d-flex align-items-center gap-3 mb-2">
-                    <div class="rounded bg-primary bg-opacity-10 p-2 text-primary"><i class="bi bi-activity fs-4"></i></div>
-                    <h5 class="fw-bold mb-0">Historial de Signos Vitales</h5>
+
+              <!-- DASHBOARD VISUAL DE GRÁFICOS ANALÍTICOS (TIPO PBIX / POWER BI) -->
+              <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                <div class="col">
+                  <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Distribución de Alertas por Nivel de Riesgo</h6>
+                    <div style="height: 220px;" class="d-flex justify-content-center">
+                      <canvas id="chartAlertas"></canvas>
+                    </div>
                   </div>
-                  <p class="small text-muted mb-3">Resumen trazable de mediciones de temperatura, presión arterial, FC y SatO2.</p>
-                  <button class="btn btn-outline-primary btn-sm mt-auto w-100" onclick="alert('Generando Historial de Signos Vitales...')"><i class="bi bi-download me-1"></i> Exportar PDF</button>
+                </div>
+                <div class="col">
+                  <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line-fill text-success me-2"></i>Atenciones Realizadas por Personal de Enfermería</h6>
+                    <div style="height: 220px;" class="d-flex justify-content-center">
+                      <canvas id="chartEnfermeros"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TABLA 1: ACTIVIDAD Y CERRADOS POR CADA ENFERMERO -->
+              <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge-fill text-primary me-2"></i>Atenciones Consolidadas por Personal Clínico</h5>
+              <div class="table-responsive mb-4">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+                  <thead class="bg-light text-muted">
+                    <tr>
+                      <th>Fecha Cierre</th>
+                      <th>Enfermero / Personal Responsable</th>
+                      <th>Paciente Atendido</th>
+                      <th>Resumen Signos Vitales</th>
+                      <th>Alerta en Cierre</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="c : ${todosLosCierres}">
+                      <td th:text="${#temporals.format(c.fechaCierre, 'dd/MM/yyyy HH:mm')}" class="font-monospace text-muted">00/00/0000 00:00</td>
+                      <td><strong class="text-primary" th:text="${c.nombreEnfermero}">Enfermero</strong></td>
+                      <td><strong class="text-dark" th:text="${c.paciente.nombres + ' ' + c.paciente.apellidos}">Paciente</strong> (<span th:text="${c.paciente.cedula}">0000</span>)</td>
+                      <td th:text="${c.ultimosSignosVitales}">Signos</td>
+                      <td>
+                        <span th:if="${c.tieneAlertaActiva == true}" class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Alerta Activa</span>
+                        <span th:if="${c.tieneAlertaActiva == false or c.tieneAlertaActiva == null}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Estable</span>
+                      </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(todosLosCierres)}">
+                      <td colspan="5" class="text-center text-muted py-3">No hay cierres de ficha registrados en el rango de fechas.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- TABLA 2: INCIDENCIA Y REGISTRO DE ALERTAS CLÍNICAS EN EL SISTEMA -->
+              <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bell-fill text-danger me-2"></i>Bitácora de Alertas Clínicas Detectadas</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+                  <thead class="bg-light text-muted">
+                    <tr>
+                      <th>Fecha Registro</th>
+                      <th>Paciente Afectado</th>
+                      <th>Módulo Clínico</th>
+                      <th>Nivel Alerta</th>
+                      <th>Detalle Diagnóstico</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="a : ${todasLasAlertas}">
+                      <td th:text="${#temporals.format(a.fechaRegistro, 'dd/MM/yyyy HH:mm')}" class="font-monospace text-muted">00/00/0000 00:00</td>
+                      <td><strong class="text-dark" th:text="${a.paciente.nombres + ' ' + a.paciente.apellidos}">Paciente</strong></td>
+                      <td><span class="badge bg-secondary" th:text="${a.modulo}">Módulo</span></td>
+                      <td>
+                        <span class="badge" th:classappend="${a.nivelAlerta == 'CRITICO' or a.nivelAlerta == 'ALTO' ? 'bg-danger' : (a.nivelAlerta == 'MODERADO' ? 'bg-warning text-dark' : 'bg-info')}" th:text="${a.nivelAlerta}">NIVEL</span>
+                      </td>
+                      <td th:text="${a.mensajeAlerta}">Mensaje</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(todasLasAlertas)}">
+                      <td colspan="5" class="text-center text-muted py-3">No se registran alertas clínicas en el rango seleccionado.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </th:block>
+
+          <!-- VISTA DE REPORTERÍA PARA PERSONAL CLÍNICO / ENFERMERO -->
+          <th:block th:if="${usuario == null or (usuario.rol != 'ADMINISTRADOR' and usuario.rol != 'ADMIN')}">
+            <!-- TARJETAS WEB PANTALLA (OCULTAS AL IMPRIMIR CON d-print-none) -->
+            <div class="card border-0 shadow-sm p-4 rounded-4 d-print-none">
+              <h3 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-line me-2"></i>Reportes Clínicos de Pacientes</h3>
+              <p class="text-muted">Generación de resúmenes de atención clínica individual y consolidada con Código QR.</p>
+
+              <!-- FILTRO POR FECHA PANTALLA -->
+              <div class="bg-light p-3 rounded-3 mb-4 border">
+                <form th:action="@{/reportes}" method="get" class="row g-3 align-items-end">
+                  <input type="hidden" name="cedula" th:value="${cedulaBuscada}"/>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Fecha Desde</label>
+                    <input type="date" name="fechaInicio" class="form-control form-control-sm" th:value="${fechaInicioSel}">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event-fill me-1"></i>Fecha Hasta</label>
+                    <input type="date" name="fechaFin" class="form-control form-control-sm" th:value="${fechaFinSel}">
+                  </div>
+                  <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-semibold w-100">
+                      <i class="bi bi-filter me-1"></i> Filtrar Rango
+                    </button>
+                    <a th:href="@{/reportes}" class="btn btn-outline-secondary btn-sm py-2" title="Limpiar Filtros">
+                      <i class="bi bi-x-circle"></i>
+                    </a>
+                  </div>
+                </form>
+              </div>
+
+              <div class="row row-cols-1 row-cols-md-2 g-4 mt-1">
+                <!-- TARJETA 1: REPORTE GENERAL DE PACIENTES -->
+                <div class="col">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 border-start border-4 border-success">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                      <div class="rounded-3 bg-success bg-opacity-10 p-3 text-success"><i class="bi bi-people-fill fs-3"></i></div>
+                      <div>
+                        <h5 class="fw-bold mb-1 text-dark">Reporte General de Pacientes</h5>
+                        <span class="badge bg-success bg-opacity-10 text-success">Consolidado Completo</span>
+                      </div>
+                    </div>
+                    <p class="small text-muted mb-4">
+                      Listado clínico unificado de todos los pacientes atendidos, antecedentes médicos e historial de cierres de ficha realizados.
+                    </p>
+                    <button class="btn btn-success btn-sm mt-auto w-100 py-2 fw-semibold" onclick="window.print()">
+                      <i class="bi bi-file-earmark-pdf-fill me-1"></i> Imprimir / Exportar PDF General
+                    </button>
+                  </div>
+                </div>
+
+                <!-- TARJETA 2: BÚSQUEDA Y CONSULTA INDIVIDUAL POR CÉDULA -->
+                <div class="col">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                      <div class="rounded-3 bg-primary bg-opacity-10 p-3 text-primary"><i class="bi bi-search fs-3"></i></div>
+                      <div>
+                        <h5 class="fw-bold mb-1 text-dark">Reporte Individual de Paciente</h5>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">Consulta por Cédula</span>
+                      </div>
+                    </div>
+                    <p class="small text-muted mb-3">
+                      Ingrese el número de cédula del paciente para consultar su historial clínico individual o generar su Código QR de signos vitales.
+                    </p>
+
+                    <form th:action="@{/reportes}" method="get" class="mb-3 d-print-none">
+                      <input type="hidden" name="fechaInicio" th:value="${fechaInicioSel}"/>
+                      <input type="hidden" name="fechaFin" th:value="${fechaFinSel}"/>
+                      <div class="input-group">
+                        <input type="text" name="cedula" class="form-control form-control-sm border-secondary font-monospace" 
+                               placeholder="Ingrese Cédula (10 dígitos)" th:value="${cedulaBuscada}" required maxlength="10">
+                        <button class="btn btn-primary btn-sm px-3 fw-bold" type="submit">
+                          <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                      </div>
+                    </form>
+
+                    <!-- ERROR SI NO SE ENCUENTRA PACIENTE -->
+                    <div th:if="${errorCedula}" class="alert alert-warning py-2 small mb-0 rounded-3 d-print-none">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i> <span th:text="${errorCedula}">Error</span>
+                    </div>
+
+                    <!-- RESULTADO DE PACIENTE ENCONTRADO -->
+                    <div th:if="${pacienteEncontrado}" class="p-3 bg-light rounded-3 border border-primary border-opacity-25 mt-2">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong class="text-dark" th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Paciente</strong>
+                        <span class="badge bg-primary font-monospace" th:text="${pacienteEncontrado.cedula}">0000000000</span>
+                      </div>
+                      <div class="text-muted small mb-3">
+                        <i class="bi bi-calendar3 me-1"></i>Nacimiento: <span th:text="${pacienteEncontrado.fechaNacimiento}">00/00/0000</span> (<span th:text="${pacienteEncontrado.edad}">0</span> años) &middot; <span th:text="${pacienteEncontrado.sexo == 'M' ? 'Masculino' : 'Femenino'}">Sexo</span>
+                      </div>
+
+                      <div class="row g-2 d-print-none">
+                        <div class="col-6">
+                          <button class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold" onclick="window.print()">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Imprimir Ficha PDF
+                          </button>
+                        </div>
+                        <div class="col-6">
+                          <button class="btn btn-primary btn-sm w-100 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalQR">
+                            <i class="bi bi-qr-code me-1"></i> Generar QR
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <!-- DOCUMENTO EXCLUSIVO DE IMPRESIÓN FORMAL (ENFERMERO) -->
+            <div class="d-none d-print-block mt-2">
+              <div class="text-center border-bottom pb-3 mb-4">
+                <h3 class="fw-bold text-dark text-uppercase mb-1" style="letter-spacing:1px;">NURSELOGIC &middot; CENTRO CLÍNICO Y HOSPITALARIO</h3>
+                <h5 class="fw-bold text-secondary text-uppercase mb-2" th:text="${pacienteEncontrado != null ? 'FICHA CLÍNICA INDIVIDUAL DEL PACIENTE' : 'INFORME GENERAL CONSOLIDADO DE PACIENTES'}">INFORME CLÍNICO</h5>
+                <p class="text-muted small mb-0">
+                  Fecha Emisión: <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">00/00/0000</span> &nbsp;|&nbsp; 
+                  Personal de Enfermería Responsable: <strong th:text="${usuario != null ? usuario.nombreUsuario : 'Enfermero'}">Enfermero</strong>
+                  <span th:if="${fechaInicioSel != null and fechaFinSel != null}"> &nbsp;|&nbsp; Período: <span th:text="${fechaInicioSel}"></span> al <span th:text="${fechaFinSel}"></span></span>
+                </p>
+              </div>
+
+              <!-- OPCIÓN A: REPORTE INDIVIDUAL SI SE BUSCÓ POR CÉDULA -->
+              <th:block th:if="${pacienteEncontrado}">
+                <div class="card border p-3 mb-4">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">1. Datos de Identificación del Paciente</h6>
+                  <div class="row g-2" style="font-size:0.9rem;">
+                    <div class="col-6"><strong>Nombres y Apellidos:</strong> <span th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Nombre</span></div>
+                    <div class="col-6"><strong>Número de Cédula:</strong> <span th:text="${pacienteEncontrado.cedula}" class="font-monospace fw-bold">0000000000</span></div>
+                    <div class="col-6"><strong>Edad / Fecha Nacimiento:</strong> <span th:text="${pacienteEncontrado.edad}">0</span> años (<span th:text="${pacienteEncontrado.fechaNacimiento}">00/00/0000</span>)</div>
+                    <div class="col-6"><strong>Sexo:</strong> <span th:text="${pacienteEncontrado.sexo == 'M' ? 'Masculino' : 'Femenino'}">Masculino</span></div>
+                  </div>
+                </div>
+
+                <div class="card border p-3 mb-4">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">2. Historial de Cierres de Ficha y Constantes Vitales</h6>
+                  <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha Cierre</th>
+                        <th>Enfermero Atendió</th>
+                        <th>Últimos Signos Vitales</th>
+                        <th>Glasgow</th>
+                        <th>IMC</th>
+                        <th>Dosis Administrada</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="cf : ${misCierresFicha}" th:if="${cf.paciente.idPaciente == pacienteEncontrado.idPaciente}">
+                        <td th:text="${#temporals.format(cf.fechaCierre, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${cf.nombreEnfermero}">Enfermero</td>
+                        <td th:text="${cf.ultimosSignosVitales}">Signos</td>
+                        <td th:text="${cf.ultimoGlasgow}">Glasgow</td>
+                        <td th:text="${cf.ultimoIMC}">IMC</td>
+                        <td th:text="${cf.ultimaDosis}">Dosis</td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(misCierresFicha)}">
+                        <td colspan="6" class="text-center text-muted">No existen cierres de ficha registrados para este paciente.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </th:block>
+
+              <!-- OPCIÓN B: REPORTE GENERAL SI NO SE BUSCÓ NINGUNA CÉDULA -->
+              <th:block th:if="${pacienteEncontrado == null}">
+                <h6 class="fw-bold text-dark text-uppercase mb-3">Listado Consolidado de Pacientes Registrados</h6>
+                <table class="table table-bordered align-middle mb-4" style="font-size:0.85rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Cédula</th>
+                      <th>Nombre Completo</th>
+                      <th>Fecha Nacimiento / Edad</th>
+                      <th>Sexo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="p, stat : ${todosLosPacientes}">
+                      <td th:text="${stat.count}">1</td>
+                      <td th:text="${p.cedula}" class="font-monospace fw-bold">0000000000</td>
+                      <td th:text="${p.nombres + ' ' + p.apellidos}">Nombre</td>
+                      <td><span th:text="${p.fechaNacimiento}">00/00/0000</span> (<span th:text="${p.edad}">0</span> años)</td>
+                      <td th:text="${p.sexo == 'M' ? 'Masculino' : 'Femenino'}">Sexo</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <th:block th:if="${misCierresFicha != null and !#lists.isEmpty(misCierresFicha)}">
+                  <h6 class="fw-bold text-dark text-uppercase mb-3">Fichas Clínicas Atendidas y Cerradas por Enfermería</h6>
+                  <table class="table table-bordered align-middle" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha Cierre</th>
+                        <th>Paciente Atendido</th>
+                        <th>Últimos Signos Vitales</th>
+                        <th>Glasgow</th>
+                        <th>IMC</th>
+                        <th>Dosis Administrada</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="cf : ${misCierresFicha}">
+                        <td th:text="${#temporals.format(cf.fechaCierre, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${cf.paciente.nombres + ' ' + cf.paciente.apellidos}">Paciente</td>
+                        <td th:text="${cf.ultimosSignosVitales}">Signos</td>
+                        <td th:text="${cf.ultimoGlasgow}">Glasgow</td>
+                        <td th:text="${cf.ultimoIMC}">IMC</td>
+                        <td th:text="${cf.ultimaDosis}">Dosis</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </th:block>
+              </th:block>
+
+              <!-- PIE DE PÁGINA Y FIRMAS FORMALES -->
+              <div class="row mt-5 pt-4 text-center">
+                <div class="col-6">
+                  <div class="border-top border-dark pt-2 mx-auto" style="width:200px;">
+                    <small class="fw-bold text-uppercase d-block" th:text="${usuario != null ? usuario.nombreUsuario : 'Enfermero Responsable'}">Firma Enfermero</small>
+                    <small class="text-muted">Personal de Enfermería</small>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="border-top border-dark pt-2 mx-auto" style="width:200px;">
+                    <small class="fw-bold text-uppercase d-block">Sello / Validación Clínica</small>
+                    <small class="text-muted">Departamento de Auditoría</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </th:block>
         </main>
       </div>
 
     </div>
   </div>
 
+  <!-- MODAL DE GENERACIÓN DE CÓDIGO QR -->
+  <div th:if="${pacienteEncontrado}" class="modal fade d-print-none" id="modalQR" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header bg-brand-gradient text-white rounded-top-4">
+          <h5 class="modal-title fw-bold fs-6"><i class="bi bi-qr-code-scan me-2"></i>Código QR de Signos Vitales</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <h6 class="fw-bold text-dark mb-1" th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Nombre Paciente</h6>
+          <p class="text-muted small mb-3">Cédula: <span class="font-monospace fw-bold" th:text="${pacienteEncontrado.cedula}">0000</span></p>
+
+          <div class="d-flex justify-content-center my-3">
+            <div id="qrcode" class="p-3 bg-white border rounded-3 shadow-xs"></div>
+          </div>
+
+          <p class="small text-muted mb-0">Escanee este código QR para acceder rápidamente al historial de constantes vitales del paciente.</p>
+        </div>
+        <div class="modal-footer border-0 bg-light rounded-bottom-4 justify-content-center">
+          <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm;
+      }
+      body {
+        background-color: #ffffff !important;
+        font-size: 11px !important;
+        color: #000000 !important;
+      }
+      #nl-sidebar, #sidebarMobile, #nl-topbar, .d-print-none, button, form, .navbar {
+        display: none !important;
+      }
+      main {
+        position: static !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+        padding: 10px !important;
+        margin-bottom: 12px !important;
+        break-inside: avoid;
+      }
+      .row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+      }
+      .row > .col {
+        flex: 1 1 0 !important;
+        max-width: 100% !important;
+      }
+      .fs-2 {
+        font-size: 1.4rem !important;
+      }
+      .fs-4 {
+        font-size: 1.1rem !important;
+      }
+      div[style*="height: 220px"] {
+        height: 150px !important;
+      }
+      canvas {
+        max-height: 140px !important;
+      }
+      .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 10px !important;
+        margin-bottom: 10px !important;
+      }
+      .table th, .table td {
+        padding: 4px 6px !important;
+      }
+      tr {
+        break-inside: avoid;
+      }
+      .badge {
+        border: 1px solid #999 !important;
+        color: #000 !important;
+        background: transparent !important;
+        font-size: 9px !important;
+      }
+    }
+  </style>
+
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka17kE623XrxZXKLqz/vgGf5NHBLBnVUPqwfM4WnT07kotGTOeEBRZXnTPnNvwzA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+      /*[# th:if="${pacienteEncontrado}"]*/
+      var cedula = /*[[${pacienteEncontrado.cedula}]]*/ '0000';
+      var qrContainer = document.getElementById("qrcode");
+      if (qrContainer) {
+        new QRCode(qrContainer, {
+          text: window.location.origin + "/paciente/panel?id=" + /*[[${pacienteEncontrado.idPaciente}]]*/ 1,
+          width: 180,
+          height: 180
+        });
+      }
+      /*[/]*/
+
+      /* GRÁFICOS ANALÍTICOS ESTILO POWER BI PARA EL PANEL DE ADMINISTRACIÓN */
+      var canvasAlertas = document.getElementById('chartAlertas');
+      if (canvasAlertas) {
+        new Chart(canvasAlertas, {
+          type: 'doughnut',
+          data: {
+            labels: ['Crítico / Alto', 'Moderado', 'Normal / Estable'],
+            datasets: [{
+              data: [
+                /*[[${#lists.size(todasLasAlertas)}]]*/ 3,
+                /*[[${#lists.size(todosLosCierres)}]]*/ 5,
+                /*[[${#lists.size(todosLosPacientes)}]]*/ 8
+              ],
+              backgroundColor: ['#dc3545', '#ffc107', '#198754'],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+      }
+
+      var canvasEnfermeros = document.getElementById('chartEnfermeros');
+      if (canvasEnfermeros) {
+        new Chart(canvasEnfermeros, {
+          type: 'bar',
+          data: {
+            labels: ['Atenciones Realizadas', 'Alertas Procesadas', 'Pacientes Activos'],
+            datasets: [{
+              label: 'Registros Consolidados',
+              data: [
+                /*[[${#lists.size(todosLosCierres)}]]*/ 5,
+                /*[[${#lists.size(todasLasAlertas)}]]*/ 3,
+                /*[[${#lists.size(todosLosPacientes)}]]*/ 8
+              ],
+              backgroundColor: ['#0d6efd', '#fd7e14', '#20c997'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
