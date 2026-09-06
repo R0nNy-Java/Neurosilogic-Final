@@ -45,29 +45,106 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
 
-          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
-          <div th:if="${paciente == null}" class="row justify-content-center py-4">
-            <div class="col-md-7 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
-                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
-                  <i class="bi bi-search text-primary fs-2"></i>
-                </div>
-                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
-                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y calcular la dosificación.</p>
-
-                <form th:action="@{/dosificacion}" method="get" class="mb-3">
-                  <div class="input-group input-group-lg mb-3">
-                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Número de cédula" required autofocus>
-                    <button class="btn btn-primary fw-bold px-4" type="submit">
-                      <i class="bi bi-search me-1"></i> Buscar Paciente
-                    </button>
+          <!-- VISTA 1: MODO CALCULADORA RÁPIDA (Desde Barra Lateral, sin paciente cargado) -->
+          <div th:if="${paciente == null}" class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="rounded-circle bg-primary bg-opacity-10 p-3 text-primary">
+                    <i class="bi bi-calculator fs-2"></i>
                   </div>
+                  <div>
+                    <h4 class="fw-bold mb-0 text-dark">Calculadora Rápida de Dosificación</h4>
+                    <p class="text-muted small mb-0">Cálculo de prueba de dosis y goteo sin guardar en la base de datos.</p>
+                  </div>
+                </div>
+
+                <form id="formDosisRapida" onsubmit="calcularDosisRapida(event);">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Medicamento</label>
+                    <input type="text" id="medRapido" class="form-control bg-light" placeholder="Ej. Paracetamol" required>
+                  </div>
+
+                  <div class="row g-2 mb-3">
+                    <div class="col-8">
+                      <label class="form-label fw-semibold">Dosis Indicada</label>
+                      <input type="number" step="0.01" id="dosisRapida" class="form-control bg-light" placeholder="Ej. 250" min="0.01" max="10000.0" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label fw-semibold">Unidad</label>
+                      <select id="unidadDosisRapida" class="form-select bg-light">
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="mcg">mcg</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row g-2 mb-3">
+                    <div class="col-8">
+                      <label class="form-label fw-semibold">Presentación Disponible</label>
+                      <input type="number" step="0.01" id="presRapida" class="form-control bg-light" placeholder="Ej. 500" min="0.01" max="10000.0" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label fw-semibold">Unidad</label>
+                      <select id="unidadPresRapida" class="form-select bg-light">
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="mcg">mcg</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Volumen del Diluyente (ml)</label>
+                    <input type="number" step="0.01" id="diluyenteRapido" class="form-control bg-light" placeholder="Ej. 5" min="0.01" max="5000.0" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Horas Totales de Infusión <span class="text-muted">(opcional)</span></label>
+                    <input type="number" step="0.1" id="horasRapidas" class="form-control bg-light" placeholder="Ej. 8" min="0.1" max="72.0">
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                    <i class="fa-solid fa-square-root-variable me-1"></i> Calcular Dosificación
+                  </button>
                 </form>
+
+                <!-- RESULTADO DE CÁLCULO RÁPIDO DE DOSIFICACIÓN -->
+                <div id="resultadoDosisRapido" class="mt-4 d-none">
+                  <div class="p-3 rounded-4 border-start border-4 border-primary bg-primary bg-opacity-10 text-dark">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge bg-primary" id="txtMedTitulo">Medicamento</span>
+                      <span class="small font-monospace text-muted">Fórmula estándar</span>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-primary" id="txtVolumenResultado">Volumen a administrar: 0.00 ml</h5>
+                    <div class="row text-center mt-3 g-2">
+                      <div class="col-4">
+                        <div class="p-2 bg-white rounded shadow-sm">
+                          <small class="text-muted d-block">Gotas/min</small>
+                          <strong class="fs-6 text-dark" id="txtGotas">0</strong>
+                        </div>
+                      </div>
+                      <div class="col-4">
+                        <div class="p-2 bg-white rounded shadow-sm">
+                          <small class="text-muted d-block">Microgotas/min</small>
+                          <strong class="fs-6 text-dark" id="txtMicrogotas">0</strong>
+                        </div>
+                      </div>
+                      <div class="col-4">
+                        <div class="p-2 bg-white rounded shadow-sm">
+                          <small class="text-muted d-block">ml/hora</small>
+                          <strong class="fs-6 text-dark" id="txtMlHora">0</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <!-- VISTA 2: MODO PACIENTE ASISTENCIAL (Desde Ficha Clínica / Tarjeta Paso 5) -->
           <div th:if="${paciente != null}" class="row">
             <div class="col-md-5">
               <div class="card border-0 shadow-sm p-4 rounded-4">
@@ -123,7 +200,12 @@
                     <input type="number" step="0.1" name="horasTotales" class="form-control" placeholder="Ej. 8" min="0.1" max="72.0">
                   </div>
 
-                  <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-square-root-variable me-1"></i> Calcular y Guardar</button>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="fa-solid fa-square-root-variable me-1"></i> Calcular y Guardar</button>
+                    <a th:href="@{/paciente/panel(id=${paciente.idPaciente})}" class="btn btn-warning fw-bold text-dark d-flex align-items-center gap-1" title="Ir a la Ficha para Cierre">
+                      Paso Siguiente <i class="bi bi-arrow-right-short fs-5"></i>
+                    </a>
+                  </div>
                 </form>
               </div>
             </div>
@@ -170,5 +252,48 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-</body>
-</html>
+
+  <script>
+    function convertirAMg(valor, unidad) {
+      if (unidad === 'g') return valor * 1000.0;
+      if (unidad === 'mcg') return valor / 1000.0;
+      return valor;
+    }
+
+    function calcularDosisRapida(e) {
+      e.preventDefault();
+      var med = document.getElementById('medRapido').value;
+      var dosis = parseFloat(document.getElementById('dosisRapida').value);
+      var uDosis = document.getElementById('unidadDosisRapida').value;
+      var pres = parseFloat(document.getElementById('presRapida').value);
+      var uPres = document.getElementById('unidadPresRapida').value;
+      var dil = parseFloat(document.getElementById('diluyenteRapido').value);
+      var horas = parseFloat(document.getElementById('horasRapidas').value);
+
+      var dosisMg = convertirAMg(dosis, uDosis);
+      var presMg = convertirAMg(pres, uPres);
+
+      if (presMg <= 0 || dil <= 0) return;
+
+      var volMl = (dosisMg * dil) / presMg;
+
+      document.getElementById('txtMedTitulo').innerText = med + " (" + dosis + " " + uDosis + ")";
+      document.getElementById('txtVolumenResultado').innerText = "Volumen a administrar: " + volMl.toFixed(2) + " ml";
+
+      if (horas && horas > 0) {
+        var gotas = volMl / (horas * 3.0);
+        var microgotas = volMl / horas;
+        var mlHora = volMl / horas;
+
+        document.getElementById('txtGotas').innerText = gotas.toFixed(1);
+        document.getElementById('txtMicrogotas').innerText = microgotas.toFixed(1);
+        document.getElementById('txtMlHora').innerText = mlHora.toFixed(1);
+      } else {
+        document.getElementById('txtGotas').innerText = "—";
+        document.getElementById('txtMicrogotas').innerText = "—";
+        document.getElementById('txtMlHora').innerText = "—";
+      }
+
+      document.getElementById('resultadoDosisRapido').classList.remove('d-none');
+    }
+  </script>

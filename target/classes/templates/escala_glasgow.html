@@ -45,29 +45,76 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
 
-          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
-          <div th:if="${paciente == null}" class="row justify-content-center py-4">
-            <div class="col-md-7 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
-                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
-                  <i class="bi bi-search text-success fs-2"></i>
-                </div>
-                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
-                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y registrar la escala de Glasgow.</p>
-
-                <form th:action="@{/escala-glasgow}" method="get" class="mb-3">
-                  <div class="input-group input-group-lg mb-3">
-                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Número de cédula" required autofocus>
-                    <button class="btn btn-success fw-bold px-4" type="submit">
-                      <i class="bi bi-search me-1"></i> Buscar Paciente
-                    </button>
+          <!-- VISTA 1: MODO EVALUADOR RÁPIDO DE GLASGOW (Desde Barra Lateral, sin paciente cargado) -->
+          <div th:if="${paciente == null}" class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="rounded-circle bg-warning bg-opacity-10 p-3 text-dark">
+                    <i class="bi bi-clipboard-pulse fs-2"></i>
                   </div>
+                  <div>
+                    <h4 class="fw-bold mb-0 text-dark">Evaluador Rápido Escala Glasgow</h4>
+                    <p class="text-muted small mb-0">Valoración neurológica de prueba en persona normal sin guardar en la base de datos.</p>
+                  </div>
+                </div>
+
+                <form id="formGlasgowRapido" onsubmit="evaluarGlasgowRapido(event);">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Apertura Ocular (1-4)</label>
+                    <select id="ocuRapido" class="form-select bg-light" required>
+                      <option value="4">4 - Espontánea</option>
+                      <option value="3">3 - A la orden verbal</option>
+                      <option value="2">2 - Al dolor</option>
+                      <option value="1">1 - Ninguna</option>
+                    </select>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Respuesta Verbal (1-5)</label>
+                    <select id="verRapido" class="form-select bg-light" required>
+                      <option value="5">5 - Orientado y conversando</option>
+                      <option value="4">4 - Desorientado / confuso</option>
+                      <option value="3">3 - Palabras inapropiadas</option>
+                      <option value="2">2 - Sonidos incomprensibles</option>
+                      <option value="1">1 - Ninguna</option>
+                    </select>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Respuesta Motora (1-6)</label>
+                    <select id="motRapido" class="form-select bg-light" required>
+                      <option value="6">6 - Obedece órdenes</option>
+                      <option value="5">5 - Localiza el dolor</option>
+                      <option value="4">4 - Retirada al dolor</option>
+                      <option value="3">3 - Flexión anormal (decorticación)</option>
+                      <option value="2">2 - Extensión anormal (descerebración)</option>
+                      <option value="1">1 - Ninguna</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold shadow-sm">
+                    <i class="fa-solid fa-brain me-1"></i> Evaluar Escala Glasgow
+                  </button>
                 </form>
+
+                <!-- RESULTADO DE EVALUACIÓN RÁPIDA GLASGOW -->
+                <div id="resultadoGlasgowRapido" class="mt-4 d-none">
+                  <div class="p-3 rounded-4 border-start border-4" id="cajaGlasgow">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge bg-dark text-white" id="badgeGlasgow">Evaluación Neurológica</span>
+                      <span class="small font-monospace text-muted">Puntaje normal: 15 / 15</span>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-dark" id="txtGlasgowPuntaje">Puntaje Total: 15 / 15</h5>
+                    <p class="mb-0 fw-semibold" id="txtGlasgowClasif">Clasificación: Leve / Normal</p>
+                    <small class="text-muted d-block mt-2" id="txtGlasgowDetalle"></small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <!-- VISTA 2: MODO PACIENTE ASISTENCIAL (Desde Ficha Clínica / Tarjeta Paso 4) -->
           <div th:if="${paciente != null}" class="row">
             <div class="col-md-5">
               <div class="card border-0 shadow-sm p-4 rounded-4">
@@ -163,5 +210,40 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-</body>
-</html>
+
+  <script>
+    function evaluarGlasgowRapido(e) {
+      e.preventDefault();
+      var ocu = parseInt(document.getElementById('ocuRapido').value);
+      var ver = parseInt(document.getElementById('verRapido').value);
+      var mot = parseInt(document.getElementById('motRapido').value);
+
+      var total = ocu + ver + mot;
+      var clasif = "";
+      var colorClass = "";
+      var detalle = "";
+
+      if (total >= 14) {
+        clasif = "Leve / Normal";
+        colorClass = "border-success bg-success bg-opacity-10 text-dark";
+        detalle = "✅ NORMAL: Paciente alerta, orientado y sin compromiso de conciencia (Estándar normal = 15/15).";
+      } else if (total >= 9) {
+        clasif = "Moderado";
+        colorClass = "border-warning bg-warning bg-opacity-10 text-dark";
+        detalle = "⚠️ ALERTA: Compromiso de conciencia moderado (" + total + "/15). El rango fisiológico normal de una persona sana es 15/15.";
+      } else {
+        clasif = "Grave / Crítico";
+        colorClass = "border-danger bg-danger bg-opacity-10 text-dark";
+        detalle = "🚨 ALERTA CRÍTICA: Compromiso neurológico severo (" + total + "/15). Requiere atención inmediata y vía aérea segura.";
+      }
+
+      document.getElementById('txtGlasgowPuntaje').innerText = "Puntaje Total: " + total + " / 15";
+      document.getElementById('txtGlasgowClasif').innerText = "Clasificación: " + clasif;
+      document.getElementById('txtGlasgowDetalle').innerText = detalle;
+
+      var caja = document.getElementById('cajaGlasgow');
+      caja.className = "p-3 rounded-4 border-start border-4 " + colorClass;
+
+      document.getElementById('resultadoGlasgowRapido').classList.remove('d-none');
+    }
+  </script>

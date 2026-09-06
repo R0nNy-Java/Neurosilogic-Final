@@ -23,4 +23,7 @@ public interface PacienteService {
 
     /** Agrega la ficha completa del paciente (signos vitales, Glasgow, IMC, antecedentes, alertas). */
     Optional<PanelPacienteData> obtenerPanel(Long id);
+
+    /** Registra y guarda el cierre de la ficha del paciente con un resumen del último enfermero y registros. */
+    com.rrparedes.neurosilogic.model.CierreFicha registrarCierreFicha(Long idPaciente, com.rrparedes.neurosilogic.model.Usuario enfermero);
 }

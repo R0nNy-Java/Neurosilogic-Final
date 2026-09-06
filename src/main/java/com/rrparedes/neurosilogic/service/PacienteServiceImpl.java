@@ -3,6 +3,8 @@ package com.rrparedes.neurosilogic.service;
 import com.rrparedes.neurosilogic.model.Paciente;
 import com.rrparedes.neurosilogic.repository.AlertaClinicaRepository;
 import com.rrparedes.neurosilogic.repository.AntecedenteRepository;
+import com.rrparedes.neurosilogic.repository.CierreFichaRepository;
+import com.rrparedes.neurosilogic.repository.DosificacionRepository;
 import com.rrparedes.neurosilogic.repository.EscalaGlasgowRepository;
 import com.rrparedes.neurosilogic.repository.EvaluacionIMCRepository;
 import com.rrparedes.neurosilogic.repository.PacienteRepository;
@@ -24,19 +26,25 @@ public class PacienteServiceImpl implements PacienteService {
     private final EvaluacionIMCRepository evaluacionIMCRepository;
     private final AntecedenteRepository antecedenteRepository;
     private final AlertaClinicaRepository alertaClinicaRepository;
+    private final CierreFichaRepository cierreFichaRepository;
+    private final DosificacionRepository dosificacionRepository;
 
     public PacienteServiceImpl(PacienteRepository pacienteRepository,
                                SignoVitalRepository signoVitalRepository,
                                EscalaGlasgowRepository escalaGlasgowRepository,
                                EvaluacionIMCRepository evaluacionIMCRepository,
                                AntecedenteRepository antecedenteRepository,
-                               AlertaClinicaRepository alertaClinicaRepository) {
+                               AlertaClinicaRepository alertaClinicaRepository,
+                               CierreFichaRepository cierreFichaRepository,
+                               DosificacionRepository dosificacionRepository) {
         this.pacienteRepository = pacienteRepository;
         this.signoVitalRepository = signoVitalRepository;
         this.escalaGlasgowRepository = escalaGlasgowRepository;
         this.evaluacionIMCRepository = evaluacionIMCRepository;
         this.antecedenteRepository = antecedenteRepository;
         this.alertaClinicaRepository = alertaClinicaRepository;
+        this.cierreFichaRepository = cierreFichaRepository;
+        this.dosificacionRepository = dosificacionRepository;
     }
 
     @Override
@@ -86,5 +94,40 @@ public class PacienteServiceImpl implements PacienteService {
                 antecedenteRepository.findByPacienteIdPaciente(id),
                 alertaClinicaRepository.findByPacienteIdPacienteOrderByFechaRegistroDesc(id)
         ));
+    }
+
+    @Override
+    public com.rrparedes.neurosilogic.model.CierreFicha registrarCierreFicha(Long idPaciente, com.rrparedes.neurosilogic.model.Usuario enfermero) {
+        Paciente paciente = pacienteRepository.findById(idPaciente)
+                .orElseThrow(() -> new NegocioException("No se encontró el paciente especificado."));
+
+        String nombreEnfermero = (enfermero != null) ? (enfermero.getNombres() + " " + enfermero.getApellidos()) : "Enfermero de Turno";
+
+        // Obtener últimos registros
+        List<com.rrparedes.neurosilogic.model.SignoVital> svList = signoVitalRepository.findByPacienteIdPaciente(idPaciente);
+        String ultimosSV = svList.isEmpty() ? "Sin registro de signos vitales." :
+                ("PA: " + svList.get(0).getPresionArterial() + ", FC: " + svList.get(0).getFrecuenciaCardiaca() + "ppm, Temp: " + svList.get(0).getTemperatura() + "°C, Sat: " + svList.get(0).getSaturacionOxigeno() + "%");
+
+        List<com.rrparedes.neurosilogic.model.EscalaGlasgow> egList = escalaGlasgowRepository.findByPacienteIdPaciente(idPaciente);
+        String ultimoGlasgow = egList.isEmpty() ? "Sin evaluación de Glasgow." :
+                ("Puntaje: " + egList.get(0).getPuntajeTotal() + "/15 (" + egList.get(0).getClasificacion() + ")");
+
+        List<com.rrparedes.neurosilogic.model.EvaluacionIMC> imcList = evaluacionIMCRepository.findByPacienteIdPaciente(idPaciente);
+        String ultimoIMC = imcList.isEmpty() ? "Sin evaluación de IMC." :
+                ("IMC: " + String.format("%.2f", imcList.get(0).getValorIMC()) + " kg/m² (" + imcList.get(0).getClasificacion() + ")");
+
+        List<com.rrparedes.neurosilogic.model.Antecedente> antList = antecedenteRepository.findByPacienteIdPaciente(idPaciente);
+        String ultimosAntecedentes = antList.isEmpty() ? "Sin antecedentes registrados." :
+                (antList.get(0).getTipo() + ": " + antList.get(0).getObservacion());
+
+        List<com.rrparedes.neurosilogic.model.Dosificacion> dosList = dosificacionRepository.findByPacienteIdPacienteOrderByFechaRegistroDesc(idPaciente);
+        String ultimaDosis = dosList.isEmpty() ? "Sin administración de dosis registrada." :
+                (dosList.get(0).getMedicamento() + " - " + dosList.get(0).getDosisIndicada() + " " + dosList.get(0).getUnidadDosis() + " (" + String.format("%.2f", dosList.get(0).getVolumenAdministrarMl()) + " ml)");
+
+        com.rrparedes.neurosilogic.model.CierreFicha cierre = new com.rrparedes.neurosilogic.model.CierreFicha(
+                paciente, enfermero, nombreEnfermero, ultimosSV, ultimoGlasgow, ultimoIMC, ultimosAntecedentes, ultimaDosis
+        );
+
+        return cierreFichaRepository.save(cierre);
     }
 }

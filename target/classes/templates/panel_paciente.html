@@ -19,19 +19,19 @@
             Ficha Clínica Digital
           </span>
           <div class="d-flex align-items-center gap-3 ms-auto">
-            <a th:href="@{/pacientes}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+            <a th:href="@{/pacientes}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1 btn-volver-pacientes">
               <i class="bi bi-arrow-left"></i>Volver a Pacientes
             </a>
           </div>
         </header>
 
         <main class="p-4">
-          <!-- TARJETA PACIENTE -->
+          <!-- TARJETA PACIENTE CON BOTÓN CIERRE DE FICHA -->
           <div class="card border-0 text-white bg-brand-gradient shadow rounded-4 mb-4">
-            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div>
                 <h2 class="fs-4 fw-bold mb-1 text-white" th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</h2>
-                <div class="d-flex gap-3 small text-white-50 mt-2">
+                <div class="d-flex gap-3 small text-white-50 mt-2 flex-wrap">
                   <span><i class="bi bi-card-heading me-1"></i>Cédula: <strong class="text-white font-monospace" th:text="${paciente.cedula}">0000</strong></span>
                   <span><i class="bi bi-calendar-event me-1"></i>Fecha de Nacimiento:
                     <strong class="text-white" th:if="${paciente.fechaNacimiento != null}" th:text="${#temporals.format(paciente.fechaNacimiento, 'dd/MM/yyyy')}">01/01/1990</strong>
@@ -40,7 +40,16 @@
                   <span><i class="bi bi-gender-ambiguous me-1"></i>Sexo: <strong class="text-white" th:text="${paciente.sexo}">M</strong></span>
                 </div>
               </div>
-              <span class="badge bg-white text-success fs-6 px-3 py-2">Ficha Activa</span>
+
+              <div class="d-flex align-items-center gap-2">
+                <form th:action="@{/paciente/cerrar-ficha}" method="post" onsubmit="return confirm('¿Está seguro de finalizar la atención y guardar el Cierre de Ficha?');">
+                  <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+                  <button type="submit" class="btn btn-warning fw-bold text-dark px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+                    <i class="bi bi-check2-square fs-5"></i> Cierre de Ficha
+                  </button>
+                </form>
+                <span class="badge bg-white text-success fs-6 px-3 py-2">Ficha Activa</span>
+              </div>
             </div>
           </div>
 
@@ -100,7 +109,7 @@
 
           <!-- MÓDULOS DE REGISTRO RÁPIDO (PASO A PASO CLÍNICO RECOMENDADO) -->
           <p class="small fw-bold text-uppercase text-muted mb-2"><i class="bi bi-diagram-3-fill me-1"></i>Flujo Asistencial del Paciente</p>
-          <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+          <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
             <!-- PASO 1: ANTECEDENTES Y PATOLOGÍAS PREVIAS -->
             <div class="col">
               <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-info">
@@ -135,6 +144,15 @@
                 <i class="bi bi-clipboard-pulse text-warning fs-1 mb-2 mt-2"></i>
                 <h6 class="fw-bold text-dark mb-1">4. Escala Glasgow</h6>
                 <small class="text-muted">Evaluación Neurológica</small>
+              </a>
+            </div>
+            <!-- PASO 5: DOSIFICACIÓN DE MEDICAMENTOS -->
+            <div class="col">
+              <a th:href="@{/dosificacion(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-primary">
+                <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2">Paso 5</span>
+                <i class="bi bi-calculator text-primary fs-1 mb-2 mt-2"></i>
+                <h6 class="fw-bold text-dark mb-1">5. Dosificación</h6>
+                <small class="text-muted">Cálculo de Dosis y Goteo</small>
               </a>
             </div>
           </div>
@@ -181,5 +199,64 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+  <script>
+    // Alerta y bloqueo de navegación con la ficha abierta
+    document.addEventListener('DOMContentLoaded', function () {
+      var fichaCerrada = false;
+
+      // Si se envía el formulario de Cierre de Ficha, permitir la navegación libre
+      var formCierre = document.querySelector('form[action*="/paciente/cerrar-ficha"]');
+      if (formCierre) {
+        formCierre.addEventListener('submit', function () {
+          fichaCerrada = true;
+        });
+      }
+
+      var mensajeBloqueo = '⚠️ Debe cerrar la ficha para completar el proceso.\n\nPresione el botón "Cierre de Ficha" antes de salir del panel.';
+
+      // 1. Bloquear únicamente los enlaces del Sidebar (para evitar abandonar la atención) y botón "Volver a Pacientes"
+      var enlacesBloqueados = document.querySelectorAll(
+        '#nl-sidebar .nav-link, #sidebarMobile .nav-link, .btn-volver-pacientes'
+      );
+      enlacesBloqueados.forEach(function (link) {
+        var href = link.getAttribute('href') || '';
+        if (href.includes('/logout') || href.includes('/cambio-contrasena')) return;
+
+        link.addEventListener('click', function (e) {
+          if (!fichaCerrada) {
+            e.preventDefault();
+            alert(mensajeBloqueo);
+          }
+        });
+      });
+
+      // Permitir la navegación de las tarjetas del Flujo Asistencial (Pasos 1 a 5)
+      var tarjetasFlujo = document.querySelectorAll('main a[href*="idPaciente="]');
+      tarjetasFlujo.forEach(function (tarjeta) {
+        tarjeta.addEventListener('click', function () {
+          fichaCerrada = true; // Permite ingresar a los pasos del paciente sin bloquear la navegación
+        });
+      });
+
+      // 2. Bloquear botón Atrás/Regresar del navegador (History API)
+      history.pushState(null, null, location.href);
+      window.addEventListener('popstate', function () {
+        if (!fichaCerrada) {
+          history.pushState(null, null, location.href);
+          alert(mensajeBloqueo);
+        }
+      });
+
+      // 3. Advertencia al escribir/cambiar URL directa o cerrar la pestaña
+      window.addEventListener('beforeunload', function (e) {
+        if (!fichaCerrada) {
+          e.preventDefault();
+          e.returnValue = mensajeBloqueo;
+          return mensajeBloqueo;
+        }
+      });
+    });
+  </script>
 </body>
 </html>

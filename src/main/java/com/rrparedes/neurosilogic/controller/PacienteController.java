@@ -36,13 +36,13 @@ public class PacienteController {
     public String guardarPaciente(@Valid @ModelAttribute Paciente paciente, HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
         try {
-            pacienteService.registrar(paciente);
+            Paciente guardado = pacienteService.registrar(paciente);
+            return "redirect:/paciente/panel?id=" + guardado.getIdPaciente();
         } catch (NegocioException ex) {
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("paciente", paciente);
             return "registro_paciente";
         }
-        return "redirect:/pacientes";
     }
 
     @GetMapping("/paciente/panel")
@@ -57,5 +57,13 @@ public class PacienteController {
             model.addAttribute("alertas", panel.alertas());
             return "panel_paciente";
         }).orElse("redirect:/pacientes");
+    }
+
+    @PostMapping("/paciente/cerrar-ficha")
+    public String cerrarFicha(@RequestParam Long idPaciente, HttpSession session) {
+        com.rrparedes.neurosilogic.model.Usuario enfermero = (com.rrparedes.neurosilogic.model.Usuario) session.getAttribute("usuarioLogueado");
+        if (enfermero == null) return "redirect:/login";
+        pacienteService.registrarCierreFicha(idPaciente, enfermero);
+        return "redirect:/pacientes";
     }
 }

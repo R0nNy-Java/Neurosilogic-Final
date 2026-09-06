@@ -45,29 +45,53 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
 
-          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
-          <div th:if="${paciente == null}" class="row justify-content-center py-4">
-            <div class="col-md-7 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
-                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
-                  <i class="bi bi-search text-success fs-2"></i>
-                </div>
-                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
-                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y calcular el IMC.</p>
-
-                <form th:action="@{/evaluacion-imc}" method="get" class="mb-3">
-                  <div class="input-group input-group-lg mb-3">
-                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Número de cédula" required autofocus>
-                    <button class="btn btn-success fw-bold px-4" type="submit">
-                      <i class="bi bi-search me-1"></i> Buscar Paciente
-                    </button>
+          <!-- VISTA 1: MODO CALCULADORA RÁPIDA (Desde Barra Lateral, sin paciente cargado) -->
+          <div th:if="${paciente == null}" class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="rounded-circle bg-success bg-opacity-10 p-3 text-success">
+                    <i class="bi bi-speedometer2 fs-2"></i>
                   </div>
+                  <div>
+                    <h4 class="fw-bold mb-0 text-dark">Calculadora Rápida de IMC</h4>
+                    <p class="text-muted small mb-0">Cálculo de prueba e inspección clínica sin guardar en la base de datos.</p>
+                  </div>
+                </div>
+
+                <form id="formImcRapido" onsubmit="calcularImcRapido(event);">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Peso (Kg)</label>
+                    <input type="number" step="0.1" id="pesoRapido" class="form-control form-control-lg bg-light" placeholder="Ej. 70.5" min="1.0" max="350.0" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Estatura (Metros)</label>
+                    <input type="number" step="0.01" id="estaturaRapida" class="form-control form-control-lg bg-light" placeholder="Ej. 1.75" min="0.30" max="2.50" required>
+                  </div>
+
+                  <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm">
+                    <i class="fa-solid fa-calculator me-1"></i> Calcular IMC
+                  </button>
                 </form>
+
+                <!-- RESULTADO DE CÁLCULO RÁPIDO CON ALERTAS NORMALES -->
+                <div id="resultadoRapido" class="mt-4 d-none">
+                  <div class="p-3 rounded-4 border-start border-4" id="cajaAlertaRapida">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge bg-secondary" id="badgeModulo">Evaluación IMC Estándar</span>
+                      <span class="small font-monospace text-muted" id="rangoEsperado">Rango normal: 18.5 - 24.9 kg/m²</span>
+                    </div>
+                    <h5 class="fw-bold mb-1 text-dark" id="txtImcValor">IMC: 0.00 kg/m²</h5>
+                    <p class="mb-0 fw-semibold" id="txtImcDiagnostico">Diagnóstico</p>
+                    <small class="text-muted d-block mt-2" id="txtAlertaDetalle"></small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <!-- VISTA 2: MODO PACIENTE ASISTENCIAL (Desde Ficha Clínica / Tarjeta Paso 2) -->
           <div th:if="${paciente != null}" class="row">
             <div class="col-md-5">
               <div class="card border-0 shadow-sm p-4 rounded-4">
@@ -138,5 +162,46 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-</body>
-</html>
+
+  <script>
+    function calcularImcRapido(e) {
+      e.preventDefault();
+      var peso = parseFloat(document.getElementById('pesoRapido').value);
+      var estatura = parseFloat(document.getElementById('estaturaRapida').value);
+
+      if (!peso || !estatura || estatura <= 0) return;
+
+      var imc = peso / (estatura * estatura);
+      var imcFix = imc.toFixed(2);
+      var diag = "";
+      var colorClass = "";
+      var detalle = "";
+
+      if (imc < 18.5) {
+        diag = "Bajo peso";
+        colorClass = "border-warning bg-warning bg-opacity-10 text-dark";
+        detalle = "⚠️ ALERTA: IMC por debajo del rango saludable de una persona normal (18.5 - 24.9 kg/m²).";
+      } else if (imc <= 24.9) {
+        diag = "Peso normal";
+        colorClass = "border-success bg-success bg-opacity-10 text-dark";
+        detalle = "✅ SALUDABLE: El valor se encuentra dentro de los parámetros estándares normales.";
+      } else if (imc <= 29.9) {
+        diag = "Sobrepeso";
+        colorClass = "border-danger bg-danger bg-opacity-10 text-dark";
+        detalle = "⚠️ ALERTA: IMC en rango de Sobrepeso. Excede el rango normal (18.5 - 24.9 kg/m²).";
+      } else {
+        diag = "Obesidad";
+        colorClass = "border-danger bg-danger bg-opacity-10 text-dark";
+        detalle = "🚨 ALERTA CRÍTICA: IMC elevado en rango de Obesidad. Excede marcadamente los límites saludables.";
+      }
+
+      document.getElementById('txtImcValor').innerText = "IMC: " + imcFix + " kg/m²";
+      document.getElementById('txtImcDiagnostico').innerText = "Diagnóstico: " + diag;
+      document.getElementById('txtAlertaDetalle').innerText = detalle;
+
+      var caja = document.getElementById('cajaAlertaRapida');
+      caja.className = "p-3 rounded-4 border-start border-4 " + colorClass;
+
+      document.getElementById('resultadoRapido').classList.remove('d-none');
+    }
+  </script>

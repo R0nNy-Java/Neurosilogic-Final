@@ -40,12 +40,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/signos-vitales(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
+                        <a th:href="@{/signos-vitales}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
                             <i class="bi bi-activity"></i>Signos Vitales
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/escala-glasgow(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
+                        <a th:href="@{/escala-glasgow}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
                             <i class="bi bi-clipboard-pulse"></i>Escala Glasgow
                         </a>
                     </li>
@@ -55,7 +55,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/evaluacion-imc(idPaciente=1)}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
+                        <a th:href="@{/evaluacion-imc}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
                             <i class="bi bi-speedometer2"></i>Calculadora IMC
                         </a>
                     </li>

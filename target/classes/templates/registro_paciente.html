@@ -35,45 +35,54 @@
           </div>
         </header>
 
-        <main class="p-4">
-          <div class="card border-0 shadow-sm p-4 rounded-4" style="max-width: 600px;">
-            <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-user-plus me-2"></i>Registrar Nuevo Paciente</h3>
+        <main class="p-4 d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 90px);">
+          <div class="card border-0 shadow-sm p-4 rounded-4 w-100" style="max-width: 650px;">
+            <div class="text-center mb-4">
+              <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-2" style="width:70px;height:70px;">
+                <i class="bi bi-person-plus-fill text-primary fs-2"></i>
+              </div>
+              <h3 class="fw-bold mb-1 text-dark">Registrar Nuevo Paciente</h3>
+              <p class="text-muted small">Complete la información de identidad para abrir la Ficha Clínica Digital.</p>
+            </div>
 
-            <div th:if="${error}" class="alert alert-danger p-2" th:text="${error}"></div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
 
             <form th:action="@{/pacientes/guardar}" method="post" th:object="${paciente}">
               <div class="mb-3">
-                <label class="form-label font-weight-bold">Cédula de Identidad</label>
-                <input type="text" th:field="*{cedula}" class="form-control" placeholder="Ej. 1723456789" required maxlength="10">
+                <label class="form-label fw-semibold">Cédula de Identidad *</label>
+                <input type="text" th:field="*{cedula}" class="form-control form-control-lg bg-light fs-6" placeholder="Ej. 1723456789" required maxlength="10" autofocus>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Nombres</label>
-                <input type="text" th:field="*{nombres}" class="form-control" placeholder="Ej. Juan Carlos" required>
+                <label class="form-label fw-semibold">Nombres *</label>
+                <input type="text" th:field="*{nombres}" class="form-control form-control-lg bg-light fs-6" placeholder="Ej. Juan Carlos" required>
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Apellidos</label>
-                <input type="text" th:field="*{apellidos}" class="form-control" placeholder="Ej. Pérez Gómez" required>
+                <label class="form-label fw-semibold">Apellidos *</label>
+                <input type="text" th:field="*{apellidos}" class="form-control form-control-lg bg-light fs-6" placeholder="Ej. Pérez Gómez" required>
               </div>
 
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Fecha de Nacimiento</label>
-                  <input type="date" th:field="*{fechaNacimiento}" class="form-control" required>
+                  <label class="form-label fw-semibold">Fecha de Nacimiento *</label>
+                  <input type="date" th:field="*{fechaNacimiento}" class="form-control form-control-lg bg-light fs-6" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label class="form-label">Sexo</label>
-                  <select th:field="*{sexo}" class="form-select" required>
+                  <label class="form-label fw-semibold">Sexo *</label>
+                  <select th:field="*{sexo}" class="form-select form-select-lg bg-light fs-6" required>
                     <option value="M">Masculino</option>
                     <option value="F">Femenino</option>
                   </select>
                 </div>
               </div>
 
-              <div class="d-flex justify-content-between mt-3">
-                <a th:href="@{/pacientes}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Cancelar</a>
-                <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Paciente</button>
+              <div class="d-flex justify-content-between gap-3 mt-4">
+                <a th:href="@{/pacientes}" class="btn btn-light btn-lg px-4 border text-muted"><i class="bi bi-x-circle me-1"></i> Cancelar</a>
+                <button type="submit" class="btn btn-success btn-lg px-4 fw-bold flex-grow-1"><i class="bi bi-floppy-fill me-2"></i> Guardar y Continuar</button>
               </div>
             </form>
           </div>

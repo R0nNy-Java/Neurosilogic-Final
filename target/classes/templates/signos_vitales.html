@@ -45,33 +45,71 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
 
-          <!-- Si NO hay paciente cargado, mostrar buscador por cédula -->
-          <div th:if="${paciente == null}" class="row justify-content-center py-4">
-            <div class="col-md-7 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
-                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width:70px;height:70px;margin:0 auto;">
-                  <i class="bi bi-search text-success fs-2"></i>
-                </div>
-                <h4 class="fw-bold mb-2">Buscar Paciente</h4>
-                <p class="text-muted small mb-4">Ingrese la cédula para cargar la ficha clínica y registrar los signos vitales.</p>
-
-                <form th:action="@{/signos-vitales}" method="get" class="mb-3">
-                  <label class="form-label small fw-bold text-uppercase text-muted d-block text-start">Cédula del Paciente *</label>
-                  <div class="input-group input-group-lg mb-3">
-                    <input type="text" name="cedula" class="form-control bg-light fs-6" placeholder="Ej: 1712345678" required autofocus>
-                    <button class="btn btn-success fw-bold px-4" type="submit">
-                      <i class="bi bi-search me-1"></i> Buscar
-                    </button>
+          <!-- VISTA 1: MODO EVALUADOR RÁPIDO DE SIGNOS VITALES (Desde Barra Lateral, sin paciente cargado) -->
+          <div th:if="${paciente == null}" class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 rounded-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="rounded-circle bg-danger bg-opacity-10 p-3 text-danger">
+                    <i class="bi bi-activity fs-2"></i>
                   </div>
+                  <div>
+                    <h4 class="fw-bold mb-0 text-dark">Evaluador Rápido de Signos Vitales</h4>
+                    <p class="text-muted small mb-0">Inspección de parámetros fisiológicos en persona normal sin guardar en la base de datos.</p>
+                  </div>
+                </div>
+
+                <form id="formSignosRapido" onsubmit="evaluarSignosRapido(event);">
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <label class="form-label fw-semibold">P. Sistólica (mmHg)</label>
+                      <input type="number" id="sisRapida" class="form-control bg-light" value="120" min="1" max="300" step="1" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <label class="form-label fw-semibold">P. Diastólica (mmHg)</label>
+                      <input type="number" id="diasRapida" class="form-control bg-light" value="80" min="1" max="200" step="1" required>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Frecuencia Cardíaca (ppm)</label>
+                    <input type="number" id="fcRapida" class="form-control bg-light" value="75" min="1" max="250" step="1" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Frecuencia Respiratoria (rpm)</label>
+                    <input type="number" id="frRapida" class="form-control bg-light" value="18" min="1" max="80" step="1" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Temperatura Corporal (°C)</label>
+                    <input type="number" step="0.1" id="tempRapida" class="form-control bg-light" value="36.5" min="20.0" max="45.0" required>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Saturación de Oxígeno (%)</label>
+                    <input type="number" id="satRapida" class="form-control bg-light" value="98" min="1" max="100" step="1" required>
+                  </div>
+
+                  <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm">
+                    <i class="bi bi-shield-check me-1"></i> Evaluar Signos Vitales
+                  </button>
                 </form>
-                <div class="text-muted small">
-                  También puede seleccionar directamente un paciente desde la lista en <a th:href="@{/pacientes}" class="text-success fw-semibold">Gestionar Pacientes</a>.
+
+                <!-- CONTENEDOR DE ALERTAS E INFORME DETALLADO -->
+                <div id="resultadoSignosRapido" class="mt-4 d-none">
+                  <div class="p-3 rounded-4 border-start border-4 mb-3" id="cajaGlobalSignos">
+                    <h5 class="fw-bold mb-1" id="txtEstadoGlobal">Estado General</h5>
+                    <p class="small mb-0" id="txtResumenGlobal"></p>
+                  </div>
+
+                  <div class="d-flex flex-column gap-2" id="listaAlertasSignos"></div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Si SÍ hay paciente cargado, mostrar formulario e historial -->
+          <!-- VISTA 2: MODO PACIENTE ASISTENCIAL (Desde Ficha Clínica / Tarjeta Paso 3) -->
           <div th:if="${paciente != null}" class="row">
             <div class="col-md-5">
               <div class="card border-0 shadow-sm p-4 rounded-4">
@@ -166,5 +204,138 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-</body>
-</html>
+
+  <script>
+    function evaluarSignosRapido(e) {
+      e.preventDefault();
+      var sis = parseInt(document.getElementById('sisRapida').value);
+      var dias = parseInt(document.getElementById('diasRapida').value);
+      var fc = parseInt(document.getElementById('fcRapida').value);
+      var fr = parseInt(document.getElementById('frRapida').value);
+      var temp = parseFloat(document.getElementById('tempRapida').value);
+      var sat = parseInt(document.getElementById('satRapida').value);
+
+      var hallazgos = [];
+
+      // 1. Presión Arterial (Normal: 90-120 / 60-80)
+      if (sis > 139 || dias > 89) {
+        hallazgos.push({
+          param: 'Presión Arterial',
+          nivel: 'ALTO',
+          tipo: 'danger',
+          msj: 'Presión arterial elevada: ' + sis + '/' + dias + ' mmHg',
+          rango: 'Rango normal persona sana: 90/60 mmHg a 120/80 mmHg'
+        });
+      } else if (sis < 90 || dias < 60) {
+        hallazgos.push({
+          param: 'Presión Arterial',
+          nivel: 'BAJO',
+          tipo: 'warning',
+          msj: 'Hipotensión detectada: ' + sis + '/' + dias + ' mmHg',
+          rango: 'Rango normal persona sana: 90/60 mmHg a 120/80 mmHg'
+        });
+      }
+
+      // 2. Frecuencia Cardíaca (Normal: 60 - 100 ppm)
+      if (fc > 100) {
+        hallazgos.push({
+          param: 'Frecuencia Cardíaca',
+          nivel: 'ALTO',
+          tipo: 'danger',
+          msj: 'Taquicardia: ' + fc + ' ppm',
+          rango: 'Rango normal persona sana: 60 - 100 ppm'
+        });
+      } else if (fc < 60) {
+        hallazgos.push({
+          param: 'Frecuencia Cardíaca',
+          nivel: 'BAJO',
+          tipo: 'warning',
+          msj: 'Bradicardia: ' + fc + ' ppm',
+          rango: 'Rango normal persona sana: 60 - 100 ppm'
+        });
+      }
+
+      // 3. Frecuencia Respiratoria (Normal: 12 - 20 rpm)
+      if (fr > 20) {
+        hallazgos.push({
+          param: 'Frecuencia Respiratoria',
+          nivel: 'ALTO',
+          tipo: 'danger',
+          msj: 'Taquipnea: ' + fr + ' rpm',
+          rango: 'Rango normal persona sana: 12 - 20 rpm'
+        });
+      } else if (fr < 12) {
+        hallazgos.push({
+          param: 'Frecuencia Respiratoria',
+          nivel: 'BAJO',
+          tipo: 'warning',
+          msj: 'Bradipnea: ' + fr + ' rpm',
+          rango: 'Rango normal persona sana: 12 - 20 rpm'
+        });
+      }
+
+      // 4. Temperatura (Normal: 36.0 - 37.5 °C)
+      if (temp > 37.5) {
+        hallazgos.push({
+          param: 'Temperatura Corporal',
+          nivel: 'ALTO',
+          tipo: 'danger',
+          msj: 'Hipertermia / Fiebre: ' + temp.toFixed(1) + ' °C',
+          rango: 'Rango normal persona sana: 36.0 °C - 37.5 °C'
+        });
+      } else if (temp < 36.0) {
+        hallazgos.push({
+          param: 'Temperatura Corporal',
+          nivel: 'BAJO',
+          tipo: 'warning',
+          msj: 'Hipotermia: ' + temp.toFixed(1) + ' °C',
+          rango: 'Rango normal persona sana: 36.0 °C - 37.5 °C'
+        });
+      }
+
+      // 5. Saturación O2 (Normal: 95 - 100 %)
+      if (sat < 95) {
+        hallazgos.push({
+          param: 'Saturación de Oxígeno',
+          nivel: 'CRÍTICO',
+          tipo: 'danger',
+          msj: 'Desaturación / Hipoxia: ' + sat + ' %',
+          rango: 'Rango normal persona sana: 95% - 100%'
+        });
+      }
+
+      // Renderizar UI
+      var cajaG = document.getElementById('cajaGlobalSignos');
+      var txtE = document.getElementById('txtEstadoGlobal');
+      var txtR = document.getElementById('txtResumenGlobal');
+      var contenedorAlertas = document.getElementById('listaAlertasSignos');
+      contenedorAlertas.innerHTML = '';
+
+      if (hallazgos.length === 0) {
+        cajaG.className = 'p-3 rounded-4 border-start border-4 border-success bg-success bg-opacity-10 text-dark mb-3';
+        txtE.className = 'fw-bold mb-1 text-success';
+        txtE.innerText = '✅ Signos Vitales Estables';
+        txtR.innerText = 'Todos los parámetros ingresados se encuentran estrictamente dentro de los valores normales de una persona sana.';
+      } else {
+        cajaG.className = 'p-3 rounded-4 border-start border-4 border-danger bg-danger bg-opacity-10 text-dark mb-3';
+        txtE.className = 'fw-bold mb-1 text-danger';
+        txtE.innerText = '⚠️ Alertas Fisiológicas Detectadas (' + hallazgos.length + ')';
+        txtR.innerText = 'Se identificaron desviaciones respecto a los estándares de salud normales:';
+
+        hallazgos.forEach(function (h) {
+          var div = document.createElement('div');
+          div.className = 'p-3 rounded-3 border-start border-4 border-' + h.tipo + ' bg-' + h.tipo + ' bg-opacity-10';
+          div.innerHTML =
+            '<div class="d-flex align-items-center gap-2 mb-1">' +
+            '<span class="badge bg-' + h.tipo + '">' + h.nivel + '</span>' +
+            '<span class="fw-bold small text-dark">' + h.param + '</span>' +
+            '</div>' +
+            '<div class="small fw-semibold text-dark">' + h.msj + '</div>' +
+            '<div class="text-muted small mt-1 font-monospace" style="font-size: 0.78rem;">' + h.rango + '</div>';
+          contenedorAlertas.appendChild(div);
+        });
+      }
+
+      document.getElementById('resultadoSignosRapido').classList.remove('d-none');
+    }
+  </script>
