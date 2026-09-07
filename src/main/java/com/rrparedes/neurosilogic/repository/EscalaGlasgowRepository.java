@@ -4,9 +4,11 @@ import com.rrparedes.neurosilogic.model.EscalaGlasgow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface EscalaGlasgowRepository extends JpaRepository<EscalaGlasgow, Long> {
     List<EscalaGlasgow> findByPacienteIdPaciente(Long idPaciente);
+    long countByFechaHoraBetween(LocalDateTime inicio, LocalDateTime fin);
 }

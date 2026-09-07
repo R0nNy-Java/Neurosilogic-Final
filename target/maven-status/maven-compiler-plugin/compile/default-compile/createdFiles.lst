@@ -1,13 +1,16 @@
 com\rrparedes\neurosilogic\controller\AuthController.class
+com\rrparedes\neurosilogic\service\PacientePrioritario.class
 com\rrparedes\neurosilogic\model\Dosificacion.class
 com\rrparedes\neurosilogic\model\PrescripcionMedica.class
 com\rrparedes\neurosilogic\model\Paciente.class
+com\rrparedes\neurosilogic\service\ReporteDecisionData.class
 com\rrparedes\neurosilogic\controller\ModuloClinicoController.class
 com\rrparedes\neurosilogic\repository\EscalaGlasgowRepository.class
 com\rrparedes\neurosilogic\util\CedulaEcuatorianaValidator.class
 com\rrparedes\neurosilogic\repository\CierreFichaRepository.class
 com\rrparedes\neurosilogic\repository\AlertaClinicaRepository.class
 com\rrparedes\neurosilogic\service\AuditoriaAccesoService.class
+com\rrparedes\neurosilogic\service\ReporteServiceImpl.class
 com\rrparedes\neurosilogic\service\MedicamentoServiceImpl.class
 com\rrparedes\neurosilogic\model\SignoVital.class
 com\rrparedes\neurosilogic\service\ModuloClinicoService.class
@@ -35,11 +38,13 @@ com\rrparedes\neurosilogic\service\NegocioException.class
 com\rrparedes\neurosilogic\repository\EvaluacionIMCRepository.class
 com\rrparedes\neurosilogic\service\ModuloClinicoServiceImpl.class
 com\rrparedes\neurosilogic\service\PacienteService.class
+com\rrparedes\neurosilogic\service\ReporteService.class
 com\rrparedes\neurosilogic\repository\PacienteRepository.class
 com\rrparedes\neurosilogic\service\UsuarioServiceImpl.class
 com\rrparedes\neurosilogic\controller\GlobalExceptionHandler.class
 com\rrparedes\neurosilogic\model\AlertaClinica.class
 com\rrparedes\neurosilogic\service\DosificacionService.class
+com\rrparedes\neurosilogic\service\ReporteResumenPeriodo.class
 com\rrparedes\neurosilogic\model\Medicamento.class
 com\rrparedes\neurosilogic\model\AuditoriaAcceso.class
 com\rrparedes\neurosilogic\service\PanelPacienteData.class
@@ -49,5 +54,6 @@ com\rrparedes\neurosilogic\model\CierreFicha.class
 com\rrparedes\neurosilogic\repository\EnfermedadRepository.class
 com\rrparedes\neurosilogic\service\DosificacionServiceImpl.class
 com\rrparedes\neurosilogic\config\DataInitializer.class
+com\rrparedes\neurosilogic\service\ConteoEtiqueta.class
 com\rrparedes\neurosilogic\repository\AntecedenteRepository.class
 com\rrparedes\neurosilogic\service\EmailService.class

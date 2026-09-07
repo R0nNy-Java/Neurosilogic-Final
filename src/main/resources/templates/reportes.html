@@ -31,97 +31,198 @@
         </header>
 
         <main class="p-4">
-          <!-- VISTA DE REPORTERÍA PARA ADMINISTRADOR -->
-          <th:block th:if="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN')}">
-            <!-- FILTRO DE RANGO DE FECHAS EN UI -->
-            <div class="card border-0 shadow-sm p-3 rounded-4 mb-4 d-print-none">
-              <form th:action="@{/reportes}" method="get" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                  <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Fecha Inicio</label>
-                  <input type="date" name="fechaInicio" class="form-control form-control-sm" th:value="${fechaInicioSel}">
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event-fill me-1"></i>Fecha Fin</label>
-                  <input type="date" name="fechaFin" class="form-control form-control-sm" th:value="${fechaFinSel}">
-                </div>
-                <div class="col-md-4 d-flex gap-2">
-                  <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-semibold w-100">
-                    <i class="bi bi-filter me-1"></i> Filtrar por Fecha
-                  </button>
-                  <a th:href="@{/reportes}" class="btn btn-outline-secondary btn-sm py-2" title="Limpiar Filtros">
-                    <i class="bi bi-x-circle"></i>
-                  </a>
-                </div>
-              </form>
+
+          <!-- ══ FILTRO DE PERÍODO (compartido, Hoy / Semana / Mes / Personalizado) ══ -->
+          <div class="card border-0 shadow-sm p-3 rounded-4 mb-4 d-print-none">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div class="btn-group btn-group-sm" role="group" aria-label="Período rápido">
+                <button type="button" class="btn btn-outline-success" onclick="aplicarPeriodo('hoy')"><i class="bi bi-calendar-day me-1"></i>Hoy</button>
+                <button type="button" class="btn btn-outline-success" onclick="aplicarPeriodo('semana')"><i class="bi bi-calendar-week me-1"></i>Esta Semana</button>
+                <button type="button" class="btn btn-outline-success" onclick="aplicarPeriodo('mes')"><i class="bi bi-calendar-month me-1"></i>Este Mes</button>
+              </div>
+              <div class="small text-muted">
+                <span th:if="${fechaInicioSel != null and fechaFinSel != null}">
+                  <i class="bi bi-funnel-fill me-1"></i>Mostrando del <strong th:text="${fechaInicioSel}"></strong> al <strong th:text="${fechaFinSel}"></strong>
+                </span>
+                <span th:if="${fechaInicioSel == null or fechaFinSel == null}">
+                  <i class="bi bi-infinity me-1"></i>Mostrando todo el historial registrado
+                </span>
+              </div>
             </div>
 
+            <form id="formFiltroFecha" th:action="@{/reportes}" method="get" class="row g-2 align-items-end mt-2">
+              <input type="hidden" name="cedula" th:value="${cedulaBuscada}"/>
+              <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mb-1">Desde</label>
+                <input type="date" name="fechaInicio" class="form-control form-control-sm" th:value="${fechaInicioSel}">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted mb-1">Hasta</label>
+                <input type="date" name="fechaFin" class="form-control form-control-sm" th:value="${fechaFinSel}">
+              </div>
+              <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-semibold w-100">
+                  <i class="bi bi-filter me-1"></i> Aplicar Rango
+                </button>
+                <a th:href="@{/reportes}" class="btn btn-outline-secondary btn-sm py-2" title="Ver todo el historial">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <!-- ══ MEMBRETE — único para toda la impresión, pantalla no lo muestra ══ -->
+          <div class="d-none d-print-block text-center border-bottom pb-3 mb-4" id="membreteImprimible">
+            <h3 class="fw-bold text-dark text-uppercase mb-1" style="letter-spacing:1px;">NURSELOGIC &middot; CENTRO CLÍNICO Y HOSPITALARIO</h3>
+            <h5 class="fw-bold text-secondary text-uppercase mb-2" th:text="${(usuario != null and usuario.isAdministrador()) ? 'Reporte de Decisión Clínica y Auditoría' : (pacienteEncontrado != null ? 'Reporte de Decisión Clínica y Ficha Individual del Paciente' : 'Reporte de Decisión Clínica e Informe Consolidado de Pacientes')}">INFORME CLÍNICO</h5>
+            <p class="text-muted small mb-0">
+              Fecha Emisión: <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">00/00/0000</span> &nbsp;|&nbsp;
+              Responsable: <strong th:text="${usuario != null ? usuario.nombreUsuario : 'Sistema'}">Usuario</strong>
+              <span th:if="${fechaInicioSel != null and fechaFinSel != null}"> &nbsp;|&nbsp; Período: <span th:text="${fechaInicioSel}"></span> al <span th:text="${fechaFinSel}"></span></span>
+            </p>
+          </div>
+
+          <!-- ══ PANEL DE DECISIÓN: KPIs + gráficos reales + pacientes prioritarios ══ -->
+          <div class="card border-0 shadow-sm p-4 rounded-4 mb-4" id="panelDecisionImprimible">
+            <div class="d-flex justify-content-between align-items-start">
+              <h4 class="fw-bold mb-1 text-success">
+                <span class="d-none d-print-inline">1. </span><i class="bi bi-clipboard2-pulse-fill me-2 d-print-none"></i>Resumen del Período: Alertas, Carga Clínica y Pacientes Prioritarios
+              </h4>
+              <button class="btn btn-outline-success btn-sm d-print-none" onclick="window.print()">
+                <i class="bi bi-printer-fill me-1"></i> Imprimir Panel
+              </button>
+            </div>
+            <p class="text-muted small mb-4 d-print-none">Resumen del período para apoyar la entrega de turno y la revisión semanal/mensual: qué tan cargado estuvo, dónde se concentraron las alertas y qué pacientes necesitan atención antes de cerrar.</p>
+
+            <!-- KPIs -->
+            <div class="row row-cols-2 row-cols-md-5 g-3 mb-4" id="kpiDecision">
+              <div class="col">
+                <div class="border rounded-4 p-3 h-100 text-center">
+                  <div class="text-muted small text-uppercase">Alertas Totales</div>
+                  <div class="fw-bold fs-3" th:text="${decision.totalAlertas()}">0</div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="border border-danger rounded-4 p-3 h-100 text-center bg-danger bg-opacity-10">
+                  <div class="text-danger small text-uppercase fw-semibold">Críticas</div>
+                  <div class="fw-bold fs-3 text-danger" th:text="${decision.alertasCriticas()}">0</div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="border border-warning rounded-4 p-3 h-100 text-center bg-warning bg-opacity-10">
+                  <div class="text-warning-emphasis small text-uppercase fw-semibold">Advertencia</div>
+                  <div class="fw-bold fs-3 text-warning-emphasis" th:text="${decision.alertasAdvertencia()}">0</div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="border rounded-4 p-3 h-100 text-center">
+                  <div class="text-muted small text-uppercase">Registros Clínicos</div>
+                  <div class="fw-bold fs-3" th:text="${decision.registrosClinicosPeriodo()}">0</div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="border rounded-4 p-3 h-100 text-center">
+                  <div class="text-muted small text-uppercase">Cierres de Ficha</div>
+                  <div class="fw-bold fs-3" th:text="${decision.cierresFichaPeriodo()}">0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="row g-3 mb-4">
+              <div class="col-lg-4">
+                <div class="border rounded-4 p-3 h-100">
+                  <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill me-2 text-success"></i>Distribución de Alertas por Módulo</h6>
+                  <div class="position-relative" style="height:220px;">
+                    <canvas id="chartModulo"></canvas>
+                    <div id="totalModuloCentro" class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events:none;">
+                      <div class="fw-bold fs-3 text-dark" th:text="${decision.totalAlertas()}">0</div>
+                      <div class="text-muted small text-uppercase">Alertas</div>
+                    </div>
+                  </div>
+                  <p th:if="${decision.totalAlertas() == 0}" class="text-muted small text-center mt-3 mb-0">Sin alertas registradas en este período.</p>
+                </div>
+              </div>
+              <div class="col-lg-4">
+                <div class="border rounded-4 p-3 h-100">
+                  <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-steps me-2 text-danger"></i>Ranking: Pacientes con Más Alertas</h6>
+                  <div style="height:220px;">
+                    <canvas id="chartTopPacientes"></canvas>
+                  </div>
+                  <p th:if="${#lists.isEmpty(decision.pacientesPrioritarios())}" class="text-muted small text-center mt-3 mb-0">Sin pacientes con alertas en este período.</p>
+                </div>
+              </div>
+              <div class="col-lg-4">
+                <div class="border rounded-4 p-3 h-100">
+                  <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2 text-success"></i>Tendencia de Alertas por Día</h6>
+                  <div style="height:220px;">
+                    <canvas id="chartTendencia"></canvas>
+                  </div>
+                  <p th:if="${decision.totalAlertas() == 0}" class="text-muted small text-center mt-3 mb-0">Sin alertas registradas en este período.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pacientes que requieren atención -->
+            <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-octagon-fill me-2 text-danger"></i>Pacientes que Requieren Atención Prioritaria</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="bg-danger text-white">
+                  <tr>
+                    <th>Paciente</th>
+                    <th>Cédula</th>
+                    <th class="text-center"># Alertas</th>
+                    <th>Severidad</th>
+                    <th>Último Hallazgo</th>
+                    <th class="text-center d-print-none">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="p : ${decision.pacientesPrioritarios()}">
+                    <td class="fw-semibold" th:text="${p.nombreCompleto()}">Paciente</td>
+                    <td class="font-monospace" th:text="${p.cedula()}">0000000000</td>
+                    <td class="text-center" th:text="${p.totalAlertas()}">0</td>
+                    <td>
+                      <span th:if="${p.tieneAlertaCritica()}" class="badge bg-danger">CRÍTICO</span>
+                      <span th:unless="${p.tieneAlertaCritica()}" class="badge bg-warning text-dark">ADVERTENCIA</span>
+                    </td>
+                    <td class="small text-muted"><span class="badge bg-secondary me-1" th:text="${p.ultimoModulo()}">Módulo</span><span th:text="${p.ultimoMensaje()}">Mensaje</span></td>
+                    <td class="text-center d-print-none">
+                      <a th:href="@{/paciente/panel(id=${p.idPaciente()})}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-earmark-medical me-1"></i>Ver Ficha
+                      </a>
+                    </td>
+                  </tr>
+                  <tr th:if="${#lists.isEmpty(decision.pacientesPrioritarios())}">
+                    <td colspan="6" class="text-center text-success py-3"><i class="bi bi-check-circle-fill me-1"></i>Ningún paciente requiere atención prioritaria en este período.</td>
+                  </tr>
+                </tbody>
+                <tfoot th:if="${!#lists.isEmpty(decision.pacientesPrioritarios())}">
+                  <tr class="table-light fw-bold">
+                    <td colspan="2">Total</td>
+                    <td class="text-center" th:text="${#lists.size(decision.pacientesPrioritarios()) + ' pacientes'}">0</td>
+                    <td colspan="3" th:text="${decision.totalAlertas() + ' alertas registradas en el período (' + decision.alertasCriticas() + ' críticas)'}">0 alertas</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- VISTA DE REPORTERÍA PARA ADMINISTRADOR -->
+          <th:block th:if="${usuario != null and (usuario.rol == 'ADMINISTRADOR' or usuario.rol == 'ADMIN')}">
             <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                   <h3 class="fw-bold mb-1 text-primary"><i class="bi bi-shield-check me-2"></i>Auditoría Global de Personal Clínico y Alertas</h3>
-                  <p class="text-muted small mb-0">Consolidado general de la actividad de enfermeros/médicos, registros efectuados e incidencias.</p>
+                  <p class="text-muted small mb-0">Detalle de cierres de ficha e incidencias clínicas del período seleccionado.</p>
                 </div>
                 <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-print-none" onclick="window.print()">
                   <i class="bi bi-printer-fill me-1"></i> Imprimir Reporte de Auditoría
                 </button>
               </div>
 
-              <!-- RESUMEN DE MÉTRICAS ADMINISTRATIVAS ESTILO DASHBOARD POWERBI -->
-              <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
-                <div class="col">
-                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-primary bg-opacity-10 text-primary h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="small fw-bold text-uppercase">Atenciones Cerradas</span>
-                      <i class="bi bi-check-circle-fill fs-4"></i>
-                    </div>
-                    <div class="fw-bold fs-2" th:text="${#lists.size(todosLosCierres)}">0</div>
-                    <div class="small text-muted mt-1"><i class="bi bi-person-check me-1"></i>Fichas consolidadas por enfermería</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-danger bg-opacity-10 text-danger h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="small fw-bold text-uppercase">Alertas Detectadas</span>
-                      <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-                    </div>
-                    <div class="fw-bold fs-2" th:text="${#lists.size(todasLasAlertas)}">0</div>
-                    <div class="small text-muted mt-1"><i class="bi bi-activity me-1"></i>Incidencias fisiológicas registradas</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card border-0 shadow-sm p-3 rounded-4 bg-success bg-opacity-10 text-success h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="small fw-bold text-uppercase">Pacientes Atendidos</span>
-                      <i class="bi bi-people-fill fs-4"></i>
-                    </div>
-                    <div class="fw-bold fs-2" th:text="${#lists.size(todosLosPacientes)}">0</div>
-                    <div class="small text-muted mt-1"><i class="bi bi-file-earmark-medical me-1"></i>Total historias registradas</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- DASHBOARD VISUAL DE GRÁFICOS ANALÍTICOS (TIPO PBIX / POWER BI) -->
-              <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
-                <div class="col">
-                  <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Distribución de Alertas por Nivel de Riesgo</h6>
-                    <div style="height: 220px;" class="d-flex justify-content-center">
-                      <canvas id="chartAlertas"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line-fill text-success me-2"></i>Atenciones Realizadas por Personal de Enfermería</h6>
-                    <div style="height: 220px;" class="d-flex justify-content-center">
-                      <canvas id="chartEnfermeros"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <!-- TABLA 1: ACTIVIDAD Y CERRADOS POR CADA ENFERMERO -->
-              <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-badge-fill text-primary me-2"></i>Atenciones Consolidadas por Personal Clínico</h5>
+              <h5 class="fw-bold text-dark mb-3 print-section-heading"><span class="d-none d-print-inline">2. </span><i class="bi bi-person-badge-fill text-primary me-2 d-print-none"></i>Atenciones Consolidadas por Personal Clínico</h5>
               <div class="table-responsive mb-4">
                 <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
                   <thead class="bg-light text-muted">
@@ -152,7 +253,7 @@
               </div>
 
               <!-- TABLA 2: INCIDENCIA Y REGISTRO DE ALERTAS CLÍNICAS EN EL SISTEMA -->
-              <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bell-fill text-danger me-2"></i>Bitácora de Alertas Clínicas Detectadas</h5>
+              <h5 class="fw-bold text-dark mb-3 print-section-heading"><span class="d-none d-print-inline">3. </span><i class="bi bi-bell-fill text-danger me-2 d-print-none"></i>Bitácora de Alertas Clínicas Detectadas</h5>
               <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
                   <thead class="bg-light text-muted">
@@ -170,7 +271,7 @@
                       <td><strong class="text-dark" th:text="${a.paciente.nombres + ' ' + a.paciente.apellidos}">Paciente</strong></td>
                       <td><span class="badge bg-secondary" th:text="${a.modulo}">Módulo</span></td>
                       <td>
-                        <span class="badge" th:classappend="${a.nivelAlerta == 'CRITICO' or a.nivelAlerta == 'ALTO' ? 'bg-danger' : (a.nivelAlerta == 'MODERADO' ? 'bg-warning text-dark' : 'bg-info')}" th:text="${a.nivelAlerta}">NIVEL</span>
+                        <span class="badge" th:classappend="${a.colorCodigo == 'danger' ? 'bg-danger' : 'bg-warning text-dark'}" th:text="${a.nivelAlerta}">NIVEL</span>
                       </td>
                       <td th:text="${a.mensajeAlerta}">Mensaje</td>
                     </tr>
@@ -180,7 +281,6 @@
                   </tbody>
                 </table>
               </div>
-
             </div>
           </th:block>
 
@@ -190,29 +290,6 @@
             <div class="card border-0 shadow-sm p-4 rounded-4 d-print-none">
               <h3 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-line me-2"></i>Reportes Clínicos de Pacientes</h3>
               <p class="text-muted">Generación de resúmenes de atención clínica individual y consolidada con Código QR.</p>
-
-              <!-- FILTRO POR FECHA PANTALLA -->
-              <div class="bg-light p-3 rounded-3 mb-4 border">
-                <form th:action="@{/reportes}" method="get" class="row g-3 align-items-end">
-                  <input type="hidden" name="cedula" th:value="${cedulaBuscada}"/>
-                  <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Fecha Desde</label>
-                    <input type="date" name="fechaInicio" class="form-control form-control-sm" th:value="${fechaInicioSel}">
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event-fill me-1"></i>Fecha Hasta</label>
-                    <input type="date" name="fechaFin" class="form-control form-control-sm" th:value="${fechaFinSel}">
-                  </div>
-                  <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-semibold w-100">
-                      <i class="bi bi-filter me-1"></i> Filtrar Rango
-                    </button>
-                    <a th:href="@{/reportes}" class="btn btn-outline-secondary btn-sm py-2" title="Limpiar Filtros">
-                      <i class="bi bi-x-circle"></i>
-                    </a>
-                  </div>
-                </form>
-              </div>
 
               <div class="row row-cols-1 row-cols-md-2 g-4 mt-1">
                 <!-- TARJETA 1: REPORTE GENERAL DE PACIENTES -->
@@ -228,9 +305,9 @@
                     <p class="small text-muted mb-4">
                       Listado clínico unificado de todos los pacientes atendidos, antecedentes médicos e historial de cierres de ficha realizados.
                     </p>
-                    <button class="btn btn-success btn-sm mt-auto w-100 py-2 fw-semibold" onclick="window.print()">
+                    <a th:href="@{/reportes(autoprint='general', fechaInicio=${fechaInicioSel}, fechaFin=${fechaFinSel})}" class="btn btn-success btn-sm mt-auto w-100 py-2 fw-semibold">
                       <i class="bi bi-file-earmark-pdf-fill me-1"></i> Imprimir / Exportar PDF General
-                    </button>
+                    </a>
                   </div>
                 </div>
 
@@ -252,7 +329,7 @@
                       <input type="hidden" name="fechaInicio" th:value="${fechaInicioSel}"/>
                       <input type="hidden" name="fechaFin" th:value="${fechaFinSel}"/>
                       <div class="input-group">
-                        <input type="text" name="cedula" class="form-control form-control-sm border-secondary font-monospace" 
+                        <input type="text" name="cedula" class="form-control form-control-sm border-secondary font-monospace"
                                placeholder="Ingrese Cédula (10 dígitos)" th:value="${cedulaBuscada}" required maxlength="10">
                         <button class="btn btn-primary btn-sm px-3 fw-bold" type="submit">
                           <i class="bi bi-search me-1"></i> Buscar
@@ -277,8 +354,8 @@
 
                       <div class="row g-2 d-print-none">
                         <div class="col-6">
-                          <button class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold" onclick="window.print()">
-                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Imprimir Ficha PDF
+                          <button class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold" onclick="imprimirManilla()">
+                            <i class="bi bi-tag-fill me-1"></i> Imprimir Manilla
                           </button>
                         </div>
                         <div class="col-6">
@@ -294,22 +371,12 @@
               </div>
             </div>
 
-            <!-- DOCUMENTO EXCLUSIVO DE IMPRESIÓN FORMAL (ENFERMERO) -->
-            <div class="d-none d-print-block mt-2">
-              <div class="text-center border-bottom pb-3 mb-4">
-                <h3 class="fw-bold text-dark text-uppercase mb-1" style="letter-spacing:1px;">NURSELOGIC &middot; CENTRO CLÍNICO Y HOSPITALARIO</h3>
-                <h5 class="fw-bold text-secondary text-uppercase mb-2" th:text="${pacienteEncontrado != null ? 'FICHA CLÍNICA INDIVIDUAL DEL PACIENTE' : 'INFORME GENERAL CONSOLIDADO DE PACIENTES'}">INFORME CLÍNICO</h5>
-                <p class="text-muted small mb-0">
-                  Fecha Emisión: <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">00/00/0000</span> &nbsp;|&nbsp; 
-                  Personal de Enfermería Responsable: <strong th:text="${usuario != null ? usuario.nombreUsuario : 'Enfermero'}">Enfermero</strong>
-                  <span th:if="${fechaInicioSel != null and fechaFinSel != null}"> &nbsp;|&nbsp; Período: <span th:text="${fechaInicioSel}"></span> al <span th:text="${fechaFinSel}"></span></span>
-                </p>
-              </div>
-
+            <!-- DOCUMENTO EXCLUSIVO DE IMPRESIÓN FORMAL (ENFERMERO) — el membrete ya se muestra una sola vez arriba -->
+            <div class="d-none d-print-block mt-2" id="documentoFormalImprimible">
               <!-- OPCIÓN A: REPORTE INDIVIDUAL SI SE BUSCÓ POR CÉDULA -->
               <th:block th:if="${pacienteEncontrado}">
                 <div class="card border p-3 mb-4">
-                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">1. Datos de Identificación del Paciente</h6>
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">2. Datos de Identificación del Paciente</h6>
                   <div class="row g-2" style="font-size:0.9rem;">
                     <div class="col-6"><strong>Nombres y Apellidos:</strong> <span th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Nombre</span></div>
                     <div class="col-6"><strong>Número de Cédula:</strong> <span th:text="${pacienteEncontrado.cedula}" class="font-monospace fw-bold">0000000000</span></div>
@@ -318,13 +385,123 @@
                   </div>
                 </div>
 
+                <div class="card border p-3 mb-4" th:if="${panelData != null}">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">3. Historial de Signos Vitales</h6>
+                  <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>P.A.</th>
+                        <th>F.C.</th>
+                        <th>F.R.</th>
+                        <th>Temp.</th>
+                        <th>SatO2</th>
+                        <th>Alerta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="sv : ${panelData.signosVitales()}">
+                        <td th:text="${#temporals.format(sv.fechaHora, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${sv.presionArterial}">120/80</td>
+                        <td th:text="${sv.frecuenciaCardiaca + ' lpm'}">70 lpm</td>
+                        <td th:text="${sv.frecuenciaRespiratoria + ' rpm'}">16 rpm</td>
+                        <td th:text="${sv.temperatura + ' °C'}">36.5 °C</td>
+                        <td th:text="${sv.saturacionO2 + '%'}">98%</td>
+                        <td th:text="${sv.alertaGenerada == 'S' ? 'Sí' : 'No'}">No</td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(panelData.signosVitales())}">
+                        <td colspan="7" class="text-center text-muted">Sin registros de signos vitales.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card border p-3 mb-4" th:if="${panelData != null}">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">4. Historial de Escala de Glasgow</h6>
+                  <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Ocular</th>
+                        <th>Verbal</th>
+                        <th>Motora</th>
+                        <th>Puntaje</th>
+                        <th>Severidad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="eg : ${panelData.glasgowList()}">
+                        <td th:text="${#temporals.format(eg.fechaHora, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${eg.respuestaOcular}">4</td>
+                        <td th:text="${eg.respuestaVerbal}">5</td>
+                        <td th:text="${eg.respuestaMotora}">6</td>
+                        <td th:text="${eg.puntajeTotal + '/15'}">15/15</td>
+                        <td th:text="${eg.nivelSeveridad}">Leve / Normal</td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(panelData.glasgowList())}">
+                        <td colspan="6" class="text-center text-muted">Sin evaluaciones de Glasgow.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card border p-3 mb-4" th:if="${panelData != null}">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">5. Historial de Evaluación IMC</h6>
+                  <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Peso (Kg)</th>
+                        <th>Estatura (m)</th>
+                        <th>IMC</th>
+                        <th>Clasificación</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="imc : ${panelData.imcList()}">
+                        <td th:text="${#temporals.format(imc.fechaRegistro, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${imc.pesoKg}">70</td>
+                        <td th:text="${imc.estaturaM}">1.75</td>
+                        <td th:text="${#numbers.formatDecimal(imc.valorIMC, 1, 2)}">22.86</td>
+                        <td th:text="${imc.clasificacion}">Peso normal</td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(panelData.imcList())}">
+                        <td colspan="5" class="text-center text-muted">Sin evaluaciones de IMC.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card border p-3 mb-4" th:if="${panelData != null}">
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">6. Antecedentes Médicos</h6>
+                  <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:each="a : ${panelData.antecedentesList()}">
+                        <td th:text="${#temporals.format(a.fechaRegistro, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
+                        <td th:text="${a.tipo}">Tipo</td>
+                        <td th:text="${a.descripcion}">Descripción</td>
+                      </tr>
+                      <tr th:if="${#lists.isEmpty(panelData.antecedentesList())}">
+                        <td colspan="3" class="text-center text-muted">Sin antecedentes registrados.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
                 <div class="card border p-3 mb-4">
-                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">2. Historial de Cierres de Ficha y Constantes Vitales</h6>
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">7. Historial de Cierres de Ficha (Resumen Consolidado)</h6>
                   <table class="table table-bordered align-middle mb-0" style="font-size:0.8rem;">
                     <thead class="table-light">
                       <tr>
                         <th>Fecha Cierre</th>
-                        <th>Enfermero Atendió</th>
+                        <th>Atendido por (Enfermero/a)</th>
                         <th>Últimos Signos Vitales</th>
                         <th>Glasgow</th>
                         <th>IMC</th>
@@ -332,7 +509,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="cf : ${misCierresFicha}" th:if="${cf.paciente.idPaciente == pacienteEncontrado.idPaciente}">
+                      <tr th:each="cf : ${cierresPacienteEncontrado}">
                         <td th:text="${#temporals.format(cf.fechaCierre, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
                         <td th:text="${cf.nombreEnfermero}">Enfermero</td>
                         <td th:text="${cf.ultimosSignosVitales}">Signos</td>
@@ -340,7 +517,7 @@
                         <td th:text="${cf.ultimoIMC}">IMC</td>
                         <td th:text="${cf.ultimaDosis}">Dosis</td>
                       </tr>
-                      <tr th:if="${#lists.isEmpty(misCierresFicha)}">
+                      <tr th:if="${#lists.isEmpty(cierresPacienteEncontrado)}">
                         <td colspan="6" class="text-center text-muted">No existen cierres de ficha registrados para este paciente.</td>
                       </tr>
                     </tbody>
@@ -350,7 +527,7 @@
 
               <!-- OPCIÓN B: REPORTE GENERAL SI NO SE BUSCÓ NINGUNA CÉDULA -->
               <th:block th:if="${pacienteEncontrado == null}">
-                <h6 class="fw-bold text-dark text-uppercase mb-3">Listado Consolidado de Pacientes Registrados</h6>
+                <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">2. Listado Consolidado de Pacientes Registrados</h6>
                 <table class="table table-bordered align-middle mb-4" style="font-size:0.85rem;">
                   <thead class="table-light">
                     <tr>
@@ -373,7 +550,7 @@
                 </table>
 
                 <th:block th:if="${misCierresFicha != null and !#lists.isEmpty(misCierresFicha)}">
-                  <h6 class="fw-bold text-dark text-uppercase mb-3">Fichas Clínicas Atendidas y Cerradas por Enfermería</h6>
+                  <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">3. Fichas Clínicas Atendidas y Cerradas por Enfermería</h6>
                   <table class="table table-bordered align-middle" style="font-size:0.8rem;">
                     <thead class="table-light">
                       <tr>
@@ -411,6 +588,30 @@
                   <div class="border-top border-dark pt-2 mx-auto" style="width:200px;">
                     <small class="fw-bold text-uppercase d-block">Sello / Validación Clínica</small>
                     <small class="text-muted">Departamento de Auditoría</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ══ MANILLA HOSPITALARIA — al final del documento, solo con "Imprimir Manilla" ══ -->
+            <div th:if="${pacienteEncontrado}" id="manillaImprimible" class="d-none">
+              <div class="manilla-tira">
+                <div class="manilla-segmento" th:each="i : ${#numbers.sequence(1, 3)}">
+                  <div class="manilla-marca">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                    <span>NURSELOGIC</span>
+                  </div>
+                  <div class="manilla-datos">
+                    <div class="manilla-nombre" th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Nombre Paciente</div>
+                    <div class="manilla-linea"><strong>C.I.</strong> <span th:text="${pacienteEncontrado.cedula}">0000000000</span></div>
+                    <div class="manilla-linea">
+                      <strong>Nac.</strong> <span th:text="${pacienteEncontrado.fechaNacimiento}">00/00/0000</span> &nbsp;
+                      <strong>Edad</strong> <span th:text="${pacienteEncontrado.edad}">0</span> &nbsp;
+                      <strong>Sexo</strong> <span th:text="${pacienteEncontrado.sexo}">M</span>
+                    </div>
+                  </div>
+                  <div class="manilla-qr">
+                    <div class="qrcodeManillaSlot"></div>
                   </div>
                 </div>
               </div>
@@ -477,24 +678,93 @@
       }
       .row {
         display: flex !important;
-        flex-wrap: nowrap !important;
+        flex-wrap: wrap !important;
         gap: 10px !important;
       }
-      .row > .col {
+      /* Cubre cualquier variante de columna Bootstrap (col, col-lg-4, col-md-2, row-cols-*, etc.) */
+      .row > [class*="col"] {
         flex: 1 1 0 !important;
         max-width: 100% !important;
       }
-      .fs-2 {
-        font-size: 1.4rem !important;
+      .fs-2, .fs-3 {
+        font-size: 1.3rem !important;
       }
       .fs-4 {
         font-size: 1.1rem !important;
       }
-      div[style*="height: 220px"] {
-        height: 150px !important;
+      /* Panel de Decisión impreso: se comporta como un documento formal (blanco y negro,
+         bordes rectos, sin sombras) en vez de verse como una captura del dashboard.
+         El color se conserva únicamente dentro de los gráficos, que sí aportan información. */
+      #panelDecisionImprimible {
+        border: none !important;
       }
-      canvas {
-        max-height: 140px !important;
+      /* Un solo estilo de encabezado de sección para TODO el documento impreso: el del
+         Panel de Decisión y los del resto del reporte (h6.print-section-heading) quedan
+         idénticos — mismo tamaño, mismo trazo, mismo negro sobre blanco. */
+      #panelDecisionImprimible h4,
+      .print-section-heading {
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        font-size: .95rem !important;
+        font-weight: 700 !important;
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+        padding-bottom: 6px;
+        margin-bottom: 10px !important;
+      }
+      #panelDecisionImprimible > p.small {
+        display: none !important;
+      }
+      #panelDecisionImprimible .rounded-4,
+      #panelDecisionImprimible .rounded-3 {
+        border-radius: 0 !important;
+      }
+      #panelDecisionImprimible [class*="bg-"] {
+        background-color: #ffffff !important;
+      }
+      #panelDecisionImprimible .border,
+      #panelDecisionImprimible [class*="border-"] {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+      }
+      #panelDecisionImprimible [class*="text-"] {
+        color: #000 !important;
+      }
+      #panelDecisionImprimible .badge {
+        border: 1px solid #000 !important;
+      }
+      /* Tira de KPIs: números en línea separados por divisores finos, no tarjetas de color */
+      #kpiDecision {
+        flex-wrap: nowrap !important;
+      }
+      #kpiDecision > .col {
+        border-right: 1px solid #000;
+      }
+      #kpiDecision > .col:last-child {
+        border-right: none;
+      }
+      #kpiDecision .border {
+        border: none !important;
+      }
+      #kpiDecision .fs-3 {
+        font-size: 1.2rem !important;
+      }
+      #panelDecisionImprimible .row {
+        flex-wrap: nowrap !important;
+      }
+      #panelDecisionImprimible canvas {
+        max-width: 100% !important;
+        max-height: 130px !important;
+        width: 100% !important;
+        height: 130px !important;
+      }
+      #panelDecisionImprimible .position-relative,
+      #panelDecisionImprimible div[style*="height:220px"],
+      #panelDecisionImprimible div[style*="height: 220px"] {
+        height: 130px !important;
+      }
+      #totalModuloCentro {
+        transform: translate(-50%, -55%) scale(0.85) !important;
       }
       .table {
         width: 100% !important;
@@ -514,16 +784,148 @@
         background: transparent !important;
         font-size: 9px !important;
       }
+
+      /* ══ Modo "manilla + historial": oculta el Panel de Decisión (estadísticas del
+         período completo, no de este paciente) y muestra la manilla junto con la ficha
+         del paciente (datos de identificación + historial de cierres). El membrete se
+         conserva porque encabeza el documento. ══ */
+      body.imprimir-manilla #panelDecisionImprimible {
+        display: none !important;
+      }
+      body.imprimir-manilla #manillaImprimible {
+        display: block !important;
+        break-before: page;
+        page-break-before: always;
+      }
+
+      .manilla-tira {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        margin-top: 15%;
+      }
+      .manilla-segmento {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        max-width: 640px;
+        border: 2px solid #198754;
+        border-radius: 45px;
+        padding: 14px 28px;
+        background: linear-gradient(90deg, #eef9f3 0%, #ffffff 65%);
+        position: relative;
+      }
+      .manilla-segmento:not(:last-child)::after {
+        content: '✂ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑ ‑';
+        position: absolute;
+        bottom: -18px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 11px;
+        color: #aaa;
+        letter-spacing: 1px;
+      }
+      .manilla-marca {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #198754 !important;
+        font-weight: 700;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        flex-shrink: 0;
+        width: 60px;
+      }
+      .manilla-marca i {
+        font-size: 22px;
+        margin-bottom: 3px;
+      }
+      .manilla-datos {
+        flex: 1;
+        min-width: 0;
+      }
+      .manilla-nombre {
+        font-weight: 700;
+        font-size: 16px;
+        text-transform: uppercase;
+        color: #000;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .manilla-linea {
+        font-size: 11px;
+        color: #000;
+      }
+      .manilla-qr {
+        flex-shrink: 0;
+        width: 72px;
+        height: 72px;
+      }
+      .manilla-qr img, .manilla-qr canvas {
+        width: 72px !important;
+        height: 72px !important;
+      }
     }
   </style>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka17kE623XrxZXKLqz/vgGf5NHBLBnVUPqwfM4WnT07kotGTOeEBRZXnTPnNvwzA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script th:inline="javascript">
+    // Selector rápido de período: rellena el formulario de rango de fechas y lo envía.
+    function aplicarPeriodo(tipo) {
+      var hoy = new Date();
+      var inicio = new Date(hoy);
+
+      if (tipo === 'semana') {
+        var diaSemana = hoy.getDay(); // 0 = domingo
+        var offset = diaSemana === 0 ? 6 : diaSemana - 1; // lunes como inicio de semana
+        inicio.setDate(hoy.getDate() - offset);
+      } else if (tipo === 'mes') {
+        inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      }
+      // 'hoy' deja inicio == hoy
+
+      function formatear(d) {
+        var mes = String(d.getMonth() + 1).padStart(2, '0');
+        var dia = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mes + '-' + dia;
+      }
+
+      var form = document.getElementById('formFiltroFecha');
+      form.querySelector('input[name="fechaInicio"]').value = formatear(inicio);
+      form.querySelector('input[name="fechaFin"]').value = formatear(hoy);
+      form.submit();
+    }
+
+    // Imprime únicamente la manilla del paciente encontrado (oculta el resto del reporte
+    // mientras dura la impresión, y lo restaura apenas se cierra el diálogo de impresión).
+    function imprimirManilla() {
+      document.querySelectorAll('#manillaImprimible .qrcodeManillaSlot').forEach(function (slot) {
+        if (slot.childElementCount === 0 && typeof QRCode !== 'undefined') {
+          new QRCode(slot, {
+            text: window.location.origin + "/paciente/panel?id=" + window.__idPacienteManilla,
+            width: 72,
+            height: 72
+          });
+        }
+      });
+      document.body.classList.add('imprimir-manilla');
+      window.print();
+    }
+    window.addEventListener('afterprint', function () {
+      document.body.classList.remove('imprimir-manilla');
+    });
+
     document.addEventListener("DOMContentLoaded", function() {
       /*[# th:if="${pacienteEncontrado}"]*/
       var cedula = /*[[${pacienteEncontrado.cedula}]]*/ '0000';
+      window.__idPacienteManilla = /*[[${pacienteEncontrado.idPaciente}]]*/ 1;
       var qrContainer = document.getElementById("qrcode");
       if (qrContainer) {
         new QRCode(qrContainer, {
@@ -534,61 +936,128 @@
       }
       /*[/]*/
 
-      /* GRÁFICOS ANALÍTICOS ESTILO POWER BI PARA EL PANEL DE ADMINISTRACIÓN */
-      var canvasAlertas = document.getElementById('chartAlertas');
-      if (canvasAlertas) {
-        new Chart(canvasAlertas, {
-          type: 'doughnut',
-          data: {
-            labels: ['Crítico / Alto', 'Moderado', 'Normal / Estable'],
-            datasets: [{
-              data: [
-                /*[[${#lists.size(todasLasAlertas)}]]*/ 3,
-                /*[[${#lists.size(todosLosCierres)}]]*/ 5,
-                /*[[${#lists.size(todosLosPacientes)}]]*/ 8
-              ],
-              backgroundColor: ['#dc3545', '#ffc107', '#198754'],
-              borderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom' }
-            }
-          }
-        });
+      // ══ Panel de Decisión: gráficos alimentados con datos reales del período ══
+      var alertasPorModulo = /*[[${decision.alertasPorModulo()}]]*/ [];
+      var tendenciaDiaria = /*[[${decision.tendenciaDiaria()}]]*/ [];
+      var pacientesPrioritarios = /*[[${decision.pacientesPrioritarios()}]]*/ [];
+      var paletaModulos = ['#dc3545', '#fd7e14', '#0d6efd', '#6f42c1', '#20c997'];
+
+      console.log('[Reportería] Chart.js cargado:', typeof Chart !== 'undefined');
+      console.log('[Reportería] alertasPorModulo:', alertasPorModulo);
+      console.log('[Reportería] tendenciaDiaria:', tendenciaDiaria);
+      console.log('[Reportería] pacientesPrioritarios:', pacientesPrioritarios);
+
+      if (typeof Chart === 'undefined') {
+        console.error('[Reportería] Chart.js no se cargó — revisa la pestaña Network en DevTools para ver si el <script> del CDN devolvió error.');
       }
 
-      var canvasEnfermeros = document.getElementById('chartEnfermeros');
-      if (canvasEnfermeros) {
-        new Chart(canvasEnfermeros, {
-          type: 'bar',
+      var graficosDecision = [];
+
+      // Dona con el total en el centro (superpuesto vía HTML/CSS) y % en el tooltip
+      var ctxModulo = document.getElementById('chartModulo');
+      if (ctxModulo && typeof Chart !== 'undefined') try {
+        var totalModulo = alertasPorModulo.reduce(function (acc, x) { return acc + x.cantidad; }, 0);
+        graficosDecision.push(new Chart(ctxModulo, {
+          type: 'doughnut',
           data: {
-            labels: ['Atenciones Realizadas', 'Alertas Procesadas', 'Pacientes Activos'],
+            labels: alertasPorModulo.map(function (x) { return x.etiqueta; }),
             datasets: [{
-              label: 'Registros Consolidados',
-              data: [
-                /*[[${#lists.size(todosLosCierres)}]]*/ 5,
-                /*[[${#lists.size(todasLasAlertas)}]]*/ 3,
-                /*[[${#lists.size(todosLosPacientes)}]]*/ 8
-              ],
-              backgroundColor: ['#0d6efd', '#fd7e14', '#20c997'],
-              borderRadius: 6
+              data: alertasPorModulo.map(function (x) { return x.cantidad; }),
+              backgroundColor: alertasPorModulo.map(function (_, i) { return paletaModulos[i % paletaModulos.length]; }),
+              borderWidth: 2,
+              borderColor: '#fff'
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '68%',
             plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              y: { beginAtZero: true }
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    var pct = totalModulo > 0 ? Math.round((ctx.parsed / totalModulo) * 100) : 0;
+                    return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+                  }
+                }
+              }
             }
           }
-        });
+        }));
+      } catch (err) {
+        console.error('[Reportería] Error al dibujar la dona de módulos:', err);
+      }
+
+      // Ranking horizontal: pacientes con más alertas (los más críticos ya vienen primero)
+      var ctxTopPacientes = document.getElementById('chartTopPacientes');
+      if (ctxTopPacientes && typeof Chart !== 'undefined' && pacientesPrioritarios.length > 0) try {
+        graficosDecision.push(new Chart(ctxTopPacientes, {
+          type: 'bar',
+          data: {
+            labels: pacientesPrioritarios.map(function (p) {
+              var nombre = p.nombreCompleto;
+              return nombre.length > 22 ? nombre.substring(0, 20) + '…' : nombre;
+            }),
+            datasets: [{
+              label: 'Alertas',
+              data: pacientesPrioritarios.map(function (p) { return p.totalAlertas; }),
+              backgroundColor: pacientesPrioritarios.map(function (p) { return p.tieneAlertaCritica ? '#dc3545' : '#ffc107'; }),
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+          }
+        }));
+      } catch (err) {
+        console.error('[Reportería] Error al dibujar el ranking de pacientes:', err);
+      }
+
+      var ctxTendencia = document.getElementById('chartTendencia');
+      if (ctxTendencia && typeof Chart !== 'undefined') try {
+        graficosDecision.push(new Chart(ctxTendencia, {
+          type: 'line',
+          data: {
+            labels: tendenciaDiaria.map(function (x) { return x.etiqueta; }),
+            datasets: [{
+              label: 'Alertas por día',
+              data: tendenciaDiaria.map(function (x) { return x.cantidad; }),
+              borderColor: '#198754',
+              backgroundColor: 'rgba(25,135,84,0.15)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+          }
+        }));
+      } catch (err) {
+        console.error('[Reportería] Error al dibujar la tendencia diaria:', err);
+      }
+
+      // Antes de imprimir, Chart.js debe redibujar a la resolución del papel (no solo
+      // estirar por CSS el bitmap ya dibujado para pantalla) — y volver a su tamaño después.
+      window.addEventListener('beforeprint', function () {
+        graficosDecision.forEach(function (chart) { chart.resize(); });
+      });
+      window.addEventListener('afterprint', function () {
+        graficosDecision.forEach(function (chart) { chart.resize(); });
+      });
+
+      // El botón "Imprimir / Exportar PDF General" navega aquí sin cédula (para no arrastrar
+      // una búsqueda individual anterior) y deja esta marca para disparar la impresión solo.
+      if (new URLSearchParams(window.location.search).get('autoprint') === 'general') {
+        setTimeout(function () { window.print(); }, 300);
       }
     });
   </script>
