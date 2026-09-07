@@ -35,4 +35,13 @@ public interface PacienteService {
 
     /** Lista pacientes cuya ficha activa pertenece al enfermero o no tienen cierre aún. */
     List<Paciente> obtenerPacientesEnEvaluacionPorEnfermero(Long idUsuario);
+
+    /** Valida si el paciente cuenta con los datos mínimos obligatorios (Signos Vitales, Glasgow e IMC) para cerrar ficha. */
+    boolean puedeCerrarFicha(Long idPaciente);
+
+    /** Re-activa la ficha de un paciente dado de alta (cambia estado a 'A') y registra la auditoría de re-ingreso. */
+    Paciente activarFicha(Long idPaciente, com.rrparedes.neurosilogic.model.Usuario enfermero);
+
+    /** Otorga el alta a un paciente si no mantiene alertas activas, asigna estado 'I' y registra auditoría. */
+    Paciente darDeAlta(Long idPaciente, com.rrparedes.neurosilogic.model.Usuario enfermero);
 }

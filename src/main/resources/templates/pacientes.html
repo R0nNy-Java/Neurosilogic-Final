@@ -36,6 +36,16 @@
         </header>
 
         <main class="p-4">
+          <!-- MENSAJES DE NOTIFICACIÓN -->
+          <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${mensajeExito}">Éxito</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mensajeError}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+
           <div class="card border-0 shadow-sm p-4 rounded-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="fw-bold mb-0 text-success"><i class="bi bi-hospital me-2"></i>Listado de Pacientes Registrados</h4>

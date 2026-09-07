@@ -178,7 +178,11 @@ public class ModuloClinicoServiceImpl implements ModuloClinicoService {
     }
 
     private Paciente obtenerPacienteOrThrow(Long idPaciente) {
-        return pacienteRepository.findById(idPaciente)
+        Paciente p = pacienteRepository.findById(idPaciente)
                 .orElseThrow(() -> new NegocioException("Paciente no encontrado."));
+        if (!"A".equalsIgnoreCase(p.getEstado())) {
+            throw new NegocioException("El paciente se encuentra en estado Inactivo / Dado de Alta. Debe presionar 'Re-activar Ficha / Re-ingreso' en la Ficha del Paciente antes de registrar nuevos datos.");
+        }
+        return p;
     }
 }

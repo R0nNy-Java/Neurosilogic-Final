@@ -26,7 +26,18 @@
         </header>
 
         <main class="p-4">
-          <!-- TARJETA PACIENTE CON BOTÓN CIERRE DE FICHA -->
+
+          <!-- MENSAJES DE NOTIFICACIÓN -->
+          <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-4 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${mensajeExito}">Éxito</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <div th:if="${mensajeError}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-4 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${mensajeError}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+
+          <!-- TARJETA PACIENTE CON BOTONERA DE ESTADO (3 BOTONES) -->
           <div class="card border-0 text-white bg-brand-gradient shadow rounded-4 mb-4">
             <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div>
@@ -41,16 +52,76 @@
                 </div>
               </div>
 
-              <div class="d-flex align-items-center gap-2">
-                <form th:action="@{/paciente/cerrar-ficha}" method="post" onsubmit="return confirm('¿Está seguro de finalizar la atención y guardar el Cierre de Ficha?');">
-                  <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
-                  <button type="submit" class="btn btn-warning fw-bold text-dark px-3 py-2 shadow-sm d-flex align-items-center gap-2">
-                    <i class="bi bi-check2-square fs-5"></i> Cierre de Ficha
-                  </button>
-                </form>
-                <span class="badge bg-white text-success fs-6 px-3 py-2">Ficha Activa</span>
+              <!-- BOTONERA DE ESTADO (CIERRE, DAR DE ALTA Y RE-INGRESO) -->
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- CASO A: PACIENTE INACTIVO / DADO DE ALTA ('I') -->
+                <th:block th:if="${paciente.estado == 'I'}">
+                  <span class="badge bg-danger fs-6 px-3 py-2 border border-light"><i class="bi bi-person-x-fill me-1"></i> Ficha Inactiva / Alta Otorgada</span>
+                  <!-- BOTÓN 3: RE-INGRESO / ACTIVAR FICHA -->
+                  <form th:action="@{/paciente/activar-ficha}" method="post" onsubmit="return confirm('¿Desea re-activar la ficha de este paciente para registrar una nueva atención por re-ingreso?');">
+                    <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+                    <button type="submit" class="btn btn-success fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+                      <i class="bi bi-arrow-counterclockwise fs-5"></i> Re-activar Ficha / Re-ingreso
+                    </button>
+                  </form>
+                </th:block>
+
+                <!-- CASO B: PACIENTE ACTIVO ('A') -->
+                <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                  <span class="badge bg-white text-success fs-6 px-3 py-2 me-1"><i class="bi bi-activity me-1"></i> Ficha Activa</span>
+
+                  <!-- BOTÓN 1: CIERRE DE FICHA (REQUIERE DATOS MÍNIMOS LLENOS) -->
+                  <form th:if="${puedeCerrarFicha}" th:action="@{/paciente/cerrar-ficha}" method="post" onsubmit="return confirm('¿Está seguro de registrar el Cierre de Ficha en la base de datos? Se guardarán los datos y volverá al panel de Gestionar Pacientes.');">
+                    <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+                    <button type="submit" class="btn btn-warning fw-bold text-dark px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+                      <i class="bi bi-check2-square fs-5"></i> Cierre de Ficha
+                    </button>
+                  </form>
+
+                  <div th:unless="${puedeCerrarFicha}" class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Debe registrar Signos Vitales, Escala de Glasgow y Evaluación IMC antes de cerrar la ficha.">
+                    <button type="button" class="btn btn-secondary fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-1 disabled" style="opacity: 0.75; cursor: not-allowed;">
+                      <i class="bi bi-lock-fill fs-5"></i> Cierre de Ficha
+                    </button>
+                  </div>
+
+                  <!-- BOTÓN 2: DAR DE ALTA (SOLO SI NO TIENE ALERTAS ACTIVAS) -->
+                  <form th:if="${!tieneAlertasActivas}" th:action="@{/paciente/dar-alta}" method="post" onsubmit="return confirm('¿Está seguro de Dar de Alta al paciente? La ficha cambiará a estado Inactivo y volverá al panel de Gestionar Pacientes.');">
+                    <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
+                    <button type="submit" class="btn btn-danger fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+                      <i class="bi bi-box-arrow-right fs-5"></i> Dar de Alta
+                    </button>
+                  </form>
+
+                  <!-- BOTÓN DAR DE ALTA DESHABILITADO SI MANTIENE ALERTAS ACTIVAS -->
+                  <div th:if="${tieneAlertasActivas}" class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="No se puede dar de alta mientras el paciente mantenga alertas clínicas activas. Se requiere estabilización.">
+                    <button type="button" class="btn btn-secondary fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-1 disabled" style="opacity: 0.65; cursor: not-allowed;">
+                      <i class="bi bi-shield-x fs-5"></i> Dar de Alta (Con Alertas)
+                    </button>
+                  </div>
+                </th:block>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- AVISO DE REQUISITOS O BLOQUEO DE CAPTURA EN INACTIVIDAD -->
+          <div th:if="${paciente.estado == 'I'}" class="alert alert-danger py-3 px-3 rounded-4 shadow-sm mb-4 border-start border-5 border-danger">
+            <div class="d-flex align-items-center gap-3">
+              <i class="bi bi-shield-lock-fill text-danger fs-2 flex-shrink-0"></i>
+              <div>
+                <strong class="text-dark d-block">CAPTURA CLÍNICA DESHABILITADA (PACIENTE DADO DE ALTA / FICHA INACTIVA)</strong>
+                <span class="small text-muted">Para ingresar o modificar nuevos datos clínicos (Signos Vitales, Glasgow, IMC, Dosificación), debe hacer clic arriba en el botón verde <strong>"Re-activar Ficha / Re-ingreso"</strong>.</span>
               </div>
             </div>
+          </div>
+
+          <div th:if="${(paciente.estado == 'A' or paciente.estado == null) and !puedeCerrarFicha}" class="alert alert-warning py-2.5 px-3 small rounded-3 border-start border-4 border-warning shadow-xs mb-4">
+            <i class="bi bi-exclamation-circle-fill me-1 text-warning fs-6"></i>
+            <strong>Requisitos de Cierre de Ficha:</strong>
+            Para poder finalizar la atención y registrar el cierre, debe completar los datos clínicos obligatorios:
+            <span class="badge ms-1" th:classappend="${tieneIMC ? 'bg-success' : 'bg-danger'}">Paso 2: IMC <i class="bi" th:classappend="${tieneIMC ? 'bi-check-lg' : 'bi-x-lg'}"></i></span>
+            <span class="badge ms-1" th:classappend="${tieneSV ? 'bg-success' : 'bg-danger'}">Paso 3: Signos Vitales <i class="bi" th:classappend="${tieneSV ? 'bi-check-lg' : 'bi-x-lg'}"></i></span>
+            <span class="badge ms-1" th:classappend="${tieneGlasgow ? 'bg-success' : 'bg-danger'}">Paso 4: Glasgow <i class="bi" th:classappend="${tieneGlasgow ? 'bi-check-lg' : 'bi-x-lg'}"></i></span>.
           </div>
 
           <!-- ALERTAS CLÍNICAS -->
@@ -71,7 +142,7 @@
                 <i class="bi bi-check-circle-fill text-success fs-3"></i>
                 <div>
                   <div class="fw-semibold text-dark small">Sin alertas registradas</div>
-                  <div class="text-muted" style="font-size:.8rem;">Todos los valores clínicos registrados están dentro de los rangos normales.</div>
+                  <div class="text-muted" style="font-size:.8rem;">Todos los valores clínicos registrados están dentro de los rangos normales. El paciente califica para <strong>Dar de Alta</strong>.</div>
                 </div>
               </div>
 
@@ -112,48 +183,104 @@
           <div class="row row-cols-1 row-cols-md-5 g-3 mb-4">
             <!-- PASO 1: ANTECEDENTES Y PATOLOGÍAS PREVIAS -->
             <div class="col">
-              <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-info">
-                <span class="badge bg-info text-white position-absolute top-0 start-0 m-2">Paso 1</span>
-                <i class="bi bi-file-medical text-info fs-1 mb-2 mt-2"></i>
-                <h6 class="fw-bold text-dark mb-1">1. Antecedentes</h6>
-                <small class="text-muted">Patologías previas y Alergias</small>
-              </a>
+              <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                <a th:href="@{/antecedentes(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-info position-relative">
+                  <span class="badge bg-info text-white position-absolute top-0 start-0 m-2">Paso 1</span>
+                  <i class="bi bi-file-medical text-info fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">1. Antecedentes</h6>
+                  <small class="text-muted">Patologías previas y Alergias</small>
+                </a>
+              </th:block>
+              <th:block th:unless="${paciente.estado == 'A' or paciente.estado == null}">
+                <div onclick="alert('El paciente está Inactivo / Dado de Alta. Debe hacer clic en Re-activar Ficha / Re-ingreso antes de capturar nuevos datos.');" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-info position-relative" style="opacity: 0.55; cursor: not-allowed;">
+                  <span class="badge bg-info text-white position-absolute top-0 start-0 m-2">Paso 1</span>
+                  <i class="bi bi-file-medical text-info fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">1. Antecedentes</h6>
+                  <small class="text-muted">Patologías previas y Alergias</small>
+                </div>
+              </th:block>
             </div>
             <!-- PASO 2: EVALUACIÓN IMC Y PESO BASE -->
             <div class="col">
-              <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-success">
-                <span class="badge bg-success text-white position-absolute top-0 start-0 m-2">Paso 2</span>
-                <i class="bi bi-speedometer2 text-success fs-1 mb-2 mt-2"></i>
-                <h6 class="fw-bold text-dark mb-1">2. Evaluación IMC</h6>
-                <small class="text-muted">Peso (kg) y Estatura (m)</small>
-              </a>
+              <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                <a th:href="@{/evaluacion-imc(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-success position-relative">
+                  <span class="badge bg-success text-white position-absolute top-0 start-0 m-2">Paso 2</span>
+                  <span th:if="${tieneIMC}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-speedometer2 text-success fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">2. Evaluación IMC</h6>
+                  <small class="text-muted">Peso (kg) y Estatura (m)</small>
+                </a>
+              </th:block>
+              <th:block th:unless="${paciente.estado == 'A' or paciente.estado == null}">
+                <div onclick="alert('El paciente está Inactivo / Dado de Alta. Debe hacer clic en Re-activar Ficha / Re-ingreso antes de capturar nuevos datos.');" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-success position-relative" style="opacity: 0.55; cursor: not-allowed;">
+                  <span class="badge bg-success text-white position-absolute top-0 start-0 m-2">Paso 2</span>
+                  <span th:if="${tieneIMC}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-speedometer2 text-success fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">2. Evaluación IMC</h6>
+                  <small class="text-muted">Peso (kg) y Estatura (m)</small>
+                </div>
+              </th:block>
             </div>
             <!-- PASO 3: SIGNOS VITALES ADAPTATIVOS -->
             <div class="col">
-              <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-danger">
-                <span class="badge bg-danger text-white position-absolute top-0 start-0 m-2">Paso 3</span>
-                <i class="bi bi-activity text-danger fs-1 mb-2 mt-2"></i>
-                <h6 class="fw-bold text-dark mb-1">3. Signos Vitales</h6>
-                <small class="text-muted">Presión, Pulso, Temp, Sat. O2</small>
-              </a>
+              <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                <a th:href="@{/signos-vitales(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-danger position-relative">
+                  <span class="badge bg-danger text-white position-absolute top-0 start-0 m-2">Paso 3</span>
+                  <span th:if="${tieneSV}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-activity text-danger fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">3. Signos Vitales</h6>
+                  <small class="text-muted">Presión, Pulso, Temp, Sat. O2</small>
+                </a>
+              </th:block>
+              <th:block th:unless="${paciente.estado == 'A' or paciente.estado == null}">
+                <div onclick="alert('El paciente está Inactivo / Dado de Alta. Debe hacer clic en Re-activar Ficha / Re-ingreso antes de capturar nuevos datos.');" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-danger position-relative" style="opacity: 0.55; cursor: not-allowed;">
+                  <span class="badge bg-danger text-white position-absolute top-0 start-0 m-2">Paso 3</span>
+                  <span th:if="${tieneSV}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-activity text-danger fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">3. Signos Vitales</h6>
+                  <small class="text-muted">Presión, Pulso, Temp, Sat. O2</small>
+                </div>
+              </th:block>
             </div>
             <!-- PASO 4: VALORACIÓN NEUROLÓGICA (GLASGOW) -->
             <div class="col">
-              <a th:href="@{/escala-glasgow(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-warning">
-                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Paso 4</span>
-                <i class="bi bi-clipboard-pulse text-warning fs-1 mb-2 mt-2"></i>
-                <h6 class="fw-bold text-dark mb-1">4. Escala Glasgow</h6>
-                <small class="text-muted">Evaluación Neurológica</small>
-              </a>
+              <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                <a th:href="@{/escala-glasgow(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-warning position-relative">
+                  <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Paso 4</span>
+                  <span th:if="${tieneGlasgow}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-clipboard-pulse text-warning fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">4. Escala Glasgow</h6>
+                  <small class="text-muted">Evaluación Neurológica</small>
+                </a>
+              </th:block>
+              <th:block th:unless="${paciente.estado == 'A' or paciente.estado == null}">
+                <div onclick="alert('El paciente está Inactivo / Dado de Alta. Debe hacer clic en Re-activar Ficha / Re-ingreso antes de capturar nuevos datos.');" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-warning position-relative" style="opacity: 0.55; cursor: not-allowed;">
+                  <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">Paso 4</span>
+                  <span th:if="${tieneGlasgow}" class="badge bg-success text-white position-absolute top-0 end-0 m-2"><i class="bi bi-check-circle-fill me-1"></i>Listo</span>
+                  <i class="bi bi-clipboard-pulse text-warning fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">4. Escala Glasgow</h6>
+                  <small class="text-muted">Evaluación Neurológica</small>
+                </div>
+              </th:block>
             </div>
             <!-- PASO 5: DOSIFICACIÓN DE MEDICAMENTOS -->
             <div class="col">
-              <a th:href="@{/dosificacion(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-primary">
-                <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2">Paso 5</span>
-                <i class="bi bi-calculator text-primary fs-1 mb-2 mt-2"></i>
-                <h6 class="fw-bold text-dark mb-1">5. Dosificación</h6>
-                <small class="text-muted">Cálculo de Dosis y Goteo</small>
-              </a>
+              <th:block th:if="${paciente.estado == 'A' or paciente.estado == null}">
+                <a th:href="@{/dosificacion(idPaciente=${paciente.idPaciente})}" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-primary position-relative">
+                  <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2">Paso 5</span>
+                  <i class="bi bi-calculator text-primary fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">5. Dosificación</h6>
+                  <small class="text-muted">Cálculo de Dosis y Goteo</small>
+                </a>
+              </th:block>
+              <th:block th:unless="${paciente.estado == 'A' or paciente.estado == null}">
+                <div onclick="alert('El paciente está Inactivo / Dado de Alta. Debe hacer clic en Re-activar Ficha / Re-ingreso antes de capturar nuevos datos.');" class="card border-0 shadow-sm rounded-3 text-decoration-none h-100 p-3 text-center border-top border-4 border-primary position-relative" style="opacity: 0.55; cursor: not-allowed;">
+                  <span class="badge bg-primary text-white position-absolute top-0 start-0 m-2">Paso 5</span>
+                  <i class="bi bi-calculator text-primary fs-1 mb-2 mt-2"></i>
+                  <h6 class="fw-bold text-dark mb-1">5. Dosificación</h6>
+                  <small class="text-muted">Cálculo de Dosis y Goteo</small>
+                </div>
+              </th:block>
             </div>
           </div>
 
@@ -175,12 +302,12 @@
                 </thead>
                 <tbody>
                   <tr th:each="sv : ${signosVitales}" th:classappend="${sv.alertaGenerada == 'S'} ? 'table-danger'">
-                    <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}" class="font-monospace small">Fecha</td>
+                    <td th:text="${#temporals.format(sv.fechaHora, 'yyyy-MM-dd HH:mm')}" class="font-monospace small">Fecha</td>
                     <td th:text="${sv.presionArterial}" class="fw-bold">120/80</td>
                     <td th:text="${sv.frecuenciaCardiaca + ' ppm'}">75</td>
                     <td th:text="${sv.frecuenciaRespiratoria + ' rpm'}">18</td>
                     <td th:text="${sv.temperatura + ' °C'}">36.5</td>
-                    <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
+                    <td th:text="${sv.saturacionO2 + ' %'}">98</td>
                     <td class="text-center">
                       <i th:if="${sv.alertaGenerada == 'S'}" class="bi bi-exclamation-triangle-fill text-danger" title="Fuera de rango normal"></i>
                     </td>
@@ -200,60 +327,83 @@
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 
-  <script>
-    // Alerta y bloqueo de navegación con la ficha abierta
+  <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
-      var fichaCerrada = false;
+      // Inicializar tooltips de Bootstrap
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
 
-      // Si se envía el formulario de Cierre de Ficha, permitir la navegación libre
-      var formCierre = document.querySelector('form[action*="/paciente/cerrar-ficha"]');
-      if (formCierre) {
-        formCierre.addEventListener('submit', function () {
-          fichaCerrada = true;
+      var estadoPaciente = /*[[${paciente.estado}]]*/ 'A';
+      var esInactivo = (estadoPaciente === 'I');
+      var navegacionPermitida = false;
+
+      // Permitir la navegación cuando se envían formularios de acción (Cierre de Ficha, Dar de Alta, Re-activar)
+      document.querySelectorAll('form').forEach(function (f) {
+        f.addEventListener('submit', function () {
+          navegacionPermitida = true;
+        });
+      });
+
+      // Permitir la navegación de las tarjetas del Flujo Asistencial (Pasos 1 a 5) para registrar datos
+      var tarjetasFlujo = document.querySelectorAll('main a[href*="idPaciente="]');
+      tarjetasFlujo.forEach(function (tarjeta) {
+        tarjeta.addEventListener('click', function () {
+          navegacionPermitida = true;
+        });
+      });
+
+      var mensajeBloqueoActivo = '⚠️ Debe cerrar la ficha para completar el proceso.\n\nPresione el botón "Cierre de Ficha" antes de salir del panel.';
+      var mensajeBloqueoInactivo = '⚠️ Para salir de la ficha, utilice el botón "Volver a Pacientes" ubicado en la barra superior.';
+
+      // Botón "Volver a Pacientes"
+      var btnVolver = document.querySelector('.btn-volver-pacientes');
+      if (btnVolver) {
+        btnVolver.addEventListener('click', function (e) {
+          if (navegacionPermitida) return;
+
+          if (esInactivo) {
+            // Si el paciente está inactivo, SÍ se le permite salir con el botón Volver a Pacientes
+            navegacionPermitida = true;
+          } else {
+            // Si el paciente está activo, NO puede salir por aquí: debe cerrar la ficha
+            e.preventDefault();
+            alert(mensajeBloqueoActivo);
+          }
         });
       }
 
-      var mensajeBloqueo = '⚠️ Debe cerrar la ficha para completar el proceso.\n\nPresione el botón "Cierre de Ficha" antes de salir del panel.';
-
-      // 1. Bloquear únicamente los enlaces del Sidebar (para evitar abandonar la atención) y botón "Volver a Pacientes"
-      var enlacesBloqueados = document.querySelectorAll(
-        '#nl-sidebar .nav-link, #sidebarMobile .nav-link, .btn-volver-pacientes'
+      // Bloquear enlaces del Sidebar (para evitar abandonar la atención)
+      var enlacesSidebar = document.querySelectorAll(
+        '#nl-sidebar .nav-link, #sidebarMobile .nav-link'
       );
-      enlacesBloqueados.forEach(function (link) {
+      enlacesSidebar.forEach(function (link) {
         var href = link.getAttribute('href') || '';
         if (href.includes('/logout') || href.includes('/cambio-contrasena')) return;
 
         link.addEventListener('click', function (e) {
-          if (!fichaCerrada) {
+          if (!navegacionPermitida) {
             e.preventDefault();
-            alert(mensajeBloqueo);
+            if (esInactivo) {
+              alert(mensajeBloqueoInactivo);
+            } else {
+              alert(mensajeBloqueoActivo);
+            }
           }
         });
       });
 
-      // Permitir la navegación de las tarjetas del Flujo Asistencial (Pasos 1 a 5)
-      var tarjetasFlujo = document.querySelectorAll('main a[href*="idPaciente="]');
-      tarjetasFlujo.forEach(function (tarjeta) {
-        tarjeta.addEventListener('click', function () {
-          fichaCerrada = true; // Permite ingresar a los pasos del paciente sin bloquear la navegación
-        });
-      });
-
-      // 2. Bloquear botón Atrás/Regresar del navegador (History API)
+      // Bloquear botón Atrás/Regresar del navegador (History API)
       history.pushState(null, null, location.href);
       window.addEventListener('popstate', function () {
-        if (!fichaCerrada) {
+        if (!navegacionPermitida) {
           history.pushState(null, null, location.href);
-          alert(mensajeBloqueo);
-        }
-      });
-
-      // 3. Advertencia al escribir/cambiar URL directa o cerrar la pestaña
-      window.addEventListener('beforeunload', function (e) {
-        if (!fichaCerrada) {
-          e.preventDefault();
-          e.returnValue = mensajeBloqueo;
-          return mensajeBloqueo;
+          if (esInactivo) {
+            alert(mensajeBloqueoInactivo);
+          } else {
+            alert(mensajeBloqueoActivo);
+          }
         }
       });
     });

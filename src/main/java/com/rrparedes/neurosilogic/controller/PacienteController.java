@@ -1,6 +1,7 @@
 package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.Paciente;
+import com.rrparedes.neurosilogic.model.Usuario;
 import com.rrparedes.neurosilogic.service.NegocioException;
 import com.rrparedes.neurosilogic.service.PacienteService;
 import jakarta.servlet.http.HttpSession;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class PacienteController {
@@ -55,15 +57,62 @@ public class PacienteController {
             model.addAttribute("imcList", panel.imcList());
             model.addAttribute("antecedentesList", panel.antecedentesList());
             model.addAttribute("alertas", panel.alertas());
+
+            boolean tieneSV = !panel.signosVitales().isEmpty();
+            boolean tieneGlasgow = !panel.glasgowList().isEmpty();
+            boolean tieneIMC = !panel.imcList().isEmpty();
+            boolean puedeCerrar = tieneSV && tieneGlasgow && tieneIMC;
+            boolean tieneAlertasActivas = !panel.alertas().isEmpty();
+
+            model.addAttribute("tieneSV", tieneSV);
+            model.addAttribute("tieneGlasgow", tieneGlasgow);
+            model.addAttribute("tieneIMC", tieneIMC);
+            model.addAttribute("puedeCerrarFicha", puedeCerrar);
+            model.addAttribute("tieneAlertasActivas", tieneAlertasActivas);
+
             return "panel_paciente";
         }).orElse("redirect:/pacientes");
     }
 
     @PostMapping("/paciente/cerrar-ficha")
-    public String cerrarFicha(@RequestParam Long idPaciente, HttpSession session) {
-        com.rrparedes.neurosilogic.model.Usuario enfermero = (com.rrparedes.neurosilogic.model.Usuario) session.getAttribute("usuarioLogueado");
+    public String cerrarFicha(@RequestParam Long idPaciente, HttpSession session, RedirectAttributes redirectAttributes) {
+        Usuario enfermero = (Usuario) session.getAttribute("usuarioLogueado");
         if (enfermero == null) return "redirect:/login";
-        pacienteService.registrarCierreFicha(idPaciente, enfermero);
-        return "redirect:/pacientes";
+        try {
+            pacienteService.registrarCierreFicha(idPaciente, enfermero);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Información de Cierre de Ficha guardada exitosamente en la base de datos.");
+            return "redirect:/pacientes";
+        } catch (NegocioException ex) {
+            redirectAttributes.addFlashAttribute("mensajeError", ex.getMessage());
+            return "redirect:/paciente/panel?id=" + idPaciente;
+        }
+    }
+
+    @PostMapping("/paciente/dar-alta")
+    public String darAlta(@RequestParam Long idPaciente, HttpSession session, RedirectAttributes redirectAttributes) {
+        Usuario enfermero = (Usuario) session.getAttribute("usuarioLogueado");
+        if (enfermero == null) return "redirect:/login";
+        try {
+            pacienteService.darDeAlta(idPaciente, enfermero);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Paciente dado de alta exitosamente por estar estable (0 alertas activas). Ficha marcada como Inactiva.");
+            return "redirect:/pacientes";
+        } catch (NegocioException ex) {
+            redirectAttributes.addFlashAttribute("mensajeError", ex.getMessage());
+            return "redirect:/paciente/panel?id=" + idPaciente;
+        }
+    }
+
+    @PostMapping("/paciente/activar-ficha")
+    public String activarFicha(@RequestParam Long idPaciente, HttpSession session, RedirectAttributes redirectAttributes) {
+        Usuario enfermero = (Usuario) session.getAttribute("usuarioLogueado");
+        if (enfermero == null) return "redirect:/login";
+        try {
+            pacienteService.activarFicha(idPaciente, enfermero);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Ficha del paciente reactivada exitosamente por re-ingreso.");
+            return "redirect:/paciente/panel?id=" + idPaciente;
+        } catch (NegocioException ex) {
+            redirectAttributes.addFlashAttribute("mensajeError", ex.getMessage());
+            return "redirect:/paciente/panel?id=" + idPaciente;
+        }
     }
 }

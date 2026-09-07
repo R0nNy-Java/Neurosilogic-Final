@@ -46,6 +46,10 @@ public class DosificacionServiceImpl implements DosificacionService {
         Paciente paciente = pacienteRepository.findById(idPaciente)
                 .orElseThrow(() -> new NegocioException("Paciente no encontrado."));
 
+        if (!"A".equalsIgnoreCase(paciente.getEstado())) {
+            throw new NegocioException("El paciente se encuentra en estado Inactivo / Dado de Alta. Debe presionar 'Re-activar Ficha / Re-ingreso' en la Ficha del Paciente antes de registrar nuevas tomas de dosificación.");
+        }
+
         Dosificacion d = new Dosificacion();
         d.setPaciente(paciente);
         d.setMedicamento(medicamento);
