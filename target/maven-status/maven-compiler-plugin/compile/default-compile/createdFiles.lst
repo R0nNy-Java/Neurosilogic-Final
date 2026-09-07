@@ -18,6 +18,7 @@ com\rrparedes\neurosilogic\controller\DashboardController.class
 com\rrparedes\neurosilogic\service\UsuarioService.class
 com\rrparedes\neurosilogic\model\EscalaGlasgow.class
 com\rrparedes\neurosilogic\controller\PacienteController.class
+com\rrparedes\neurosilogic\controller\QRScanController.class
 com\rrparedes\neurosilogic\service\PacienteServiceImpl.class
 com\rrparedes\neurosilogic\model\RangoSignoNormal.class
 com\rrparedes\neurosilogic\controller\AdminController.class
@@ -38,6 +39,7 @@ com\rrparedes\neurosilogic\service\NegocioException.class
 com\rrparedes\neurosilogic\repository\EvaluacionIMCRepository.class
 com\rrparedes\neurosilogic\service\ModuloClinicoServiceImpl.class
 com\rrparedes\neurosilogic\service\PacienteService.class
+com\rrparedes\neurosilogic\util\NetworkUtil.class
 com\rrparedes\neurosilogic\service\ReporteService.class
 com\rrparedes\neurosilogic\repository\PacienteRepository.class
 com\rrparedes\neurosilogic\service\UsuarioServiceImpl.class

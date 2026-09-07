@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NurseLogic &middot; Consulta QR de Pulsera</title>
+  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f4f6f9;
+    }
+    .bg-brand-gradient {
+      background: linear-gradient(135deg, #0d6efd 0%, #198754 100%);
+    }
+    .card-kanban {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    }
+    .badge-soft-success {
+      background-color: rgba(25, 135, 84, 0.12);
+      color: #198754;
+      font-weight: 600;
+    }
+    .badge-soft-danger {
+      background-color: rgba(220, 53, 69, 0.12);
+      color: #dc3545;
+      font-weight: 600;
+    }
+    .metric-box {
+      background: #ffffff;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e9ecef;
+    }
+  </style>
+</head>
+<body class="pb-5">
+
+  <!-- TOPBAR PWA -->
+  <header class="bg-brand-gradient text-white py-3 px-3 shadow-sm sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <span class="fw-bold fs-5 d-flex align-items-center gap-2">
+        <i class="bi bi-heart-pulse-fill text-white"></i> NURSELOGIC PWA
+      </span>
+      <button class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold" onclick="abrirEscaner()">
+        <i class="bi bi-qr-code-scan me-1"></i> Escanear QR
+      </button>
+    </div>
+  </header>
+
+  <div class="container mt-4" style="max-width: 640px;">
+
+    <!-- ══ CASO 1: ERROR O PACIENTE NO ENCONTRADO ══ -->
+    <div th:if="${errorModal}" class="card card-kanban p-4 text-center">
+      <div class="text-danger mb-3">
+        <i class="bi bi-exclamation-octagon-fill" style="font-size: 3.5rem;"></i>
+      </div>
+      <h4 class="fw-bold text-dark mb-2">Error de Lectura</h4>
+      <p class="text-muted mb-4" th:text="${errorModal}">No se encontró el paciente.</p>
+      <button class="btn btn-primary rounded-pill py-2.5 fw-bold" onclick="abrirEscaner()">
+        <i class="bi bi-qr-code-scan me-2"></i> Intentar Escanear Nuevamente
+      </button>
+    </div>
+
+    <!-- ══ CASO 2: PACIENTE INACTIVO / ALTA OTORGADA (estado != 'A') ══ -->
+    <th:block th:if="${paciente != null and esActivo == false}">
+      <div class="card card-kanban p-4 text-center border-top border-5 border-danger shadow-sm">
+        <div class="text-danger mb-2">
+          <i class="bi bi-person-x-fill text-danger" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="fw-bold text-danger mb-1">Paciente No Activo / Alta Otorgada</h4>
+        <p class="text-muted small mb-3">
+          El código QR de esta pulsera ya no está disponible porque el paciente ha sido dado de alta o se encuentra inactivo.
+        </p>
+
+        <!-- Datos básicos sin información clínica confidencial -->
+        <div class="bg-light p-3 rounded-3 text-start mb-3 border">
+          <div class="d-flex justify-content-between align-items-center">
+            <strong class="text-dark" th:text="${paciente.nombres + ' ' + paciente.apellidosAbreviados}">Paciente</strong>
+            <span class="badge bg-secondary font-monospace" th:text="${'#ID: ' + paciente.idPaciente}">#ID</span>
+          </div>
+          <div class="small text-muted mt-1">
+            Cédula: <span class="font-monospace fw-bold" th:text="${paciente.cedula}">0000000000</span>
+          </div>
+        </div>
+
+        <div class="alert alert-danger border border-danger border-opacity-50 rounded-3 text-start small mb-4">
+          <strong class="d-block mb-1"><i class="bi bi-shield-lock-fill me-1"></i>Acceso Denegado:</strong>
+          Por motivos de seguridad y confidencialidad médica, la información del código QR se inhabilita automáticamente al egresar al paciente.
+        </div>
+
+        <button class="btn btn-danger btn-lg w-100 rounded-pill fw-bold shadow-sm" onclick="abrirEscaner()">
+          <i class="bi bi-qr-code-scan me-2"></i> Escanear Otra Pulsera
+        </button>
+      </div>
+    </th:block>
+
+    <!-- ══ CASO 3: PACIENTE ACTIVO (estado == 'A') — VISTA KANBAN (CIERRE DE FICHA) ══ -->
+    <th:block th:if="${paciente != null and esActivo == true}">
+
+      <!-- ENCABEZADO CLÍNICO DE IDENTIFICACIÓN -->
+      <div class="card card-kanban p-4 mb-4 border-start border-5 border-success">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="badge badge-soft-success mb-2 px-3 py-1 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> PACIENTE ACTIVO</span>
+            <h3 class="h5 fw-bold text-dark mb-0" th:text="${paciente.nombres + ' ' + paciente.apellidos}">Nombre Paciente</h3>
+            <div class="text-muted small" th:text="${'Nombre en Pulsera: ' + paciente.nombres + ' ' + paciente.apellidosAbreviados}">Abreviado</div>
+          </div>
+          <span class="badge bg-success bg-opacity-10 text-success border border-success font-monospace px-2.5 py-1.5 fs-6" th:text="${'#ID: ' + paciente.idPaciente}">#ID</span>
+        </div>
+
+        <hr class="my-2 text-muted">
+
+        <div class="row g-2 text-dark small">
+          <div class="col-6">
+            <span class="text-muted">Cédula:</span> <strong class="font-monospace" th:text="${paciente.cedula}">0000000000</strong>
+          </div>
+          <div class="col-6">
+            <span class="text-muted">Edad / Sexo:</span> <strong th:text="${paciente.edad + ' años (' + (paciente.sexo == 'M' ? 'MASCULINO' : 'FEMENINO') + ')'}">30 años (M)</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN PRINCIPAL: RESUMEN KANBAN (CIERRE DE FICHA MÁS RECIENTE) -->
+      <div class="card card-kanban p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-kanban-fill text-success"></i> Estado Kanban &middot; Cierre de Ficha
+          </h5>
+          <span th:if="${ultimoCierre != null}" class="badge bg-success text-white px-2.5 py-1 rounded-pill small">Cerrado</span>
+          <span th:if="${ultimoCierre == null}" class="badge bg-info text-white px-2.5 py-1 rounded-pill small">En Evaluación</span>
+        </div>
+
+        <!-- SI EXISTE CIERRE DE FICHA REGISTRADO -->
+        <th:block th:if="${ultimoCierre != null}">
+
+          <!-- Enfermero Responsable y Fecha de Toma -->
+          <div class="bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 p-3 mb-3">
+            <div class="fw-bold text-success small mb-1">
+              <i class="bi bi-person-badge-fill me-1"></i>Enfermero/a Responsable:
+              <span th:text="${ultimoCierre.nombreEnfermero}">María López</span>
+            </div>
+            <div class="text-dark fw-semibold small">
+              <i class="bi bi-clock-history me-1 text-primary"></i>Fecha Última Toma:
+              <span th:text="${#temporals.format(ultimoCierre.fechaCierre, 'dd/MM/yyyy HH:mm')}">00/00/0000 00:00</span>
+            </div>
+          </div>
+
+          <!-- BANNER DE RE-TOMA OBLIGATORIA (SI TIENE ALERTA ACTIVA) -->
+          <div th:if="${ultimoCierre.tieneAlertaActiva == true}" class="alert alert-danger border-danger rounded-3 mb-3 p-3">
+            <div class="fw-bold text-danger d-flex align-items-center gap-1 mb-1">
+              <i class="bi bi-exclamation-triangle-fill"></i> RE-TOMA OBLIGATORIA RECOMENDADA
+            </div>
+            <div class="small">
+              El paciente presentó valores fuera de rango fisiológico. Se requiere re-evaluar signos vitales en <strong>1 hora</strong>
+              (<span class="fw-bold" th:text="${#temporals.format(ultimoCierre.fechaCierre.plusHours(1), 'HH:mm')}">HH:mm</span>).
+            </div>
+          </div>
+
+          <!-- RECUADROS DE PARÁMETROS CLÍNICOS -->
+          <div class="d-flex flex-column gap-2 mb-3">
+            <div class="metric-box d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 flex-shrink-0"><i class="bi bi-activity fs-5"></i></div>
+              <div>
+                <div class="text-muted extra-small uppercase fw-bold" style="font-size: .7rem;">SIGNOS VITALES</div>
+                <div class="fw-bold text-dark small" th:text="${ultimoCierre.ultimosSignosVitales}">PA: 120/80</div>
+              </div>
+            </div>
+
+            <div class="metric-box d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-warning bg-opacity-10 text-warning-emphasis p-2 flex-shrink-0"><i class="bi bi-clipboard-pulse fs-5"></i></div>
+              <div>
+                <div class="text-muted extra-small uppercase fw-bold" style="font-size: .7rem;">ESCALA DE GLASGOW</div>
+                <div class="fw-bold text-dark small" th:text="${ultimoCierre.ultimoGlasgow}">15/15</div>
+              </div>
+            </div>
+
+            <div class="metric-box d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 flex-shrink-0"><i class="bi bi-speedometer2 fs-5"></i></div>
+              <div>
+                <div class="text-muted extra-small uppercase fw-bold" style="font-size: .7rem;">EVALUACIÓN IMC</div>
+                <div class="fw-bold text-dark small" th:text="${ultimoCierre.ultimoIMC}">Normal</div>
+              </div>
+            </div>
+
+            <div class="metric-box d-flex align-items-center gap-3">
+              <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 flex-shrink-0"><i class="bi bi-capsule fs-5"></i></div>
+              <div>
+                <div class="text-muted extra-small uppercase fw-bold" style="font-size: .7rem;">DOSIFICACIÓN ADMINISTRADA</div>
+                <div class="fw-bold text-dark small" th:text="${ultimoCierre.ultimaDosis}">Paracetamol 500mg</div>
+              </div>
+            </div>
+          </div>
+
+        </th:block>
+
+        <!-- SI AÚN NO EXISTE CIERRE REGISTRADO -->
+        <th:block th:if="${ultimoCierre == null}">
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-hospital fs-1 text-info mb-2 d-block"></i>
+            <h6 class="fw-bold text-dark">Paciente en Evaluación Clínica</h6>
+            <p class="small mb-0">Esta ficha se encuentra abierta en el turno actual. Aún no se registra un cierre de ficha consolidado.</p>
+          </div>
+        </th:block>
+
+      </div>
+
+      <!-- BOTÓN DE ACCIÓN FLOTANTE / INFERIOR -->
+      <div class="mb-4">
+        <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow" onclick="abrirEscaner()">
+          <i class="bi bi-qr-code-scan me-2"></i> Escanear Otra Pulsera
+        </button>
+      </div>
+
+    </th:block>
+
+  </div>
+
+  <!-- MODAL DE ESCÁNER DE CÁMARA QR -->
+  <div class="modal fade" id="modalCamaraQR" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header bg-brand-gradient text-white rounded-top-4">
+          <h5 class="modal-title fw-bold fs-6"><i class="bi bi-camera-fill me-2"></i>Escáner de Pulsera en Vivo</h5>
+          <button type="button" class="btn-close btn-close-white" onclick="cerrarEscaner()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3 text-center">
+          <div id="reader" style="width:100%; min-height: 280px;" class="rounded-3 overflow-hidden border"></div>
+          <p class="small text-muted mt-2 mb-0">Apunta la cámara del dispositivo al código QR de la pulsera.</p>
+        </div>
+        <div class="modal-footer border-0 bg-light rounded-bottom-4">
+          <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" onclick="cerrarEscaner()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script>
+    let html5QrCode = null;
+    let modalCamara = null;
+
+    function abrirEscaner() {
+      const modalElement = document.getElementById('modalCamaraQR');
+      modalCamara = new bootstrap.Modal(modalElement);
+      modalCamara.show();
+
+      setTimeout(() => {
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode("reader");
+        }
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText, decodedResult) => {
+            console.log("QR Detectado:", decodedText);
+            html5QrCode.stop().then(() => {
+              modalCamara.hide();
+              window.location.href = decodedText;
+            }).catch(err => {
+              window.location.href = decodedText;
+            });
+          },
+          (errorMessage) => {
+            // Ignorar errores de frame no detectado
+          }
+        ).catch(err => {
+          console.error("Error al iniciar cámara:", err);
+          alert("No se pudo acceder a la cámara. Verifique los permisos de cámara y que la conexión sea HTTPS seguro.");
+        });
+      }, 300);
+    }
+
+    function cerrarEscaner() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          if (modalCamara) modalCamara.hide();
+        }).catch(err => {
+          if (modalCamara) modalCamara.hide();
+        });
+      } else {
+        if (modalCamara) modalCamara.hide();
+      }
+    }
+  </script>
+</body>
+</html>

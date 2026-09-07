@@ -55,6 +55,7 @@ public class DashboardController {
             return "redirect:/login";
         }
         model.addAttribute("usuario", usuarioLogueado);
+        model.addAttribute("serverLanIp", com.rrparedes.neurosilogic.util.NetworkUtil.getLanIP());
 
         LocalDateTime startDT = null;
         LocalDateTime endDT = null;

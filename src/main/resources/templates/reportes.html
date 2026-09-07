@@ -602,12 +602,15 @@
                     <span>NURSELOGIC</span>
                   </div>
                   <div class="manilla-datos">
-                    <div class="manilla-nombre" th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidos}">Nombre Paciente</div>
+                    <div class="manilla-nombre">
+                      <span th:text="${pacienteEncontrado.nombres + ' ' + pacienteEncontrado.apellidosAbreviados}">Nombre Paciente</span>
+                      <small class="font-monospace fw-bold ms-1 text-success" th:text="${'#ID:' + pacienteEncontrado.idPaciente}">#ID:1</small>
+                    </div>
                     <div class="manilla-linea"><strong>C.I.</strong> <span th:text="${pacienteEncontrado.cedula}">0000000000</span></div>
                     <div class="manilla-linea">
-                      <strong>Nac.</strong> <span th:text="${pacienteEncontrado.fechaNacimiento}">00/00/0000</span> &nbsp;
-                      <strong>Edad</strong> <span th:text="${pacienteEncontrado.edad}">0</span> &nbsp;
-                      <strong>Sexo</strong> <span th:text="${pacienteEncontrado.sexo}">M</span>
+                      <strong>Edad:</strong> <span th:text="${pacienteEncontrado.edad + ' años'}">0 años</span> &nbsp;|&nbsp;
+                      <strong>Sexo:</strong> <span th:text="${pacienteEncontrado.sexo == 'M' ? 'Masculino' : 'Femenino'}">M</span> &nbsp;|&nbsp;
+                      <strong>Nac:</strong> <span th:text="${pacienteEncontrado.fechaNacimiento}">00/00/0000</span>
                     </div>
                   </div>
                   <div class="manilla-qr">
@@ -640,7 +643,10 @@
             <div id="qrcode" class="p-3 bg-white border rounded-3 shadow-xs"></div>
           </div>
 
-          <p class="small text-muted mb-0">Escanee este código QR para acceder rápidamente al historial de constantes vitales del paciente.</p>
+          <p class="small text-muted mb-2">Escanee este código QR para acceder rápidamente al Kanban (Cierre de Ficha) del paciente.</p>
+          <div class="alert alert-info py-2 px-3 small text-start rounded-3 mb-0" style="font-size: 0.78rem;">
+            <i class="bi bi-wifi me-1"></i><strong>Escaneo desde Celular:</strong> Para escanear con tu teléfono móvil en la red Wi-Fi, abre el sistema en el navegador de la PC usando la IP de tu red en lugar de <code>localhost</code> (ejemplo: <code>https://192.168.100.154:8443/reportes</code>).
+          </div>
         </div>
         <div class="modal-footer border-0 bg-light rounded-bottom-4 justify-content-center">
           <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">Cerrar</button>
@@ -808,12 +814,12 @@
       .manilla-segmento {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
         width: 100%;
         max-width: 640px;
         border: 2px solid #198754;
         border-radius: 45px;
-        padding: 14px 28px;
+        padding: 14px 45px 14px 35px;
         background: linear-gradient(90deg, #eef9f3 0%, #ffffff 65%);
         position: relative;
       }
@@ -839,6 +845,7 @@
         letter-spacing: .5px;
         flex-shrink: 0;
         width: 60px;
+        margin-left: 10px;
       }
       .manilla-marca i {
         font-size: 22px;
@@ -865,6 +872,7 @@
         flex-shrink: 0;
         width: 72px;
         height: 72px;
+        margin-right: 20px; /* Margen a la izquierda del borde derecho para dejar libre la zona de la cinta de pegado */
       }
       .manilla-qr img, .manilla-qr canvas {
         width: 72px !important;
@@ -903,13 +911,24 @@
       form.submit();
     }
 
+    function obtenerBaseURLEscaneo() {
+      var lanIp = /*[[${serverLanIp}]]*/ 'localhost';
+      var protocol = window.location.protocol;
+      var port = window.location.port ? (":" + window.location.port) : "";
+      var host = window.location.hostname;
+      if ((host === 'localhost' || host === '127.0.0.1') && lanIp && lanIp !== 'localhost') {
+        host = lanIp;
+      }
+      return protocol + "//" + host + port;
+    }
+
     // Imprime únicamente la manilla del paciente encontrado (oculta el resto del reporte
     // mientras dura la impresión, y lo restaura apenas se cierra el diálogo de impresión).
     function imprimirManilla() {
       document.querySelectorAll('#manillaImprimible .qrcodeManillaSlot').forEach(function (slot) {
         if (slot.childElementCount === 0 && typeof QRCode !== 'undefined') {
           new QRCode(slot, {
-            text: window.location.origin + "/paciente/panel?id=" + window.__idPacienteManilla,
+            text: obtenerBaseURLEscaneo() + "/qr/scan?id=" + window.__idPacienteManilla,
             width: 72,
             height: 72
           });
@@ -929,7 +948,7 @@
       var qrContainer = document.getElementById("qrcode");
       if (qrContainer) {
         new QRCode(qrContainer, {
-          text: window.location.origin + "/paciente/panel?id=" + /*[[${pacienteEncontrado.idPaciente}]]*/ 1,
+          text: obtenerBaseURLEscaneo() + "/qr/scan?id=" + /*[[${pacienteEncontrado.idPaciente}]]*/ 1,
           width: 180,
           height: 180
         });

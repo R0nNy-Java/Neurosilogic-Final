@@ -125,4 +125,18 @@ public class Paciente implements Serializable {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+
+    /**
+     * Retorna los apellidos abreviados formalmente (ej: "Pérez P." para "Pérez Paredes").
+     */
+    public String getApellidosAbreviados() {
+        if (this.apellidos == null || this.apellidos.trim().isEmpty()) {
+            return "";
+        }
+        String[] partes = this.apellidos.trim().split("\\s+");
+        if (partes.length >= 2) {
+            return partes[0] + " " + partes[1].substring(0, 1).toUpperCase() + ".";
+        }
+        return partes[0];
+    }
 }
