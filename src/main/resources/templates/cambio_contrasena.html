@@ -46,7 +46,12 @@
 
               <div class="mb-3">
                 <label class="form-label">Nueva Contraseña</label>
-                <input type="password" name="nuevaContrasena" class="form-control" required>
+                <input type="password" name="nuevaContrasena" id="nuevaContrasena" class="form-control" required minlength="8">
+                <div class="small mt-1">
+                    <span id="reqLongitud" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Al menos 8 caracteres</span> &nbsp;
+                    <span id="reqMayuscula" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Una mayúscula</span> &nbsp;
+                    <span id="reqEspecial" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Un carácter especial</span>
+                </div>
               </div>
 
               <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-key me-1"></i> Actualizar Contraseña</button>
@@ -59,5 +64,18 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script>
+    document.getElementById('nuevaContrasena').addEventListener('input', function () {
+      var valor = this.value;
+      var marcar = function (id, cumple) {
+        var el = document.getElementById(id);
+        el.classList.toggle('req-ok', cumple);
+        el.classList.toggle('req-fail', !cumple);
+      };
+      marcar('reqLongitud', valor.length >= 8);
+      marcar('reqMayuscula', /[A-Z]/.test(valor));
+      marcar('reqEspecial', /[^A-Za-z0-9]/.test(valor));
+    });
+  </script>
 </body>
 </html>

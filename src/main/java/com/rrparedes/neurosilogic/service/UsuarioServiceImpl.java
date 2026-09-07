@@ -2,6 +2,8 @@ package com.rrparedes.neurosilogic.service;
 
 import com.rrparedes.neurosilogic.model.Usuario;
 import com.rrparedes.neurosilogic.repository.UsuarioRepository;
+import com.rrparedes.neurosilogic.util.CedulaEcuatorianaValidator;
+import com.rrparedes.neurosilogic.util.PasswordPolicyValidator;
 import com.rrparedes.neurosilogic.util.PasswordUtil;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -71,12 +73,23 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Usuario registrarCuenta(String usuario, String contrasena, String nombreCompleto, String email) {
+    public Usuario registrarCuenta(String usuario, String contrasena, String nombreCompleto, String email, String cedula) {
         if (usuarioRepository.existsByNombreUsuarioIgnoreCase(usuario.trim())) {
             throw new NegocioException("El nombre de usuario ya existe.");
         }
+        String cedulaLimpia = cedula != null ? cedula.trim() : "";
+        if (!CedulaEcuatorianaValidator.esValida(cedulaLimpia)) {
+            throw new NegocioException("La cédula ingresada no es válida.");
+        }
+        if (usuarioRepository.existsByCedula(cedulaLimpia)) {
+            throw new NegocioException("Ya existe una cuenta registrada con esa cédula.");
+        }
+        if (!PasswordPolicyValidator.esValida(contrasena)) {
+            throw new NegocioException(PasswordPolicyValidator.MENSAJE_REQUISITOS);
+        }
         // Las nuevas cuentas nacen con rol 'SIN_ASIGNAR' y estado 'B' (Bloqueado / Pendiente de aprobación)
         Usuario u = new Usuario(usuario.trim(), PasswordUtil.hash(contrasena), "SIN_ASIGNAR", nombreCompleto, email, true);
+        u.setCedula(cedulaLimpia);
         return usuarioRepository.save(u);
     }
 
@@ -86,6 +99,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElseThrow(() -> new NegocioException("La contraseña actual no es correcta."));
         if (!PasswordUtil.verificar(contrasenaActual, u.getContrasenaHash())) {
             throw new NegocioException("La contraseña actual no es correcta.");
+        }
+        if (!PasswordPolicyValidator.esValida(nuevaContrasena)) {
+            throw new NegocioException(PasswordPolicyValidator.MENSAJE_REQUISITOS);
         }
         u.setContrasenaHash(PasswordUtil.hash(nuevaContrasena));
         return usuarioRepository.save(u);

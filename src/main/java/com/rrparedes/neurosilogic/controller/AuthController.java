@@ -62,11 +62,19 @@ public class AuthController {
                                      @RequestParam String contrasena,
                                      @RequestParam String nombreCompleto,
                                      @RequestParam String email,
+                                     @RequestParam String cedula,
                                      Model model) {
         try {
-            usuarioService.registrarCuenta(usuario, contrasena, nombreCompleto, email);
+            usuarioService.registrarCuenta(usuario, contrasena, nombreCompleto, email, cedula);
         } catch (NegocioException ex) {
             model.addAttribute("error", ex.getMessage());
+            // Se reenvían los datos ya escritos para que el formulario no se vacíe al fallar un
+            // solo campo — la contraseña deliberadamente NO se reenvía (nunca se hace eco de una
+            // contraseña de vuelta al formulario, ni siquiera la que el propio usuario escribió).
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("nombreCompleto", nombreCompleto);
+            model.addAttribute("email", email);
+            model.addAttribute("cedula", cedula);
             return "nueva_cuenta";
         }
         model.addAttribute("mensaje", "Solicitud de cuenta enviada exitosamente. El administrador debe asignar su rol y activar su cuenta antes de iniciar sesión.");

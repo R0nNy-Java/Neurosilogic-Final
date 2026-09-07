@@ -11,10 +11,17 @@ public interface UsuarioService {
 
     void registrarLogout(Usuario usuario);
 
-    /** Crea una cuenta con rol fijo ENFERMERO. Lanza {@link NegocioException} si el usuario ya existe. */
-    Usuario registrarCuenta(String usuario, String contrasena, String nombreCompleto, String email);
+    /**
+     * Crea una cuenta con rol fijo ENFERMERO. Lanza {@link NegocioException} si el usuario o la
+     * cédula ya existen, si la cédula no es válida (Módulo 10 ecuatoriano), o si la contraseña no
+     * cumple la política mínima de seguridad (8+ caracteres, mayúscula y carácter especial).
+     */
+    Usuario registrarCuenta(String usuario, String contrasena, String nombreCompleto, String email, String cedula);
 
-    /** Lanza {@link NegocioException} si la contraseña actual no coincide. */
+    /**
+     * Lanza {@link NegocioException} si la contraseña actual no coincide, o si la nueva contraseña
+     * no cumple la política mínima de seguridad (8+ caracteres, mayúscula y carácter especial).
+     */
     Usuario cambiarContrasena(Long idUsuario, String contrasenaActual, String nuevaContrasena);
 
     /**

@@ -20,6 +20,10 @@ public class Usuario implements Serializable {
     @Column(name = "NombreUsuario", length = 30, nullable = false, unique = true)
     private String nombreUsuario;
 
+    @Size(min = 10, max = 10, message = "La cédula debe tener exactamente 10 dígitos")
+    @Column(name = "Cedula", length = 10, unique = true)
+    private String cedula;
+
     @NotBlank(message = "La contraseña es obligatoria")
     @Column(name = "ContrasenaHash", length = 255, nullable = false)
     private String contrasenaHash;
@@ -87,6 +91,14 @@ public class Usuario implements Serializable {
 
     public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
+    }
+
+    public String getCedula() {
+        return cedula;
+    }
+
+    public void setCedula(String cedula) {
+        this.cedula = cedula;
     }
 
     public String getContrasenaHash() {

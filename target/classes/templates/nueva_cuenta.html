@@ -15,19 +15,28 @@
           <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Nombre de Usuario</label>
-                <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero3" required>
+                <input type="text" name="usuario" class="form-control" th:value="${usuario}" placeholder="Ej. enfermero3" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Cédula de Identidad</label>
+                <input type="text" name="cedula" id="cedulaCuenta" class="form-control" th:value="${cedula}" placeholder="Ej. 1723456789" required maxlength="10" inputmode="numeric" pattern="\d{10}">
             </div>
             <div class="mb-3">
                 <label class="form-label">Nombre Completo</label>
-                <input type="text" name="nombreCompleto" class="form-control" placeholder="Ej. Laura Martínez" required>
+                <input type="text" name="nombreCompleto" class="form-control" th:value="${nombreCompleto}" placeholder="Ej. Laura Martínez" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">Correo Electrónico</label>
-                <input type="email" name="email" class="form-control" placeholder="lmartinez@nurselogic.ec" required>
+                <input type="email" name="email" class="form-control" th:value="${email}" placeholder="lmartinez@nurselogic.ec" required>
             </div>
             <div class="mb-3">
                 <label class="form-label">Contraseña</label>
-                <input type="password" name="contrasena" class="form-control" placeholder="••••••••" required>
+                <input type="password" name="contrasena" id="contrasenaCuenta" class="form-control" placeholder="••••••••" required minlength="8">
+                <div class="small mt-1">
+                    <span id="reqLongitud" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Al menos 8 caracteres</span> &nbsp;
+                    <span id="reqMayuscula" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Una mayúscula</span> &nbsp;
+                    <span id="reqEspecial" class="req-fail"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Un carácter especial</span>
+                </div>
             </div>
             <button type="submit" class="btn btn-success w-100 py-2 font-weight-bold">Registrarse</button>
         </form>
@@ -36,5 +45,21 @@
             ¿Ya tienes cuenta? <a th:href="@{/login}" class="text-decoration-none">Iniciar Sesión</a>
         </div>
     </div>
+
+    <script>
+      // Marca en vivo (verde = cumplido, gris = falta) los 3 requisitos de la contraseña
+      // mientras el usuario escribe — la misma regla que valida el backend al enviar el formulario.
+      document.getElementById('contrasenaCuenta').addEventListener('input', function () {
+        var valor = this.value;
+        var marcar = function (id, cumple) {
+          var el = document.getElementById(id);
+          el.classList.toggle('req-ok', cumple);
+          el.classList.toggle('req-fail', !cumple);
+        };
+        marcar('reqLongitud', valor.length >= 8);
+        marcar('reqMayuscula', /[A-Z]/.test(valor));
+        marcar('reqEspecial', /[^A-Za-z0-9]/.test(valor));
+      });
+    </script>
 </body>
 </html>
