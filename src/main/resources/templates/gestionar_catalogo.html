@@ -65,6 +65,7 @@
                         <th>Medicamento</th>
                         <th>Composición</th>
                         <th>Dosis Recomendada</th>
+                        <th class="text-center">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -72,9 +73,19 @@
                         <td th:text="${m.nombre}" class="fw-bold">Paracetamol</td>
                         <td th:text="${m.composicion}">Analgésico</td>
                         <td th:text="${m.dosisRecomendada}">500mg</td>
+                        <td class="text-center">
+                          <form th:action="@{/gestionar-catalogo/eliminar}" method="post"
+                                onsubmit="return confirm('¿Eliminar este medicamento del catálogo? Esta acción no se puede deshacer.');">
+                            <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+                            <input type="hidden" name="idMedicamento" th:value="${m.idMedicamento}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                              <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                          </form>
+                        </td>
                       </tr>
                       <tr th:if="${medicamentos.isEmpty()}">
-                        <td colspan="3" class="text-center text-muted py-3">Sin medicamentos registrados.</td>
+                        <td colspan="4" class="text-center text-muted py-3">Sin medicamentos registrados.</td>
                       </tr>
                     </tbody>
                   </table>

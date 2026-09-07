@@ -59,6 +59,21 @@ public class AdminController {
         return "redirect:/gestionar-usuarios";
     }
 
+    @PostMapping("/gestionar-usuarios/editar")
+    public String editarUsuario(@RequestParam Long idUsuario,
+                                @RequestParam String nombreUsuario,
+                                @RequestParam String cedula,
+                                @RequestParam String nombreCompleto,
+                                @RequestParam String email,
+                                HttpSession session) {
+        String rechazo = verificarAcceso(session);
+        if (rechazo != null) return rechazo;
+        Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
+
+        usuarioService.editarUsuario(userLog, idUsuario, nombreUsuario, cedula, nombreCompleto, email);
+        return "redirect:/gestionar-usuarios";
+    }
+
     // ── Gestión de Catálogo de Medicamentos ──
     @GetMapping("/gestionar-catalogo")
     public String gestionarCatalogo(HttpSession session, Model model) {
@@ -79,6 +94,16 @@ public class AdminController {
         Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
 
         medicamentoService.registrar(userLog, nombre, composicion, dosisRecomendada);
+        return "redirect:/gestionar-catalogo";
+    }
+
+    @PostMapping("/gestionar-catalogo/eliminar")
+    public String eliminarMedicamento(@RequestParam Long idMedicamento, HttpSession session) {
+        String rechazo = verificarAcceso(session);
+        if (rechazo != null) return rechazo;
+        Usuario userLog = (Usuario) session.getAttribute("usuarioLogueado");
+
+        medicamentoService.eliminar(userLog, idMedicamento);
         return "redirect:/gestionar-catalogo";
     }
 }

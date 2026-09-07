@@ -196,6 +196,40 @@ public class UsuarioServiceImpl implements UsuarioService {
         });
     }
 
+    @Override
+    public Usuario editarUsuario(Usuario actor, Long idUsuario, String nombreUsuario, String cedula, String nombreCompleto, String email) {
+        Usuario u = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new NegocioException("El usuario no existe."));
+
+        if ("admin".equalsIgnoreCase(u.getNombreUsuario()) || (u.getIdUsuario() != null && u.getIdUsuario() == 1L)) {
+            throw new NegocioException("No se permite editar al Super Administrador principal del sistema.");
+        }
+
+        String nombreUsuarioLimpio = nombreUsuario != null ? nombreUsuario.trim() : "";
+        if (nombreUsuarioLimpio.isBlank()) {
+            throw new NegocioException("El nombre de usuario es obligatorio.");
+        }
+        if (usuarioRepository.existsByNombreUsuarioIgnoreCaseAndIdUsuarioNot(nombreUsuarioLimpio, idUsuario)) {
+            throw new NegocioException("Ya existe otra cuenta con ese nombre de usuario.");
+        }
+
+        String cedulaLimpia = cedula != null ? cedula.trim() : "";
+        if (!CedulaEcuatorianaValidator.esValida(cedulaLimpia)) {
+            throw new NegocioException("La cédula ingresada no es válida.");
+        }
+        if (usuarioRepository.existsByCedulaAndIdUsuarioNot(cedulaLimpia, idUsuario)) {
+            throw new NegocioException("Ya existe otra cuenta registrada con esa cédula.");
+        }
+
+        u.setNombreUsuario(nombreUsuarioLimpio);
+        u.setCedula(cedulaLimpia);
+        u.setNombreCompleto(nombreCompleto);
+        u.setEmail(email);
+        Usuario guardado = usuarioRepository.save(u);
+        auditoriaAccesoService.registrar(actor, "EDICION_USUARIO", "Datos editados de: " + nombreUsuarioLimpio);
+        return guardado;
+    }
+
     private String generarContrasenaTemporal() {
         String alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
         SecureRandom random = new SecureRandom();

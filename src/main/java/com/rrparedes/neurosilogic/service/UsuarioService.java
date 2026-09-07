@@ -46,4 +46,12 @@ public interface UsuarioService {
 
     /** Asigna un rol (ej. ENFERMERO, ADMINISTRADOR) a un usuario. */
     void asignarRol(Usuario actor, Long idUsuario, String nuevoRol);
+
+    /**
+     * Edita los datos de identidad de un usuario (nombre de usuario, cédula, nombre completo y
+     * correo). No permite editar al Super Administrador principal del sistema. Lanza
+     * {@link NegocioException} si la cédula no es válida o si el nombre de usuario / cédula ya
+     * pertenecen a otra cuenta.
+     */
+    Usuario editarUsuario(Usuario actor, Long idUsuario, String nombreUsuario, String cedula, String nombreCompleto, String email);
 }

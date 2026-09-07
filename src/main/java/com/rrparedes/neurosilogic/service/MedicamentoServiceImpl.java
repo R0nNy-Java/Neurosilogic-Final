@@ -33,4 +33,12 @@ public class MedicamentoServiceImpl implements MedicamentoService {
         auditoriaAccesoService.registrar(actor, "ALTA_MEDICAMENTO_CATALOGO", "Medicamento: " + nombre);
         return guardado;
     }
+
+    @Override
+    public void eliminar(Usuario actor, Long idMedicamento) {
+        Medicamento med = medicamentoRepository.findById(idMedicamento)
+                .orElseThrow(() -> new NegocioException("El medicamento no existe o ya fue eliminado."));
+        medicamentoRepository.delete(med);
+        auditoriaAccesoService.registrar(actor, "BAJA_MEDICAMENTO_CATALOGO", "Medicamento: " + med.getNombreMedicamento());
+    }
 }

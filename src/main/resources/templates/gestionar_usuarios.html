@@ -34,12 +34,30 @@
           <div class="card border-0 shadow-sm p-4 rounded-4">
             <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-users-gear me-2"></i>Gestión de Usuarios del Sistema</h3>
 
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2" th:if="${not #lists.isEmpty(usuarios)}">
+              <div class="d-flex align-items-center gap-2 small text-muted">
+                <span>Mostrar</span>
+                <select id="tablaUsuariosPageSize" class="form-select form-select-sm" style="width:auto;">
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="-1">Todos</option>
+                </select>
+                <span>registros</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 small text-muted">
+                <label for="tablaUsuariosBuscar" class="mb-0">Buscar:</label>
+                <input type="search" id="tablaUsuariosBuscar" class="form-control form-control-sm" style="width:220px;" placeholder="Usuario, nombre, cédula, email...">
+              </div>
+            </div>
+
             <div class="table-responsive">
-              <table class="table table-hover align-middle">
+              <table class="table table-hover align-middle" id="tablaUsuarios">
                 <thead class="bg-success text-white">
                   <tr>
                     <th># ID</th>
                     <th>Usuario</th>
+                    <th>Cédula</th>
                     <th>Nombre Completo</th>
                     <th>Email</th>
                     <th>Rol</th>
@@ -51,6 +69,7 @@
                   <tr th:each="u : ${usuarios}">
                     <td th:text="${u.idUsuario}">1</td>
                     <td th:text="${u.nombreUsuario}" class="fw-bold">admin</td>
+                    <td th:text="${u.cedula}" class="font-monospace">0000000000</td>
                     <td th:text="${u.nombreCompleto}">Nombre</td>
                     <td th:text="${u.email}">email@domain.com</td>
                     <td>
@@ -79,20 +98,41 @@
                         <span class="badge bg-secondary py-2 px-3 text-white" style="font-size:0.75rem;"><i class="bi bi-lock-fill me-1"></i>Protegido</span>
                       </th:block>
                       <th:block th:if="${u.nombreUsuario != 'admin' and u.idUsuario != 1}">
-                        <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
-                          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
-                          <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
-                          <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
-                          <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">
-                            <i class="fa-solid" th:classappend="${u.isBloqueado() ? 'fa-unlock' : 'fa-lock'}"></i>
-                            <span th:text="${u.isBloqueado() ? ' Activar / Desbloquear' : ' Bloquear'}">Acción</span>
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                          <button type="button" class="btn btn-outline-primary btn-sm btn-editar-usuario"
+                                  th:data-id="${u.idUsuario}" th:data-usuario="${u.nombreUsuario}"
+                                  th:data-cedula="${u.cedula}" th:data-nombre="${u.nombreCompleto}"
+                                  th:data-email="${u.email}">
+                            <i class="fa-solid fa-pen"></i>
                           </button>
-                        </form>
+                          <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
+                            <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+                            <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
+                            <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
+                            <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">
+                              <i class="fa-solid" th:classappend="${u.isBloqueado() ? 'fa-unlock' : 'fa-lock'}"></i>
+                              <span th:text="${u.isBloqueado() ? ' Activar / Desbloquear' : ' Bloquear'}">Acción</span>
+                            </button>
+                          </form>
+                        </div>
                       </th:block>
                     </td>
                   </tr>
+                  <tr th:if="${#lists.isEmpty(usuarios)}">
+                    <td colspan="8" class="text-center text-muted py-4">No hay usuarios registrados aún.</td>
+                  </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2" th:if="${not #lists.isEmpty(usuarios)}">
+              <div class="small text-muted" id="tablaUsuariosResumen">Mostrando 0 de 0 registros</div>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary" id="tablaUsuariosPrimero">Primero</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaUsuariosAnterior">Anterior</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaUsuariosSiguiente">Siguiente</button>
+                <button type="button" class="btn btn-outline-secondary" id="tablaUsuariosUltimo">Último</button>
+              </div>
             </div>
           </div>
         </main>
@@ -101,6 +141,125 @@
     </div>
   </div>
 
+  <!-- MODAL: Editar datos de usuario (compartido, se rellena por JS al presionar el lápiz de cada fila) -->
+  <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form th:action="@{/gestionar-usuarios/editar}" method="post">
+          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+          <input type="hidden" name="idUsuario" id="editIdUsuario">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-user-pen me-2"></i>Editar Usuario</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Nombre de Usuario</label>
+              <input type="text" name="nombreUsuario" id="editNombreUsuario" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Cédula de Identidad</label>
+              <input type="text" name="cedula" id="editCedula" class="form-control" required maxlength="10" inputmode="numeric" pattern="\d{10}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" name="nombreCompleto" id="editNombreCompleto" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Correo Electrónico</label>
+              <input type="email" name="email" id="editEmail" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script th:inline="javascript">
+    var modalEditarUsuarioEl = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
+
+    // Se leen los datos desde atributos data-* (no desde un onclick con texto interpolado) para
+    // que un nombre o correo con comillas/apóstrofe (ej. "O'Brien") no rompa el JavaScript.
+    document.querySelectorAll('.btn-editar-usuario').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('editIdUsuario').value = this.dataset.id;
+        document.getElementById('editNombreUsuario').value = this.dataset.usuario;
+        document.getElementById('editCedula').value = this.dataset.cedula || '';
+        document.getElementById('editNombreCompleto').value = this.dataset.nombre;
+        document.getElementById('editEmail').value = this.dataset.email;
+        modalEditarUsuarioEl.show();
+      });
+    });
+
+    // Buscador + paginación en vivo (mismo comportamiento que /pacientes y Reportería).
+    function activarPaginacionTabla(prefijo, tamanoInicial) {
+      var tabla = document.getElementById(prefijo);
+      if (!tabla) return;
+
+      var tbody = tabla.querySelector('tbody');
+      var filasOriginales = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+          .filter(function (fila) { return fila.children.length > 1; });
+      if (filasOriginales.length === 0) return;
+
+      var inputBuscar = document.getElementById(prefijo + 'Buscar');
+      var selectPageSize = document.getElementById(prefijo + 'PageSize');
+      var resumen = document.getElementById(prefijo + 'Resumen');
+      var btnPrimero = document.getElementById(prefijo + 'Primero');
+      var btnAnterior = document.getElementById(prefijo + 'Anterior');
+      var btnSiguiente = document.getElementById(prefijo + 'Siguiente');
+      var btnUltimo = document.getElementById(prefijo + 'Ultimo');
+      if (!inputBuscar || !selectPageSize || !resumen || !btnPrimero || !btnAnterior || !btnSiguiente || !btnUltimo) return;
+
+      if (tamanoInicial) selectPageSize.value = String(tamanoInicial);
+      var paginaActual = 1;
+
+      function filasVisiblesPorBusqueda() {
+        var termino = (inputBuscar.value || '').trim().toLowerCase();
+        if (!termino) return filasOriginales.slice();
+        return filasOriginales.filter(function (fila) {
+          return fila.textContent.toLowerCase().indexOf(termino) !== -1;
+        });
+      }
+
+      function render() {
+        var filtradas = filasVisiblesPorBusqueda();
+        var tamanoPagina = parseInt(selectPageSize.value, 10);
+        var total = filtradas.length;
+        var totalPaginas = tamanoPagina === -1 ? 1 : Math.max(1, Math.ceil(total / tamanoPagina));
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+
+        var inicio = tamanoPagina === -1 ? 0 : (paginaActual - 1) * tamanoPagina;
+        var fin = tamanoPagina === -1 ? total : Math.min(inicio + tamanoPagina, total);
+        var paginaFilas = filtradas.slice(inicio, fin);
+
+        filasOriginales.forEach(function (fila) { fila.style.display = 'none'; });
+        paginaFilas.forEach(function (fila) { fila.style.display = ''; });
+
+        resumen.textContent = total === 0
+            ? 'No se encontraron resultados'
+            : 'Mostrando ' + (inicio + 1) + ' a ' + fin + ' de ' + total + ' registros';
+
+        btnPrimero.disabled = btnAnterior.disabled = paginaActual <= 1;
+        btnSiguiente.disabled = btnUltimo.disabled = paginaActual >= totalPaginas;
+      }
+
+      inputBuscar.addEventListener('input', function () { paginaActual = 1; render(); });
+      selectPageSize.addEventListener('change', function () { paginaActual = 1; render(); });
+      btnPrimero.addEventListener('click', function () { paginaActual = 1; render(); });
+      btnAnterior.addEventListener('click', function () { paginaActual--; render(); });
+      btnSiguiente.addEventListener('click', function () { paginaActual++; render(); });
+      btnUltimo.addEventListener('click', function () { paginaActual = Number.MAX_SAFE_INTEGER; render(); });
+
+      render();
+    }
+
+    activarPaginacionTabla('tablaUsuarios', 10);
+  </script>
 </body>
 </html>
