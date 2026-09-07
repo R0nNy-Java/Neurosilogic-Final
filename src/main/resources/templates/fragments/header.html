@@ -34,29 +34,36 @@
                             <i class="bi bi-journal-medical"></i>Catálogo Medicamentos
                         </a>
                     </li>
+                    <th:block th:if="${session.usuarioLogueado != null and session.usuarioLogueado.rol != 'ADMINISTRADOR' and session.usuarioLogueado.rol != 'ADMIN'}">
+                        <li class="nav-item">
+                            <a th:href="@{/pacientes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'pacientes'} ? 'active' : ''">
+                                <i class="bi bi-person-badge"></i>Gestionar Pacientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/signos-vitales}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
+                                <i class="bi bi-activity"></i>Signos Vitales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/escala-glasgow}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
+                                <i class="bi bi-clipboard-pulse"></i>Escala Glasgow
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/dosificacion}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dosificacion'} ? 'active' : ''">
+                                <i class="bi bi-calculator"></i>Calcular Dosis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/evaluacion-imc}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
+                                <i class="bi bi-speedometer2"></i>Calculadora IMC
+                            </a>
+                        </li>
+                    </th:block>
                     <li class="nav-item">
-                        <a th:href="@{/pacientes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'pacientes'} ? 'active' : ''">
-                            <i class="bi bi-person-badge"></i>Gestionar Pacientes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a th:href="@{/signos-vitales}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'signos'} ? 'active' : ''">
-                            <i class="bi bi-activity"></i>Signos Vitales
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a th:href="@{/escala-glasgow}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'glasgow'} ? 'active' : ''">
-                            <i class="bi bi-clipboard-pulse"></i>Escala Glasgow
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a th:href="@{/dosificacion}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'dosificacion'} ? 'active' : ''">
-                            <i class="bi bi-calculator"></i>Calcular Dosis
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a th:href="@{/evaluacion-imc}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'imc'} ? 'active' : ''">
-                            <i class="bi bi-speedometer2"></i>Calculadora IMC
+                        <a th:href="@{/reportes}" class="nav-link nl-nav-link d-flex align-items-center gap-3 py-2 px-3" th:classappend="${activePage == 'reportes'} ? 'active' : ''">
+                            <i class="bi bi-file-earmark-bar-graph"></i>Reportería
                         </a>
                     </li>
                 </ul>

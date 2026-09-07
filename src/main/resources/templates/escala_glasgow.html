@@ -55,7 +55,6 @@
                   </div>
                   <div>
                     <h4 class="fw-bold mb-0 text-dark">Evaluador Rápido Escala Glasgow</h4>
-                    <p class="text-muted small mb-0">Valoración neurológica de prueba en persona normal sin guardar en la base de datos.</p>
                   </div>
                 </div>
 
@@ -192,9 +191,9 @@
                         <td th:text="${g.respuestaMotora}">6</td>
                         <td th:text="${g.puntajeTotal}" class="fw-bold">15</td>
                         <td>
-                          <span th:text="${g.clasificacion}">Normal</span>
-                          <i th:if="${color == 'danger'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Grave"></i>
-                          <i th:if="${color == 'orange'}" class="bi bi-exclamation-triangle-fill text-orange ms-1" title="Moderado"></i>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill" th:text="${g.clasificacion}">Grave</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill" th:text="${g.clasificacion}">Moderado</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill" th:text="${g.clasificacion}">Leve / Normal</span>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

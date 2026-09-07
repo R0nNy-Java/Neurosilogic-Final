@@ -59,10 +59,14 @@ public class CsrfTokenFilter extends OncePerRequestFilter {
             String tokenEsperado = (String) request.getSession().getAttribute(SESSION_ATTR);
             String tokenRecibido = request.getParameter(PARAM_NAME);
             if (tokenEsperado == null || tokenRecibido == null || !tokenEsperado.equals(tokenRecibido)) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.setContentType("text/plain;charset=UTF-8");
-                response.getWriter().write("Solicitud rechazada: token de seguridad ausente o inválido (CSRF). "
-                        + "Vuelve a cargar la página e intenta de nuevo.");
+                // Caso más común en la práctica: el servidor se reinició (spring.session.store-type=none
+                // borra todas las sesiones) mientras el usuario tenía un formulario abierto de antes, así
+                // que su token quedó "huérfano". En vez de mostrarle una pantalla negra de error, lo
+                // regresamos a la página anterior (mismo patrón que usa GlobalExceptionHandler) donde el
+                // formulario se re-renderiza con un token fresco y válido, listo para reintentar.
+                String referer = request.getHeader("Referer");
+                String destino = (referer != null && !referer.isBlank()) ? referer : "/login";
+                response.sendRedirect(destino);
                 return;
             }
         }

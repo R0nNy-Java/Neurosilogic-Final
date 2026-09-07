@@ -55,7 +55,6 @@
                   </div>
                   <div>
                     <h4 class="fw-bold mb-0 text-dark">Evaluador Rápido de Signos Vitales</h4>
-                    <p class="text-muted small mb-0">Inspección de parámetros fisiológicos en persona normal sin guardar en la base de datos.</p>
                   </div>
                 </div>
 
@@ -187,10 +186,10 @@
                         <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                         <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
                         <td class="text-center">
-                          <span th:if="${color == 'danger'}" class="badge bg-danger" title="Crítico / muy fuera de rango">Crítico</span>
-                          <span th:if="${color == 'orange'}" class="badge bg-orange" title="Sobre lo esperado">Alto</span>
-                          <span th:if="${color == 'info'}" class="badge bg-info text-dark" title="Bajo lo esperado">Bajo</span>
-                          <span th:if="${color == 'success'}" class="badge bg-success" title="Dentro de rango normal">Normal</span>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill" title="Crítico / muy fuera de rango">Crítico</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill" title="Sobre lo esperado">Alto</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark rounded-pill" title="Bajo lo esperado">Bajo</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill" title="Dentro de rango normal">Normal</span>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

@@ -165,7 +165,7 @@
 
                   <div class="flex-grow-1">
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                      <span class="badge d-inline-flex align-items-center gap-1" th:classappend="'bg-' + ${al.colorCodigo}">
+                      <span class="badge rounded-pill d-inline-flex align-items-center gap-1" th:classappend="'bg-' + ${al.colorCodigo}">
                         <i th:class="(${al.colorCodigo == 'info'} or ${al.modulo == 'Escala Glasgow'}) ? 'bi bi-arrow-down-short' : 'bi bi-arrow-up-short'"></i>
                         <span th:text="${al.nivelAlerta}">ALTO</span>
                       </span>
@@ -313,10 +313,10 @@
                     <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                     <td th:text="${sv.saturacionO2 + ' %'}">98</td>
                     <td class="text-center">
-                      <span th:if="${color == 'danger'}" class="badge bg-danger">Crítico</span>
-                      <span th:if="${color == 'orange'}" class="badge bg-orange">Alto</span>
-                      <span th:if="${color == 'info'}" class="badge bg-info text-dark">Bajo</span>
-                      <span th:if="${color == 'success'}" class="badge bg-success">Normal</span>
+                      <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill">Crítico</span>
+                      <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill">Alto</span>
+                      <span th:if="${color == 'info'}" class="badge bg-info text-dark rounded-pill">Bajo</span>
+                      <span th:if="${color == 'success'}" class="badge bg-success rounded-pill">Normal</span>
                     </td>
                   </tr>
                   <tr th:if="${signosVitales.isEmpty()}">

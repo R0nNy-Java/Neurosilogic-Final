@@ -15,7 +15,7 @@ import java.util.List;
 public class UsuarioServiceImpl implements UsuarioService {
 
     // Cantidad de intentos fallidos consecutivos antes de bloquear la cuenta automáticamente
-    private static final int MAX_INTENTOS_FALLIDOS = 5;
+    private static final int MAX_INTENTOS_FALLIDOS = 3;
 
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaAccesoService auditoriaAccesoService;
@@ -28,7 +28,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.emailService = emailService;
     }
 
+    // Este método guarda el conteo de intentos fallidos y LUEGO lanza NegocioException para avisar
+    // al usuario — pero @Transactional (a nivel de clase) hace rollback de toda la transacción ante
+    // cualquier RuntimeException sin este noRollbackFor, así que el intento fallido guardado con
+    // save() se deshacía en cada login incorrecto y el contador nunca avanzaba de verdad (por eso
+    // el bloqueo automático nunca se disparaba, sin importar el número configurado).
     @Override
+    @Transactional(noRollbackFor = NegocioException.class)
     public Usuario autenticar(String usuario, String contrasena) {
         Usuario u = usuarioRepository.findByNombreUsuarioIgnoreCase(usuario.trim())
                 .orElseThrow(() -> new NegocioException("Usuario o contraseña incorrectos."));

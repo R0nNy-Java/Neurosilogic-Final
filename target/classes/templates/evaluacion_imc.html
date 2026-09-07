@@ -55,7 +55,6 @@
                   </div>
                   <div>
                     <h4 class="fw-bold mb-0 text-dark">Calculadora Rápida de IMC</h4>
-                    <p class="text-muted small mb-0">Cálculo de prueba e inspección clínica sin guardar en la base de datos.</p>
                   </div>
                 </div>
 
@@ -144,10 +143,10 @@
                         <td th:text="${i.estaturaM + ' m'}">1.75</td>
                         <td th:text="${#numbers.formatDecimal(i.valorIMC, 1, 2)}" class="fw-bold">22.86</td>
                         <td>
-                          <span th:text="${i.diagnostico}">Normal</span>
-                          <i th:if="${color == 'danger'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Obesidad"></i>
-                          <i th:if="${color == 'orange'}" class="bi bi-exclamation-triangle-fill text-orange ms-1" title="Sobrepeso"></i>
-                          <i th:if="${color == 'info'}" class="bi bi-arrow-down-short text-info ms-1" title="Bajo peso"></i>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill" th:text="${i.diagnostico}">Obesidad</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill" th:text="${i.diagnostico}">Sobrepeso</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark rounded-pill" th:text="${i.diagnostico}">Bajo peso</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill" th:text="${i.diagnostico}">Peso normal</span>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

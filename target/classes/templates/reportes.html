@@ -84,7 +84,7 @@
 
           <!-- ══ PANEL DE DECISIÓN: KPIs + gráficos reales + pacientes prioritarios ══ -->
           <div class="card border-0 shadow-sm p-4 rounded-4 mb-4" id="panelDecisionImprimible">
-            <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex justify-content-between align-items-start mb-4">
               <h4 class="fw-bold mb-1 text-success">
                 <span class="d-none d-print-inline">1. </span><i class="bi bi-clipboard2-pulse-fill me-2 d-print-none"></i>Resumen del Período: Alertas, Carga Clínica y Pacientes Prioritarios
               </h4>
@@ -92,8 +92,6 @@
                 <i class="bi bi-printer-fill me-1"></i> Imprimir Panel
               </button>
             </div>
-            <p class="text-muted small mb-4 d-print-none">Resumen del período para apoyar la entrega de turno y la revisión semanal/mensual: qué tan cargado estuvo, dónde se concentraron las alertas y qué pacientes necesitan atención antes de cerrar.</p>
-
             <!-- KPIs -->
             <div class="row row-cols-2 row-cols-md-5 g-3 mb-4" id="kpiDecision">
               <div class="col">
@@ -182,8 +180,8 @@
                     <td class="font-monospace" th:text="${p.cedula()}">0000000000</td>
                     <td class="text-center" th:text="${p.totalAlertas()}">0</td>
                     <td>
-                      <span th:if="${p.tieneAlertaCritica()}" class="badge bg-danger">CRÍTICO</span>
-                      <span th:unless="${p.tieneAlertaCritica()}" class="badge bg-warning text-dark">ADVERTENCIA</span>
+                      <span th:if="${p.tieneAlertaCritica()}" class="badge bg-danger rounded-pill">CRÍTICO</span>
+                      <span th:unless="${p.tieneAlertaCritica()}" class="badge bg-warning text-dark rounded-pill">ADVERTENCIA</span>
                     </td>
                     <td class="small text-muted"><span class="badge bg-secondary me-1" th:text="${p.ultimoModulo()}">Módulo</span><span th:text="${p.ultimoMensaje()}">Mensaje</span></td>
                   </tr>
@@ -207,8 +205,7 @@
             <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                  <h3 class="fw-bold mb-1 text-primary"><i class="bi bi-shield-check me-2"></i>Auditoría Global de Personal Clínico y Alertas</h3>
-                  <p class="text-muted small mb-0">Detalle de cierres de ficha e incidencias clínicas del período seleccionado.</p>
+                  <h3 class="fw-bold mb-0 text-primary"><i class="bi bi-shield-check me-2"></i>Auditoría Global de Personal Clínico y Alertas</h3>
                 </div>
                 <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-print-none" onclick="window.print()">
                   <i class="bi bi-printer-fill me-1"></i> Imprimir Reporte de Auditoría
@@ -217,8 +214,24 @@
 
               <!-- TABLA 1: ACTIVIDAD Y CERRADOS POR CADA ENFERMERO -->
               <h5 class="fw-bold text-dark mb-3 print-section-heading"><span class="d-none d-print-inline">2. </span><i class="bi bi-person-badge-fill text-primary me-2 d-print-none"></i>Atenciones Consolidadas por Personal Clínico</h5>
-              <div class="table-responsive mb-4">
-                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 d-print-none" th:if="${not #lists.isEmpty(todosLosCierres)}">
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                  <span>Mostrar</span>
+                  <select id="tablaCierresPageSize" class="form-select form-select-sm" style="width:auto;">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="-1">Todos</option>
+                  </select>
+                  <span>registros</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                  <label for="tablaCierresBuscar" class="mb-0">Buscar:</label>
+                  <input type="search" id="tablaCierresBuscar" class="form-control form-control-sm" style="width:220px;" placeholder="Enfermero, paciente...">
+                </div>
+              </div>
+              <div class="table-responsive mb-2">
+                <table class="table table-hover align-middle mb-0" id="tablaCierres" style="font-size:0.85rem;">
                   <thead class="bg-light text-muted">
                     <tr>
                       <th>Fecha Cierre</th>
@@ -235,8 +248,8 @@
                       <td><strong class="text-dark" th:text="${c.paciente.nombres + ' ' + c.paciente.apellidos}">Paciente</strong> (<span th:text="${c.paciente.cedula}">0000</span>)</td>
                       <td th:text="${c.ultimosSignosVitales}">Signos</td>
                       <td>
-                        <span th:if="${c.tieneAlertaActiva == true}" class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Alerta Activa</span>
-                        <span th:if="${c.tieneAlertaActiva == false or c.tieneAlertaActiva == null}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Estable</span>
+                        <span th:if="${c.tieneAlertaActiva == true}" class="badge bg-danger rounded-pill"><i class="bi bi-exclamation-triangle me-1"></i>Alerta Activa</span>
+                        <span th:if="${c.tieneAlertaActiva == false or c.tieneAlertaActiva == null}" class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Estable</span>
                       </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(todosLosCierres)}">
@@ -245,11 +258,36 @@
                   </tbody>
                 </table>
               </div>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 d-print-none" th:if="${not #lists.isEmpty(todosLosCierres)}">
+                <div class="small text-muted" id="tablaCierresResumen">Mostrando 0 de 0 registros</div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary" id="tablaCierresPrimero">Primero</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaCierresAnterior">Anterior</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaCierresSiguiente">Siguiente</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaCierresUltimo">Último</button>
+                </div>
+              </div>
 
               <!-- TABLA 2: INCIDENCIA Y REGISTRO DE ALERTAS CLÍNICAS EN EL SISTEMA -->
               <h5 class="fw-bold text-dark mb-3 print-section-heading"><span class="d-none d-print-inline">3. </span><i class="bi bi-bell-fill text-danger me-2 d-print-none"></i>Bitácora de Alertas Clínicas Detectadas</h5>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 d-print-none" th:if="${not #lists.isEmpty(todasLasAlertas)}">
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                  <span>Mostrar</span>
+                  <select id="tablaAlertasPageSize" class="form-select form-select-sm" style="width:auto;">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="-1">Todos</option>
+                  </select>
+                  <span>registros</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                  <label for="tablaAlertasBuscar" class="mb-0">Buscar:</label>
+                  <input type="search" id="tablaAlertasBuscar" class="form-control form-control-sm" style="width:220px;" placeholder="Paciente, módulo, nivel...">
+                </div>
+              </div>
               <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size:0.85rem;">
+                <table class="table table-hover align-middle mb-0" id="tablaAlertas" style="font-size:0.85rem;">
                   <thead class="bg-light text-muted">
                     <tr>
                       <th>Fecha Registro</th>
@@ -263,9 +301,9 @@
                     <tr th:each="a : ${todasLasAlertas}">
                       <td th:text="${#temporals.format(a.fechaRegistro, 'dd/MM/yyyy HH:mm')}" class="font-monospace text-muted">00/00/0000 00:00</td>
                       <td><strong class="text-dark" th:text="${a.paciente.nombres + ' ' + a.paciente.apellidos}">Paciente</strong></td>
-                      <td><span class="badge bg-secondary" th:text="${a.modulo}">Módulo</span></td>
+                      <td><span class="badge bg-secondary rounded-pill" th:text="${a.modulo}">Módulo</span></td>
                       <td>
-                        <span class="badge" th:classappend="${a.colorCodigo == 'danger' ? 'bg-danger' : (a.colorCodigo == 'orange' ? 'bg-orange' : (a.colorCodigo == 'info' ? 'bg-info' : 'bg-warning text-dark'))}" th:text="${a.nivelAlerta}">NIVEL</span>
+                        <span class="badge rounded-pill" th:classappend="${a.colorCodigo == 'danger' ? 'bg-danger' : (a.colorCodigo == 'orange' ? 'bg-orange' : (a.colorCodigo == 'info' ? 'bg-info text-dark' : 'bg-warning text-dark'))}" th:text="${a.nivelAlerta}">NIVEL</span>
                       </td>
                       <td th:text="${a.mensajeAlerta}">Mensaje</td>
                     </tr>
@@ -275,6 +313,15 @@
                   </tbody>
                 </table>
               </div>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 d-print-none" th:if="${not #lists.isEmpty(todasLasAlertas)}">
+                <div class="small text-muted" id="tablaAlertasResumen">Mostrando 0 de 0 registros</div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary" id="tablaAlertasPrimero">Primero</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaAlertasAnterior">Anterior</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaAlertasSiguiente">Siguiente</button>
+                  <button type="button" class="btn btn-outline-secondary" id="tablaAlertasUltimo">Último</button>
+                </div>
+              </div>
             </div>
           </th:block>
 
@@ -283,7 +330,6 @@
             <!-- TARJETAS WEB PANTALLA (OCULTAS AL IMPRIMIR CON d-print-none) -->
             <div class="card border-0 shadow-sm p-4 rounded-4 d-print-none">
               <h3 class="fw-bold mb-3 text-success"><i class="bi bi-bar-chart-line me-2"></i>Reportes Clínicos de Pacientes</h3>
-              <p class="text-muted">Generación de resúmenes de atención clínica individual y consolidada con Código QR.</p>
 
               <div class="row row-cols-1 row-cols-md-2 g-4 mt-1">
                 <!-- TARJETA 1: REPORTE GENERAL DE PACIENTES -->
@@ -402,10 +448,10 @@
                         <td th:text="${sv.temperatura + ' °C'}">36.5 °C</td>
                         <td th:text="${sv.saturacionO2 + '%'}">98%</td>
                         <td>
-                          <span th:if="${color == 'danger'}" class="badge bg-danger">Crítico</span>
-                          <span th:if="${color == 'orange'}" class="badge bg-orange">Alto</span>
-                          <span th:if="${color == 'info'}" class="badge bg-info text-dark">Bajo</span>
-                          <span th:if="${color == 'success'}" class="badge bg-success">Normal</span>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill">Crítico</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill">Alto</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark rounded-pill">Bajo</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill">Normal</span>
                         </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.signosVitales())}">
@@ -436,9 +482,9 @@
                         <td th:text="${eg.respuestaMotora}">6</td>
                         <td th:text="${eg.puntajeTotal + '/15'}">15/15</td>
                         <td>
-                          <span th:if="${color == 'danger'}" class="badge bg-danger" th:text="${eg.nivelSeveridad}">Grave</span>
-                          <span th:if="${color == 'orange'}" class="badge bg-orange" th:text="${eg.nivelSeveridad}">Moderado</span>
-                          <span th:if="${color == 'success'}" class="badge bg-success" th:text="${eg.nivelSeveridad}">Normal</span>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill" th:text="${eg.nivelSeveridad}">Grave</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill" th:text="${eg.nivelSeveridad}">Moderado</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill" th:text="${eg.nivelSeveridad}">Normal</span>
                         </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.glasgowList())}">
@@ -467,10 +513,10 @@
                         <td th:text="${imc.estaturaM}">1.75</td>
                         <td th:text="${#numbers.formatDecimal(imc.valorIMC, 1, 2)}">22.86</td>
                         <td>
-                          <span th:if="${color == 'danger'}" class="badge bg-danger" th:text="${imc.clasificacion}">Obesidad</span>
-                          <span th:if="${color == 'orange'}" class="badge bg-orange" th:text="${imc.clasificacion}">Sobrepeso</span>
-                          <span th:if="${color == 'info'}" class="badge bg-info text-dark" th:text="${imc.clasificacion}">Bajo peso</span>
-                          <span th:if="${color == 'success'}" class="badge bg-success" th:text="${imc.clasificacion}">Peso normal</span>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger rounded-pill" th:text="${imc.clasificacion}">Obesidad</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange rounded-pill" th:text="${imc.clasificacion}">Sobrepeso</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark rounded-pill" th:text="${imc.clasificacion}">Bajo peso</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success rounded-pill" th:text="${imc.clasificacion}">Peso normal</span>
                         </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.imcList())}">
@@ -1087,6 +1133,79 @@
         setTimeout(function () { window.print(); }, 300);
       }
     });
+
+    // Buscador + paginación en vivo, reutilizable para cualquier tabla (mismo comportamiento
+    // que ya usa /pacientes) — se instancia una vez por cada tabla que la necesite.
+    function activarPaginacionTabla(prefijo, tamanoInicial) {
+      var tabla = document.getElementById(prefijo);
+      if (!tabla) return;
+
+      var tbody = tabla.querySelector('tbody');
+      var filasOriginales = Array.prototype.slice.call(tbody.querySelectorAll('tr'))
+          .filter(function (fila) { return fila.children.length > 1; }); // excluye la fila "sin registros"
+      if (filasOriginales.length === 0) return;
+
+      var inputBuscar = document.getElementById(prefijo + 'Buscar');
+      var selectPageSize = document.getElementById(prefijo + 'PageSize');
+      var resumen = document.getElementById(prefijo + 'Resumen');
+      var btnPrimero = document.getElementById(prefijo + 'Primero');
+      var btnAnterior = document.getElementById(prefijo + 'Anterior');
+      var btnSiguiente = document.getElementById(prefijo + 'Siguiente');
+      var btnUltimo = document.getElementById(prefijo + 'Ultimo');
+      if (!inputBuscar || !selectPageSize || !resumen || !btnPrimero || !btnAnterior || !btnSiguiente || !btnUltimo) return;
+
+      if (tamanoInicial) selectPageSize.value = String(tamanoInicial);
+      var paginaActual = 1;
+
+      function filasVisiblesPorBusqueda() {
+        var termino = (inputBuscar.value || '').trim().toLowerCase();
+        if (!termino) return filasOriginales.slice();
+        return filasOriginales.filter(function (fila) {
+          return fila.textContent.toLowerCase().indexOf(termino) !== -1;
+        });
+      }
+
+      function render() {
+        var filtradas = filasVisiblesPorBusqueda();
+        var tamanoPagina = parseInt(selectPageSize.value, 10);
+        var total = filtradas.length;
+        var totalPaginas = tamanoPagina === -1 ? 1 : Math.max(1, Math.ceil(total / tamanoPagina));
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+        if (paginaActual < 1) paginaActual = 1;
+
+        var inicio = tamanoPagina === -1 ? 0 : (paginaActual - 1) * tamanoPagina;
+        var fin = tamanoPagina === -1 ? total : Math.min(inicio + tamanoPagina, total);
+        var paginaFilas = filtradas.slice(inicio, fin);
+
+        filasOriginales.forEach(function (fila) { fila.style.display = 'none'; });
+        paginaFilas.forEach(function (fila) { fila.style.display = ''; });
+
+        resumen.textContent = total === 0
+            ? 'No se encontraron resultados'
+            : 'Mostrando ' + (inicio + 1) + ' a ' + fin + ' de ' + total + ' registros';
+
+        btnPrimero.disabled = btnAnterior.disabled = paginaActual <= 1;
+        btnSiguiente.disabled = btnUltimo.disabled = paginaActual >= totalPaginas;
+      }
+
+      inputBuscar.addEventListener('input', function () { paginaActual = 1; render(); });
+      selectPageSize.addEventListener('change', function () { paginaActual = 1; render(); });
+      btnPrimero.addEventListener('click', function () { paginaActual = 1; render(); });
+      btnAnterior.addEventListener('click', function () { paginaActual--; render(); });
+      btnSiguiente.addEventListener('click', function () { paginaActual++; render(); });
+      btnUltimo.addEventListener('click', function () { paginaActual = Number.MAX_SAFE_INTEGER; render(); });
+
+      // Al imprimir se deben ver TODAS las filas (no solo la página actual en pantalla).
+      window.addEventListener('beforeprint', function () {
+        filasOriginales.forEach(function (fila) { fila.style.display = ''; });
+      });
+      window.addEventListener('afterprint', function () { render(); });
+
+      render();
+    }
+
+    activarPaginacionTabla('tablaCierres', 10);
+    activarPaginacionTabla('tablaAlertas', 10);
   </script>
 </body>
 </html>
