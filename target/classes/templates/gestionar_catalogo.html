@@ -31,6 +31,13 @@
         </header>
 
         <main class="p-4">
+          <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i><span th:text="${error}"></span>
+          </div>
+          <div th:if="${mensaje}" class="alert alert-success d-flex align-items-center gap-2" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0"></i><span th:text="${mensaje}"></span>
+          </div>
+
           <div class="row">
             <div class="col-md-5">
               <div class="card border-0 shadow-sm p-4 rounded-4">
@@ -50,6 +57,10 @@
                     <label class="form-label">Dosis Recomendada</label>
                     <input type="text" name="dosisRecomendada" class="form-control" placeholder="Ej. 500mg cada 8 horas" required>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label">Stock</label>
+                    <input type="number" name="stock" class="form-control" placeholder="Ej. 100" required min="0" max="100000" step="1">
+                  </div>
                   <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Agregar al Catálogo</button>
                 </form>
               </div>
@@ -65,6 +76,8 @@
                         <th>Medicamento</th>
                         <th>Composición</th>
                         <th>Dosis Recomendada</th>
+                        <th class="text-center">Stock</th>
+                        <th class="text-center">Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -72,9 +85,36 @@
                         <td th:text="${m.nombre}" class="fw-bold">Paracetamol</td>
                         <td th:text="${m.composicion}">Analgésico</td>
                         <td th:text="${m.dosisRecomendada}">500mg</td>
+                        <td class="text-center">
+                          <span class="badge rounded-pill"
+                                th:classappend="${m.stock == 0} ? 'bg-danger' : (${m.stock <= 10} ? 'bg-orange' : 'bg-success')"
+                                th:text="${m.stock}">0</span>
+                        </td>
+                        <td class="text-center">
+                          <div class="d-flex align-items-center justify-content-center gap-1">
+                            <button type="button" class="btn btn-outline-primary btn-sm btn-editar-medicamento"
+                                    th:data-id="${m.idMedicamento}" th:data-nombre="${m.nombre}"
+                                    th:data-composicion="${m.composicion}" th:data-dosis="${m.dosisRecomendada}"
+                                    th:data-stock="${m.stock}" title="Editar">
+                              <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm btn-agregar-stock"
+                                    th:data-id="${m.idMedicamento}" th:data-nombre="${m.nombre}" title="Agregar stock">
+                              <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                            <form th:action="@{/gestionar-catalogo/eliminar}" method="post"
+                                  onsubmit="return confirm('¿Eliminar este medicamento del catálogo? Esta acción no se puede deshacer.');">
+                              <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+                              <input type="hidden" name="idMedicamento" th:value="${m.idMedicamento}">
+                              <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar">
+                                <i class="fa-solid fa-trash-can"></i>
+                              </button>
+                            </form>
+                          </div>
+                        </td>
                       </tr>
                       <tr th:if="${medicamentos.isEmpty()}">
-                        <td colspan="3" class="text-center text-muted py-3">Sin medicamentos registrados.</td>
+                        <td colspan="5" class="text-center text-muted py-3">Sin medicamentos registrados.</td>
                       </tr>
                     </tbody>
                   </table>
@@ -88,6 +128,98 @@
     </div>
   </div>
 
+  <!-- MODAL: Editar Medicamento (compartido, se rellena por JS al presionar el lápiz de cada fila) -->
+  <div class="modal fade" id="modalEditarMedicamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form th:action="@{/gestionar-catalogo/editar}" method="post">
+          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+          <input type="hidden" name="idMedicamento" id="editMedIdMedicamento">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-pen me-2"></i>Editar Medicamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Nombre del Medicamento</label>
+              <input type="text" name="nombre" id="editMedNombre" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Composición / Categoría</label>
+              <input type="text" name="composicion" id="editMedComposicion" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Dosis Recomendada</label>
+              <input type="text" name="dosisRecomendada" id="editMedDosis" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Stock</label>
+              <input type="number" name="stock" id="editMedStock" class="form-control" required min="0" max="100000" step="1">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Agregar Stock (compartido, se rellena por JS al presionar el botón de cada fila) -->
+  <div class="modal fade" id="modalAgregarStock" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form th:action="@{/gestionar-catalogo/agregar-stock}" method="post">
+          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
+          <input type="hidden" name="idMedicamento" id="stockIdMedicamento">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-cart-plus me-2"></i>Agregar Stock</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted mb-3">Medicamento: <strong id="stockNombreMedicamento"></strong></p>
+            <div class="mb-3">
+              <label class="form-label">Cantidad a Agregar</label>
+              <input type="number" name="cantidad" id="stockCantidad" class="form-control" placeholder="Ej. 50" required min="1" max="100000" step="1" autofocus>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success"><i class="fa-solid fa-plus me-1"></i> Agregar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script>
+    var modalEditarMedicamentoEl = new bootstrap.Modal(document.getElementById('modalEditarMedicamento'));
+
+    document.querySelectorAll('.btn-editar-medicamento').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('editMedIdMedicamento').value = this.dataset.id;
+        document.getElementById('editMedNombre').value = this.dataset.nombre;
+        document.getElementById('editMedComposicion').value = this.dataset.composicion;
+        document.getElementById('editMedDosis').value = this.dataset.dosis;
+        document.getElementById('editMedStock').value = this.dataset.stock;
+        modalEditarMedicamentoEl.show();
+      });
+    });
+
+    var modalAgregarStockEl = new bootstrap.Modal(document.getElementById('modalAgregarStock'));
+
+    document.querySelectorAll('.btn-agregar-stock').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.getElementById('stockIdMedicamento').value = this.dataset.id;
+        document.getElementById('stockNombreMedicamento').textContent = this.dataset.nombre;
+        var inputCantidad = document.getElementById('stockCantidad');
+        inputCantidad.value = '';
+        modalAgregarStockEl.show();
+        setTimeout(function () { inputCantidad.focus(); }, 300);
+      });
+    });
+  </script>
 </body>
 </html>

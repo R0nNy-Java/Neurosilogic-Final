@@ -61,11 +61,11 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. Medicamentos Iniciales
         if (medicamentoRepository.count() == 0) {
-            medicamentoRepository.save(new Medicamento("Paracetamol 500mg", "Analgésico / Antipirético", "500 mg cada 8 horas"));
-            medicamentoRepository.save(new Medicamento("Ibuprofeno 400mg", "Antiinflamatorio no esteroideo", "400 mg cada 8 horas con alimentos"));
-            medicamentoRepository.save(new Medicamento("Omeprazol 20mg", "Protector gástrico", "20 mg en ayunas"));
-            medicamentoRepository.save(new Medicamento("Amoxicilina 500mg", "Antibiótico de amplio espectro", "500 mg cada 8 horas por 7 días"));
-            medicamentoRepository.save(new Medicamento("Enalapril 10mg", "Antihipertensivo IECA", "10 mg cada 12 horas"));
+            medicamentoRepository.save(new Medicamento("Paracetamol 500mg", "Analgésico / Antipirético", "500 mg cada 8 horas", 150));
+            medicamentoRepository.save(new Medicamento("Ibuprofeno 400mg", "Antiinflamatorio no esteroideo", "400 mg cada 8 horas con alimentos", 80));
+            medicamentoRepository.save(new Medicamento("Omeprazol 20mg", "Protector gástrico", "20 mg en ayunas", 200));
+            medicamentoRepository.save(new Medicamento("Amoxicilina 500mg", "Antibiótico de amplio espectro", "500 mg cada 8 horas por 7 días", 8));
+            medicamentoRepository.save(new Medicamento("Enalapril 10mg", "Antihipertensivo IECA", "10 mg cada 12 horas", 0));
             System.out.println(">>> Seed Data: Medicamentos iniciales creados.");
         }
 

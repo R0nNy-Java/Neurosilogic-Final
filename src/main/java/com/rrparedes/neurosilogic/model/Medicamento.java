@@ -1,6 +1,9 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -15,6 +18,12 @@ public class Medicamento implements Serializable {
 
     @Column(name = "NombreMedicamento", length = 100, nullable = false)
     private String nombreMedicamento;
+
+    @NotNull(message = "El stock es obligatorio")
+    @Min(value = 0, message = "El stock no puede ser negativo")
+    @Max(value = 100000, message = "El stock no puede superar 100000 unidades")
+    @Column(name = "Stock")
+    private Integer stock = 0;
 
     @Column(name = "Concentracion", precision = 10, scale = 2)
     private BigDecimal concentracion;
@@ -38,6 +47,13 @@ public class Medicamento implements Serializable {
         this.nombreMedicamento = nombreMedicamento;
         this.unidadConcentracion = unidadConcentracion;
         this.presentacionCompleta = presentacionCompleta;
+    }
+
+    public Medicamento(String nombreMedicamento, String unidadConcentracion, String presentacionCompleta, Integer stock) {
+        this.nombreMedicamento = nombreMedicamento;
+        this.unidadConcentracion = unidadConcentracion;
+        this.presentacionCompleta = presentacionCompleta;
+        this.stock = stock;
     }
 
     public Medicamento(String nombreMedicamento, BigDecimal concentracion, String unidadConcentracion, BigDecimal volumenPresentacion, String unidadVolumen, String presentacionCompleta) {
@@ -67,6 +83,14 @@ public class Medicamento implements Serializable {
 
     public String getNombre() {
         return nombreMedicamento;
+    }
+
+    public Integer getStock() {
+        return stock != null ? stock : 0;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 
     public String getComposicion() {

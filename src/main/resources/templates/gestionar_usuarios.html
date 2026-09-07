@@ -34,6 +34,13 @@
           <div class="card border-0 shadow-sm p-4 rounded-4">
             <h3 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-users-gear me-2"></i>Gestión de Usuarios del Sistema</h3>
 
+            <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+              <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i><span th:text="${error}"></span>
+            </div>
+            <div th:if="${mensaje}" class="alert alert-success d-flex align-items-center gap-2" role="alert">
+              <i class="bi bi-check-circle-fill flex-shrink-0"></i><span th:text="${mensaje}"></span>
+            </div>
+
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2" th:if="${not #lists.isEmpty(usuarios)}">
               <div class="d-flex align-items-center gap-2 small text-muted">
                 <span>Mostrar</span>
