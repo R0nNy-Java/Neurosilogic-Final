@@ -59,6 +59,7 @@
                       </th:block>
                       <th:block th:if="${u.nombreUsuario != 'admin' and u.idUsuario != 1}">
                         <form th:action="@{/gestionar-usuarios/asignar-rol}" method="post" class="d-flex align-items-center gap-1">
+                          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                           <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
                           <select name="nuevoRol" class="form-select form-select-sm border-secondary fw-semibold" onchange="this.form.submit()" style="max-width: 150px; font-size: 0.8rem;">
                             <option value="SIN_ASIGNAR" th:selected="${u.rol == 'SIN_ASIGNAR' or u.rol == null}">⚠️ Sin Asignar</option>
@@ -79,6 +80,7 @@
                       </th:block>
                       <th:block th:if="${u.nombreUsuario != 'admin' and u.idUsuario != 1}">
                         <form th:action="@{/gestionar-usuarios/bloquear}" method="post" style="display:inline;">
+                          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                           <input type="hidden" name="idUsuario" th:value="${u.idUsuario}">
                           <input type="hidden" name="nuevoEstado" th:value="${u.isBloqueado() ? 'A' : 'B'}">
                           <button type="submit" class="btn btn-sm" th:classappend="${u.isBloqueado() ? 'btn-success' : 'btn-danger'}">

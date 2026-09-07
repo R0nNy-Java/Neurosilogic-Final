@@ -122,6 +122,7 @@
                 <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong> (Cédula: <span th:text="${paciente.cedula}"></span>)</p>
 
                 <form th:action="@{/escala-glasgow/guardar}" method="post">
+                  <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                   <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
 
                   <div class="mb-3">
@@ -183,7 +184,8 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="g : ${historial}" th:classappend="${g.clasificacion != 'Leve / Normal'} ? 'table-danger'">
+                      <tr th:each="g : ${historial}" th:with="color=${coloresHistorial.get(g.idGlasgow)}"
+                          th:classappend="${color == 'danger'} ? 'table-danger' : (${color == 'orange'} ? 'table-orange' : '')">
                         <td th:text="${#temporals.format(g.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${g.respuestaOcular}">4</td>
                         <td th:text="${g.respuestaVerbal}">5</td>
@@ -191,7 +193,8 @@
                         <td th:text="${g.puntajeTotal}" class="fw-bold">15</td>
                         <td>
                           <span th:text="${g.clasificacion}">Normal</span>
-                          <i th:if="${g.clasificacion != 'Leve / Normal'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Fuera de rango normal"></i>
+                          <i th:if="${color == 'danger'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Grave"></i>
+                          <i th:if="${color == 'orange'}" class="bi bi-exclamation-triangle-fill text-orange ms-1" title="Moderado"></i>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

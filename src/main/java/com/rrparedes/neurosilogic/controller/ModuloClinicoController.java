@@ -2,23 +2,33 @@ package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.Paciente;
 import com.rrparedes.neurosilogic.service.DosificacionService;
+import com.rrparedes.neurosilogic.service.MedicamentoService;
 import com.rrparedes.neurosilogic.service.ModuloClinicoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.Optional;
 
 @Controller
 public class ModuloClinicoController {
 
+    // Sentinel que representa la opción "Otro" del combo de medicamentos: el nombre que el
+    // enfermero escriba a mano se usa SOLO para esta dosificación puntual y nunca se guarda en
+    // el catálogo de medicamentos (Dosificacion.medicamento es un texto libre, no una FK).
+    private static final String OTRO_MEDICAMENTO = "__otro__";
+
     private final ModuloClinicoService moduloClinicoService;
     private final DosificacionService dosificacionService;
+    private final MedicamentoService medicamentoService;
 
-    public ModuloClinicoController(ModuloClinicoService moduloClinicoService, DosificacionService dosificacionService) {
+    public ModuloClinicoController(ModuloClinicoService moduloClinicoService, DosificacionService dosificacionService,
+                                   MedicamentoService medicamentoService) {
         this.moduloClinicoService = moduloClinicoService;
         this.dosificacionService = dosificacionService;
+        this.medicamentoService = medicamentoService;
     }
 
     // ── Signos Vitales ──
@@ -37,6 +47,7 @@ public class ModuloClinicoController {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
             model.addAttribute("historial", moduloClinicoService.historialSignosVitales(p.getIdPaciente()));
+            model.addAttribute("coloresHistorial", moduloClinicoService.coloresHistorialSignosVitales(p.getIdPaciente()));
         }
         return "signos_vitales";
     }
@@ -73,6 +84,7 @@ public class ModuloClinicoController {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
             model.addAttribute("historial", moduloClinicoService.historialGlasgow(p.getIdPaciente()));
+            model.addAttribute("coloresHistorial", moduloClinicoService.coloresHistorialGlasgow(p.getIdPaciente()));
         }
         return "escala_glasgow";
     }
@@ -105,6 +117,7 @@ public class ModuloClinicoController {
             Paciente p = pOpt.get();
             model.addAttribute("paciente", p);
             model.addAttribute("historial", moduloClinicoService.historialIMC(p.getIdPaciente()));
+            model.addAttribute("coloresHistorial", moduloClinicoService.coloresHistorialIMC(p.getIdPaciente()));
         }
         return "evaluacion_imc";
     }
@@ -163,12 +176,16 @@ public class ModuloClinicoController {
             model.addAttribute("paciente", p);
             model.addAttribute("historial", dosificacionService.historial(p.getIdPaciente()));
         }
+        model.addAttribute("medicamentos", medicamentoService.listarTodos().stream()
+                .sorted(Comparator.comparing(m -> m.getNombreMedicamento() == null ? "" : m.getNombreMedicamento(), String.CASE_INSENSITIVE_ORDER))
+                .toList());
         return "dosificacion";
     }
 
     @PostMapping("/dosificacion/guardar")
     public String registrarDosificacion(@RequestParam Long idPaciente,
                                         @RequestParam String medicamento,
+                                        @RequestParam(required = false) String medicamentoLibre,
                                         @RequestParam Double dosisIndicada,
                                         @RequestParam String unidadDosis,
                                         @RequestParam Double presentacion,
@@ -178,7 +195,12 @@ public class ModuloClinicoController {
                                         HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
 
-        dosificacionService.registrar(idPaciente, medicamento, dosisIndicada, unidadDosis,
+        // Si eligió "Otro" en el combo, se usa el nombre escrito a mano SOLO para esta
+        // dosificación (Dosificacion.medicamento es texto libre): nunca se inserta en la
+        // tabla de catálogo de medicamentos.
+        String medicamentoFinal = OTRO_MEDICAMENTO.equals(medicamento) ? medicamentoLibre : medicamento;
+
+        dosificacionService.registrar(idPaciente, medicamentoFinal, dosisIndicada, unidadDosis,
                 presentacion, unidadPresentacion, diluyenteMl, horasTotales);
         return "redirect:/dosificacion?idPaciente=" + idPaciente;
     }

@@ -129,8 +129,14 @@ public class DataInitializer implements CommandLineRunner {
                 // Generar Cédula Ecuatoriana Válida (Módulo 10)
                 String cedula = generarCedulaValida(i);
 
-                // Estado: la gran mayoría 'A' (Activos), y unos 3 con 'I' (Alta/Inactivos) para pruebas
-                String estado = (i == 5 || i == 15 || i == 25) ? "I" : "A";
+                // Estado: se crea Activo para poder registrar su historial clínico completo;
+                // los 3 pacientes de prueba (i == 5, 15, 25) se pasan a Inactivo al final de su
+                // ciclo, una vez ya tienen antecedentes/signos/cierre — igual que en un alta real.
+                // (Si se creaban directamente como 'I', las llamadas a registrarAntecedente/
+                // registrarSignoVital/etc. de más abajo lanzaban NegocioException y tumbaban
+                // el arranque completo de la aplicación.)
+                boolean esPacientePruebaInactivo = (i == 5 || i == 15 || i == 25);
+                String estado = "A";
 
                 Paciente p = new Paciente(cedula, nombre, apellidosCompletos, fechaNac, sexo, estado);
                 p = pacienteRepository.save(p);
@@ -172,6 +178,13 @@ public class DataInitializer implements CommandLineRunner {
                 if (i % 4 != 0) {
                     Usuario enfermeroResponsable = (i % 2 == 0) ? enfermero1 : enfermero2;
                     pacienteService.registrarCierreFicha(p.getIdPaciente(), enfermeroResponsable);
+                }
+
+                // Ahora sí, pasar a Inactivo (Dado de Alta) a los 3 pacientes de prueba,
+                // ya con su historial clínico completo registrado.
+                if (esPacientePruebaInactivo) {
+                    p.setEstado("I");
+                    pacienteRepository.save(p);
                 }
             }
 

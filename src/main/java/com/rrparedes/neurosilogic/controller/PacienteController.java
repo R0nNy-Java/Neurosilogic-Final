@@ -2,22 +2,29 @@ package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.Paciente;
 import com.rrparedes.neurosilogic.model.Usuario;
+import com.rrparedes.neurosilogic.service.ModuloClinicoService;
 import com.rrparedes.neurosilogic.service.NegocioException;
 import com.rrparedes.neurosilogic.service.PacienteService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.stream.Collectors;
 
 @Controller
 public class PacienteController {
 
     private final PacienteService pacienteService;
+    private final ModuloClinicoService moduloClinicoService;
 
-    public PacienteController(PacienteService pacienteService) {
+    public PacienteController(PacienteService pacienteService, ModuloClinicoService moduloClinicoService) {
         this.pacienteService = pacienteService;
+        this.moduloClinicoService = moduloClinicoService;
     }
 
     @GetMapping("/pacientes")
@@ -35,8 +42,21 @@ public class PacienteController {
     }
 
     @PostMapping("/pacientes/guardar")
-    public String guardarPaciente(@Valid @ModelAttribute Paciente paciente, HttpSession session, Model model) {
+    public String guardarPaciente(@Valid @ModelAttribute Paciente paciente, BindingResult bindingResult,
+                                  HttpSession session, Model model) {
         if (session.getAttribute("usuarioLogueado") == null) return "redirect:/login";
+        // Al ser un @ModelAttribute (no @RequestBody), un fallo de @Valid dispara BindException
+        // en vez de MethodArgumentNotValidException si no se declara este BindingResult aquí
+        // mismo — y BindException no la captura GlobalExceptionHandler, terminando en la
+        // pantalla de error genérica de Spring en vez del formulario con el mensaje de error.
+        if (bindingResult.hasErrors()) {
+            String mensaje = bindingResult.getFieldErrors().stream()
+                    .map(FieldError::getDefaultMessage)
+                    .collect(Collectors.joining(" | "));
+            model.addAttribute("error", mensaje.isBlank() ? "Datos inválidos en el formulario." : mensaje);
+            model.addAttribute("paciente", paciente);
+            return "registro_paciente";
+        }
         try {
             Paciente guardado = pacienteService.registrar(paciente);
             return "redirect:/paciente/panel?id=" + guardado.getIdPaciente();
@@ -57,6 +77,7 @@ public class PacienteController {
             model.addAttribute("imcList", panel.imcList());
             model.addAttribute("antecedentesList", panel.antecedentesList());
             model.addAttribute("alertas", panel.alertas());
+            model.addAttribute("coloresHistorial", moduloClinicoService.coloresHistorialSignosVitales(panel.paciente().getIdPaciente()));
 
             boolean tieneSV = !panel.signosVitales().isEmpty();
             boolean tieneGlasgow = !panel.glasgowList().isEmpty();

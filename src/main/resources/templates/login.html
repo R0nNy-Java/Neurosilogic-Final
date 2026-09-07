@@ -79,6 +79,7 @@
 
           <!-- FORMULARIO SPRING MVC -->
           <form th:action="@{/login}" method="post">
+            <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
 
             <!-- Nombre de Usuario -->
             <label class="form-label small fw-semibold text-uppercase text-muted" for="usuario" style="letter-spacing:.6px;">Nombre de Usuario</label>
@@ -118,7 +119,7 @@
               </a>
             </div>
             <div class="col-4">
-              <a th:href="@{/olvido-contrasena}" class="btn btn-outline-secondary btn-sm w-100 py-3 d-flex flex-column align-items-center gap-1 text-muted text-decoration-none">
+              <a th:href="@{/recuperar-usuario}" class="btn btn-outline-secondary btn-sm w-100 py-3 d-flex flex-column align-items-center gap-1 text-muted text-decoration-none">
                 <i class="bi bi-person-exclamation fs-5"></i>
                 <span style="font-size:.72rem;font-weight:600;line-height:1.3;">Recuperar Usuario</span>
               </a>

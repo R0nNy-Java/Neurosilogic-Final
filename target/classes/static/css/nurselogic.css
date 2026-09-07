@@ -216,3 +216,18 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ── Escala de severidad clínica de 4 colores (azul=bajo, verde=normal, naranja=alto
+   moderado, rojo=crítico). Bootstrap no trae "naranja" como utilidad nativa (su
+   "warning" es amarillo), así que se agrega aquí para completar la escala. ── */
+.bg-orange        { background-color: #fd7e14 !important; }
+.text-orange      { color: #fd7e14 !important; }
+.border-orange    { border-color: #fd7e14 !important; }
+.bg-orange.bg-opacity-10 { background-color: rgba(253, 126, 20, .1) !important; }
+
+/* Bootstrap no trae una variante "table-orange" (solo table-warning, que es amarillo) */
+.table > :not(caption) > tr.table-orange > * {
+  --bs-table-bg: #fde5cc;
+  --bs-table-accent-bg: #fde5cc;
+  color: #5c3a10;
+}

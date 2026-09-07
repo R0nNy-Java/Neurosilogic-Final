@@ -174,7 +174,6 @@
                     <th class="text-center"># Alertas</th>
                     <th>Severidad</th>
                     <th>Último Hallazgo</th>
-                    <th class="text-center d-print-none">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,21 +186,16 @@
                       <span th:unless="${p.tieneAlertaCritica()}" class="badge bg-warning text-dark">ADVERTENCIA</span>
                     </td>
                     <td class="small text-muted"><span class="badge bg-secondary me-1" th:text="${p.ultimoModulo()}">Módulo</span><span th:text="${p.ultimoMensaje()}">Mensaje</span></td>
-                    <td class="text-center d-print-none">
-                      <a th:href="@{/paciente/panel(id=${p.idPaciente()})}" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-file-earmark-medical me-1"></i>Ver Ficha
-                      </a>
-                    </td>
                   </tr>
                   <tr th:if="${#lists.isEmpty(decision.pacientesPrioritarios())}">
-                    <td colspan="6" class="text-center text-success py-3"><i class="bi bi-check-circle-fill me-1"></i>Ningún paciente requiere atención prioritaria en este período.</td>
+                    <td colspan="5" class="text-center text-success py-3"><i class="bi bi-check-circle-fill me-1"></i>Ningún paciente requiere atención prioritaria en este período.</td>
                   </tr>
                 </tbody>
                 <tfoot th:if="${!#lists.isEmpty(decision.pacientesPrioritarios())}">
                   <tr class="table-light fw-bold">
                     <td colspan="2">Total</td>
                     <td class="text-center" th:text="${#lists.size(decision.pacientesPrioritarios()) + ' pacientes'}">0</td>
-                    <td colspan="3" th:text="${decision.totalAlertas() + ' alertas registradas en el período (' + decision.alertasCriticas() + ' críticas)'}">0 alertas</td>
+                    <td colspan="2" th:text="${decision.totalAlertas() + ' alertas registradas en el período (' + decision.alertasCriticas() + ' críticas)'}">0 alertas</td>
                   </tr>
                 </tfoot>
               </table>
@@ -271,7 +265,7 @@
                       <td><strong class="text-dark" th:text="${a.paciente.nombres + ' ' + a.paciente.apellidos}">Paciente</strong></td>
                       <td><span class="badge bg-secondary" th:text="${a.modulo}">Módulo</span></td>
                       <td>
-                        <span class="badge" th:classappend="${a.colorCodigo == 'danger' ? 'bg-danger' : 'bg-warning text-dark'}" th:text="${a.nivelAlerta}">NIVEL</span>
+                        <span class="badge" th:classappend="${a.colorCodigo == 'danger' ? 'bg-danger' : (a.colorCodigo == 'orange' ? 'bg-orange' : (a.colorCodigo == 'info' ? 'bg-info' : 'bg-warning text-dark'))}" th:text="${a.nivelAlerta}">NIVEL</span>
                       </td>
                       <td th:text="${a.mensajeAlerta}">Mensaje</td>
                     </tr>
@@ -400,14 +394,19 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="sv : ${panelData.signosVitales()}">
+                      <tr th:each="sv : ${panelData.signosVitales()}" th:with="color=${coloresSignosVitales.get(sv.idSignoVital)}">
                         <td th:text="${#temporals.format(sv.fechaHora, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
                         <td th:text="${sv.presionArterial}">120/80</td>
                         <td th:text="${sv.frecuenciaCardiaca + ' lpm'}">70 lpm</td>
                         <td th:text="${sv.frecuenciaRespiratoria + ' rpm'}">16 rpm</td>
                         <td th:text="${sv.temperatura + ' °C'}">36.5 °C</td>
                         <td th:text="${sv.saturacionO2 + '%'}">98%</td>
-                        <td th:text="${sv.alertaGenerada == 'S' ? 'Sí' : 'No'}">No</td>
+                        <td>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger">Crítico</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange">Alto</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark">Bajo</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success">Normal</span>
+                        </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.signosVitales())}">
                         <td colspan="7" class="text-center text-muted">Sin registros de signos vitales.</td>
@@ -430,13 +429,17 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="eg : ${panelData.glasgowList()}">
+                      <tr th:each="eg : ${panelData.glasgowList()}" th:with="color=${coloresGlasgow.get(eg.idGlasgow)}">
                         <td th:text="${#temporals.format(eg.fechaHora, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
                         <td th:text="${eg.respuestaOcular}">4</td>
                         <td th:text="${eg.respuestaVerbal}">5</td>
                         <td th:text="${eg.respuestaMotora}">6</td>
                         <td th:text="${eg.puntajeTotal + '/15'}">15/15</td>
-                        <td th:text="${eg.nivelSeveridad}">Leve / Normal</td>
+                        <td>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger" th:text="${eg.nivelSeveridad}">Grave</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange" th:text="${eg.nivelSeveridad}">Moderado</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success" th:text="${eg.nivelSeveridad}">Normal</span>
+                        </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.glasgowList())}">
                         <td colspan="6" class="text-center text-muted">Sin evaluaciones de Glasgow.</td>
@@ -458,12 +461,17 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="imc : ${panelData.imcList()}">
+                      <tr th:each="imc : ${panelData.imcList()}" th:with="color=${coloresIMC.get(imc.idIMC)}">
                         <td th:text="${#temporals.format(imc.fechaRegistro, 'dd/MM/yyyy HH:mm')}" class="font-monospace">00/00/0000</td>
                         <td th:text="${imc.pesoKg}">70</td>
                         <td th:text="${imc.estaturaM}">1.75</td>
                         <td th:text="${#numbers.formatDecimal(imc.valorIMC, 1, 2)}">22.86</td>
-                        <td th:text="${imc.clasificacion}">Peso normal</td>
+                        <td>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger" th:text="${imc.clasificacion}">Obesidad</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange" th:text="${imc.clasificacion}">Sobrepeso</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark" th:text="${imc.clasificacion}">Bajo peso</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success" th:text="${imc.clasificacion}">Peso normal</span>
+                        </td>
                       </tr>
                       <tr th:if="${#lists.isEmpty(panelData.imcList())}">
                         <td colspan="5" class="text-center text-muted">Sin evaluaciones de IMC.</td>

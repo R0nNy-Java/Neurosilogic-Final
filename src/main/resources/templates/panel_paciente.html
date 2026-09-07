@@ -59,6 +59,7 @@
                   <span class="badge bg-danger fs-6 px-3 py-2 border border-light"><i class="bi bi-person-x-fill me-1"></i> Ficha Inactiva / Alta Otorgada</span>
                   <!-- BOTÓN 3: RE-INGRESO / ACTIVAR FICHA -->
                   <form th:action="@{/paciente/activar-ficha}" method="post" onsubmit="return confirm('¿Desea re-activar la ficha de este paciente para registrar una nueva atención por re-ingreso?');">
+                    <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                     <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
                     <button type="submit" class="btn btn-success fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-2">
                       <i class="bi bi-arrow-counterclockwise fs-5"></i> Re-activar Ficha / Re-ingreso
@@ -72,6 +73,7 @@
 
                   <!-- BOTÓN 1: CIERRE DE FICHA (REQUIERE DATOS MÍNIMOS LLENOS) -->
                   <form th:if="${puedeCerrarFicha}" th:action="@{/paciente/cerrar-ficha}" method="post" onsubmit="return confirm('¿Está seguro de registrar el Cierre de Ficha en la base de datos? Se guardarán los datos y volverá al panel de Gestionar Pacientes.');">
+                    <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                     <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
                     <button type="submit" class="btn btn-warning fw-bold text-dark px-3 py-2 shadow-sm d-flex align-items-center gap-1">
                       <i class="bi bi-check2-square fs-5"></i> Cierre de Ficha
@@ -86,6 +88,7 @@
 
                   <!-- BOTÓN 2: DAR DE ALTA (SOLO SI NO TIENE ALERTAS ACTIVAS) -->
                   <form th:if="${!tieneAlertasActivas}" th:action="@{/paciente/dar-alta}" method="post" onsubmit="return confirm('¿Está seguro de Dar de Alta al paciente? La ficha cambiará a estado Inactivo y volverá al panel de Gestionar Pacientes.');">
+                    <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                     <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
                     <button type="submit" class="btn btn-danger fw-bold text-white px-3 py-2 shadow-sm d-flex align-items-center gap-1">
                       <i class="bi bi-box-arrow-right fs-5"></i> Dar de Alta
@@ -149,10 +152,10 @@
               <!-- Listado de alertas -->
               <div th:if="${not #lists.isEmpty(alertas)}" class="d-flex flex-column gap-2" style="max-height: 340px; overflow-y: auto;">
                 <div th:each="al : ${alertas}" class="d-flex align-items-start gap-3 p-3 rounded-3 border-start border-4"
-                     th:classappend="${al.colorCodigo == 'danger'} ? 'border-danger bg-danger bg-opacity-10' : 'border-warning bg-warning bg-opacity-10'">
+                     th:classappend="${al.colorCodigo == 'danger'} ? 'border-danger bg-danger bg-opacity-10' : (${al.colorCodigo == 'orange'} ? 'border-orange bg-orange bg-opacity-10' : (${al.colorCodigo == 'info'} ? 'border-info bg-info bg-opacity-10' : 'border-warning bg-warning bg-opacity-10'))">
 
                   <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="width:38px;height:38px;">
-                    <span th:switch="${al.modulo}" th:classappend="${al.colorCodigo == 'danger'} ? 'text-danger' : 'text-warning'">
+                    <span th:switch="${al.modulo}" th:classappend="${al.colorCodigo == 'danger'} ? 'text-danger' : (${al.colorCodigo == 'orange'} ? 'text-orange' : (${al.colorCodigo == 'info'} ? 'text-info' : 'text-warning'))">
                       <i th:case="'Signos Vitales'" class="bi bi-heart-pulse-fill"></i>
                       <i th:case="'Escala Glasgow'" class="bi bi-file-earmark-bar-graph-fill"></i>
                       <i th:case="'Evaluación IMC'" class="bi bi-rulers"></i>
@@ -163,7 +166,7 @@
                   <div class="flex-grow-1">
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                       <span class="badge d-inline-flex align-items-center gap-1" th:classappend="'bg-' + ${al.colorCodigo}">
-                        <i th:class="${al.nivelAlerta == 'ALTO'} ? 'bi bi-arrow-up-short' : 'bi bi-arrow-down-short'"></i>
+                        <i th:class="(${al.colorCodigo == 'info'} or ${al.modulo == 'Escala Glasgow'}) ? 'bi bi-arrow-down-short' : 'bi bi-arrow-up-short'"></i>
                         <span th:text="${al.nivelAlerta}">ALTO</span>
                       </span>
                       <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal" th:text="${al.modulo}">Módulo</span>
@@ -301,7 +304,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr th:each="sv : ${signosVitales}" th:classappend="${sv.alertaGenerada == 'S'} ? 'table-danger'">
+                  <tr th:each="sv : ${signosVitales}" th:with="color=${coloresHistorial.get(sv.idSignoVital)}"
+                      th:classappend="${color == 'danger'} ? 'table-danger' : (${color == 'orange'} ? 'table-orange' : (${color == 'info'} ? 'table-info' : ''))">
                     <td th:text="${#temporals.format(sv.fechaHora, 'yyyy-MM-dd HH:mm')}" class="font-monospace small">Fecha</td>
                     <td th:text="${sv.presionArterial}" class="fw-bold">120/80</td>
                     <td th:text="${sv.frecuenciaCardiaca + ' ppm'}">75</td>
@@ -309,7 +313,10 @@
                     <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                     <td th:text="${sv.saturacionO2 + ' %'}">98</td>
                     <td class="text-center">
-                      <i th:if="${sv.alertaGenerada == 'S'}" class="bi bi-exclamation-triangle-fill text-danger" title="Fuera de rango normal"></i>
+                      <span th:if="${color == 'danger'}" class="badge bg-danger">Crítico</span>
+                      <span th:if="${color == 'orange'}" class="badge bg-orange">Alto</span>
+                      <span th:if="${color == 'info'}" class="badge bg-info text-dark">Bajo</span>
+                      <span th:if="${color == 'success'}" class="badge bg-success">Normal</span>
                     </td>
                   </tr>
                   <tr th:if="${signosVitales.isEmpty()}">

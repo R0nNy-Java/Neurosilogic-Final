@@ -14,6 +14,7 @@
         <div th:if="${mensaje}" class="alert alert-success p-2 small" th:text="${mensaje}"></div>
 
         <form th:action="@{/olvido-contrasena}" method="post">
+          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Nombre de Usuario</label>
                 <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero1" required>

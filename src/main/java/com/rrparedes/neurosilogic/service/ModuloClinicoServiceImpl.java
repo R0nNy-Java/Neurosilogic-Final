@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -67,13 +69,40 @@ public class ModuloClinicoServiceImpl implements ModuloClinicoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> coloresHistorialSignosVitales(Long idPaciente) {
+        Paciente paciente = pacienteRepository.findById(idPaciente).orElse(null);
+        if (paciente == null) return Map.of();
+        return historialSignosVitales(idPaciente).stream()
+                .collect(Collectors.toMap(SignoVital::getIdSignoVital, sv -> alertaClinicaService.severidadSignoVital(sv, paciente)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> coloresHistorialGlasgow(Long idPaciente) {
+        return historialGlasgow(idPaciente).stream()
+                .collect(Collectors.toMap(EscalaGlasgow::getIdGlasgow, eg -> alertaClinicaService.severidadGlasgow(eg.getPuntajeTotal())));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> coloresHistorialIMC(Long idPaciente) {
+        return historialIMC(idPaciente).stream()
+                .collect(Collectors.toMap(EvaluacionIMC::getIdIMC, imc -> alertaClinicaService.severidadIMC(imc.getValorIMC())));
+    }
+
+    @Override
     public void registrarSignoVital(Long idPaciente, Integer presionSistolica, Integer presionDiastolica,
                                     Integer frecuenciaCardiaca, Integer frecuenciaRespiratoria,
                                     Double temperatura, Integer saturacionOxigeno) {
-        // Validación estricta backend: impedir valores negativos o fuera de rango físico
+        // Validación estricta backend: impedir valores negativos o fuera de rango físico.
+        // Antes esto hacía "return" en silencio: el enfermero veía la página recargarse
+        // "normal" creyendo que el signo vital quedó guardado, cuando en realidad no se
+        // registró nada. Ahora se avisa explícitamente con el mismo mecanismo de mensaje de
+        // error que usa el resto de la aplicación.
         if (presionSistolica <= 0 || presionDiastolica <= 0 || frecuenciaCardiaca <= 0 ||
                 frecuenciaRespiratoria <= 0 || temperatura <= 0 || saturacionOxigeno <= 0 || saturacionOxigeno > 100) {
-            return;
+            throw new NegocioException("Los signos vitales ingresados están fuera de un rango físicamente válido. No se guardó el registro; verifique los valores e intente de nuevo.");
         }
 
         Paciente paciente = obtenerPacienteOrThrow(idPaciente);
@@ -123,9 +152,10 @@ public class ModuloClinicoServiceImpl implements ModuloClinicoService {
 
     @Override
     public void registrarIMC(Long idPaciente, Double pesoKg, Double estaturaM) {
-        // Validación estricta backend: impedir números negativos o improbables
+        // Validación estricta backend: impedir números negativos o improbables. Antes hacía
+        // "return" en silencio (ver misma nota en registrarSignoVital) — ahora avisa.
         if (pesoKg == null || pesoKg <= 0 || estaturaM == null || estaturaM <= 0) {
-            return;
+            throw new NegocioException("El peso y la estatura deben ser valores mayores a 0. No se guardó el registro; verifique los valores e intente de nuevo.");
         }
 
         Paciente paciente = obtenerPacienteOrThrow(idPaciente);

@@ -153,11 +153,19 @@
                 <p class="text-muted small">Fórmula: <code>Volumen a administrar = (Dosis indicada * Diluyente) / Presentación</code></p>
 
                 <form th:action="@{/dosificacion/guardar}" method="post">
+                  <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                   <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
 
                   <div class="mb-3">
                     <label class="form-label">Medicamento</label>
-                    <input type="text" name="medicamento" class="form-control" placeholder="Ej. Ampicilina" required>
+                    <select name="medicamento" id="selectMedicamento" class="form-select" required onchange="toggleMedicamentoOtro()">
+                      <option value="" selected disabled>Seleccione un medicamento…</option>
+                      <option th:each="m : ${medicamentos}" th:value="${m.nombreMedicamento}" th:text="${m.nombreMedicamento}">Medicamento</option>
+                      <option value="__otro__">Otro (no está en la lista)</option>
+                    </select>
+                    <input type="text" name="medicamentoLibre" id="medicamentoOtro" class="form-control mt-2"
+                           placeholder="Escriba el nombre del medicamento" style="display:none;">
+                    <div class="form-text">Si eliges "Otro", ese nombre se usa solo para esta dosificación; no se agrega al catálogo de medicamentos.</div>
                   </div>
 
                   <div class="row g-2">
@@ -254,6 +262,23 @@
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 
   <script>
+    // Muestra/exige el campo de texto libre solo cuando se elige "Otro" en el combo de
+    // medicamentos registrados; ese texto viaja como "medicamentoLibre" y el controlador lo usa
+    // únicamente para esta dosificación puntual (nunca se agrega al catálogo de medicamentos).
+    function toggleMedicamentoOtro() {
+      var select = document.getElementById('selectMedicamento');
+      var otro = document.getElementById('medicamentoOtro');
+      if (select.value === '__otro__') {
+        otro.style.display = '';
+        otro.required = true;
+        otro.focus();
+      } else {
+        otro.style.display = 'none';
+        otro.required = false;
+        otro.value = '';
+      }
+    }
+
     function convertirAMg(valor, unidad) {
       if (unidad === 'g') return valor * 1000.0;
       if (unidad === 'mcg') return valor / 1000.0;

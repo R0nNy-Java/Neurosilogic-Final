@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Recuperar Contraseña')}"></head>
+<head th:replace="~{fragments/head :: head('Recuperar Usuario')}"></head>
 
 <body class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
     <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
         <div class="text-center mb-3">
-            <i class="fa-solid fa-key fa-3x text-warning mb-2"></i>
-            <h4 class="fw-bold">Recuperar Contraseña</h4>
-            <p class="text-muted small">Ingrese su usuario para recibir una contraseña temporal por correo</p>
+            <i class="fa-solid fa-user-shield fa-3x text-warning mb-2"></i>
+            <h4 class="fw-bold">Recuperar Usuario</h4>
+            <p class="text-muted small">Ingrese su correo electrónico registrado para recibir su nombre de usuario</p>
         </div>
 
         <div th:if="${error}" class="alert alert-danger p-2 small" th:text="${error}"></div>
         <div th:if="${mensaje}" class="alert alert-success p-2 small" th:text="${mensaje}"></div>
 
-        <form th:action="@{/olvido-contrasena}" method="post">
+        <form th:action="@{/recuperar-usuario}" method="post">
           <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
             <div class="mb-3">
-                <label class="form-label font-weight-bold">Nombre de Usuario</label>
-                <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero1" required>
+                <label class="form-label font-weight-bold">Correo Electrónico</label>
+                <input type="email" name="email" class="form-control" placeholder="Ej. correo@ejemplo.com" required>
             </div>
             <button type="submit" class="btn btn-warning w-100 py-2 font-weight-bold">Recuperar</button>
         </form>

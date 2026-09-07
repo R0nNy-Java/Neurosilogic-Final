@@ -43,6 +43,7 @@
                 <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong></p>
 
                 <form th:action="@{/antecedentes/guardar}" method="post">
+                  <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                   <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
 
                   <div class="mb-3">

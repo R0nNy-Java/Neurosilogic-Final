@@ -51,6 +51,7 @@
             </div>
 
             <form th:action="@{/pacientes/guardar}" method="post" th:object="${paciente}">
+              <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
               <div class="mb-3">
                 <label class="form-label fw-semibold">Cédula de Identidad *</label>
                 <input type="text" th:field="*{cedula}" class="form-control form-control-lg bg-light fs-6" placeholder="Ej. 1723456789" required maxlength="10" autofocus>

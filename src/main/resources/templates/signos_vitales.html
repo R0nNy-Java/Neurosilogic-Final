@@ -117,6 +117,7 @@
                 <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong> (Cédula: <span th:text="${paciente.cedula}"></span>)</p>
 
                 <form th:action="@{/signos-vitales/guardar}" method="post">
+                  <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                   <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
 
                   <div class="row">
@@ -177,7 +178,8 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="sv : ${historial}" th:classappend="${sv.alertaGenerada == 'S'} ? 'table-danger'">
+                      <tr th:each="sv : ${historial}" th:with="color=${coloresHistorial.get(sv.idSignoVital)}"
+                          th:classappend="${color == 'danger'} ? 'table-danger' : (${color == 'orange'} ? 'table-orange' : (${color == 'info'} ? 'table-info' : ''))">
                         <td th:text="${#temporals.format(sv.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${sv.presionArterial}">120/80</td>
                         <td th:text="${sv.frecuenciaCardiaca}">75</td>
@@ -185,7 +187,10 @@
                         <td th:text="${sv.temperatura + ' °C'}">36.5</td>
                         <td th:text="${sv.saturacionOxigeno + ' %'}">98</td>
                         <td class="text-center">
-                          <i th:if="${sv.alertaGenerada == 'S'}" class="bi bi-exclamation-triangle-fill text-danger" title="Fuera de rango normal"></i>
+                          <span th:if="${color == 'danger'}" class="badge bg-danger" title="Crítico / muy fuera de rango">Crítico</span>
+                          <span th:if="${color == 'orange'}" class="badge bg-orange" title="Sobre lo esperado">Alto</span>
+                          <span th:if="${color == 'info'}" class="badge bg-info text-dark" title="Bajo lo esperado">Bajo</span>
+                          <span th:if="${color == 'success'}" class="badge bg-success" title="Dentro de rango normal">Normal</span>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

@@ -116,6 +116,23 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional(readOnly = true)
+    public void recuperarNombreUsuario(String email) {
+        Usuario u = usuarioRepository.findByEmailIgnoreCase(email.trim())
+                .orElseThrow(() -> new NegocioException("No se encontró ninguna cuenta registrada con ese correo electrónico."));
+
+        try {
+            emailService.enviarCorreo(u.getEmail(), "NurseLogic Digital - Recuperación de nombre de usuario",
+                    "Tu nombre de usuario registrado en NurseLogic Digital es:\n\n"
+                            + u.getNombreUsuario()
+                            + "\n\nSi olvidaste también tu contraseña, usa la opción \"Olvidé mi Contraseña\" en la pantalla de inicio de sesión.\n"
+                            + "Si tú no solicitaste esto, contacta al administrador del sistema.");
+        } catch (MailException ex) {
+            throw new NegocioException("No se pudo enviar el correo de recuperación. Intente más tarde o contacte al administrador.");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }

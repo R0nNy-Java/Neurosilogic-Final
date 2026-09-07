@@ -8,6 +8,7 @@ import com.rrparedes.neurosilogic.model.Paciente;
 import com.rrparedes.neurosilogic.model.SignoVital;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ModuloClinicoService {
@@ -16,6 +17,16 @@ public interface ModuloClinicoService {
     Optional<Paciente> buscarPaciente(Long idPaciente, String cedula);
 
     List<SignoVital> historialSignosVitales(Long idPaciente);
+
+    /**
+     * Color de severidad (azul/verde/naranja/rojo) por cada registro del historial, para pintar
+     * la tabla igual que el panel de alertas del paciente. Clave = id del registro.
+     */
+    Map<Long, String> coloresHistorialSignosVitales(Long idPaciente);
+
+    Map<Long, String> coloresHistorialGlasgow(Long idPaciente);
+
+    Map<Long, String> coloresHistorialIMC(Long idPaciente);
 
     /** No guarda nada si algún valor está fuera de rango físico posible (validación estricta de backend). */
     void registrarSignoVital(Long idPaciente, Integer presionSistolica, Integer presionDiastolica,

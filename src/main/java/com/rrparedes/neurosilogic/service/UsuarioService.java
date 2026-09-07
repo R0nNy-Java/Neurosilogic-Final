@@ -24,6 +24,12 @@ public interface UsuarioService {
      */
     void recuperarContrasena(String usuario);
 
+    /**
+     * Busca la cuenta registrada con ese correo y le envía su nombre de usuario por email.
+     * Lanza {@link NegocioException} si no existe ninguna cuenta con ese correo o si el envío falla.
+     */
+    void recuperarNombreUsuario(String email);
+
     List<Usuario> listarTodos();
 
     long contarTodos();

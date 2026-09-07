@@ -3,6 +3,9 @@ package com.rrparedes.neurosilogic.controller;
 import com.rrparedes.neurosilogic.service.NegocioException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,6 +21,8 @@ import java.util.stream.Collectors;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NegocioException.class)
     public String manejarNegocio(NegocioException ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
@@ -54,6 +59,29 @@ public class GlobalExceptionHandler {
     public String manejarArgumentoInvalido(IllegalArgumentException ex, HttpServletRequest request,
                                            RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("error", ex.getMessage() != null ? ex.getMessage() : "Solicitud inválida.");
+        return "redirect:" + rutaAnterior(request);
+    }
+
+    // Se dispara cuando se viola una restricción de la base de datos que no depende de Bean
+    // Validation (longitud de columna excedida, clave foránea inexistente, unicidad violada
+    // fuera de los chequeos manuales, etc.) — por ejemplo un nombre de paciente/usuario
+    // demasiado largo que pasa las validaciones Java pero no cabe en la columna MySQL.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public String manejarIntegridadDatos(DataIntegrityViolationException ex, HttpServletRequest request,
+                                         RedirectAttributes redirectAttributes) {
+        log.warn("Violación de integridad de datos en {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        redirectAttributes.addFlashAttribute("error", "No se pudo guardar la información: algún dato ingresado es demasiado largo o inválido para el campo correspondiente.");
+        return "redirect:" + rutaAnterior(request);
+    }
+
+    // Red de seguridad final: cualquier excepción no anticipada por los manejadores anteriores
+    // (antes terminaba en la página blanca de error 500 de Spring, exponiendo potencialmente
+    // detalles internos). Se registra completa en el log del servidor para diagnóstico, pero al
+    // usuario solo se le muestra un mensaje genérico y se le regresa a donde estaba.
+    @ExceptionHandler(Exception.class)
+    public String manejarErrorInesperado(Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        log.error("Error no controlado en {} {}", request.getMethod(), request.getRequestURI(), ex);
+        redirectAttributes.addFlashAttribute("error", "Ocurrió un error inesperado al procesar la solicitud. Intente de nuevo; si el problema persiste, contacte al administrador.");
         return "redirect:" + rutaAnterior(request);
     }
 

@@ -89,6 +89,22 @@ public class AuthController {
         return "olvido_contrasena";
     }
 
+    @GetMapping("/recuperar-usuario")
+    public String showRecuperarUsuario() {
+        return "recuperar_usuario";
+    }
+
+    @PostMapping("/recuperar-usuario")
+    public String processRecuperarUsuario(@RequestParam String email, Model model) {
+        try {
+            usuarioService.recuperarNombreUsuario(email);
+            model.addAttribute("mensaje", "Se ha enviado tu nombre de usuario al correo ingresado.");
+        } catch (NegocioException ex) {
+            model.addAttribute("error", ex.getMessage());
+        }
+        return "recuperar_usuario";
+    }
+
     @GetMapping("/cambio-contrasena")
     public String showCambioContrasena(HttpSession session) {
         if (session.getAttribute("usuarioLogueado") == null) {

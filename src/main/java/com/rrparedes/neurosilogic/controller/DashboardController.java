@@ -2,6 +2,7 @@ package com.rrparedes.neurosilogic.controller;
 
 import com.rrparedes.neurosilogic.model.CierreFicha;
 import com.rrparedes.neurosilogic.model.Usuario;
+import com.rrparedes.neurosilogic.service.ModuloClinicoService;
 import com.rrparedes.neurosilogic.service.PacienteService;
 import com.rrparedes.neurosilogic.service.ReporteResumenPeriodo;
 import com.rrparedes.neurosilogic.service.ReporteService;
@@ -23,11 +24,14 @@ public class DashboardController {
     private final PacienteService pacienteService;
     private final UsuarioService usuarioService;
     private final ReporteService reporteService;
+    private final ModuloClinicoService moduloClinicoService;
 
-    public DashboardController(PacienteService pacienteService, UsuarioService usuarioService, ReporteService reporteService) {
+    public DashboardController(PacienteService pacienteService, UsuarioService usuarioService,
+                               ReporteService reporteService, ModuloClinicoService moduloClinicoService) {
         this.pacienteService = pacienteService;
         this.usuarioService = usuarioService;
         this.reporteService = reporteService;
+        this.moduloClinicoService = moduloClinicoService;
     }
 
     @GetMapping("/dashboard")
@@ -95,6 +99,9 @@ public class DashboardController {
                 pacienteService.obtenerPanel(paciente.getIdPaciente()).ifPresent(panel -> {
                     model.addAttribute("panelData", panel);
                 });
+                model.addAttribute("coloresSignosVitales", moduloClinicoService.coloresHistorialSignosVitales(paciente.getIdPaciente()));
+                model.addAttribute("coloresGlasgow", moduloClinicoService.coloresHistorialGlasgow(paciente.getIdPaciente()));
+                model.addAttribute("coloresIMC", moduloClinicoService.coloresHistorialIMC(paciente.getIdPaciente()));
                 // Se filtra aquí (no con OGNL en la plantilla) para evitar evaluar una selección
                 // sobre una variable de contexto ("pacienteEncontrado") desde dentro del propio
                 // filtro, que Thymeleaf no resuelve y corta la respuesta a mitad de camino.

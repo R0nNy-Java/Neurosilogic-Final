@@ -1,6 +1,9 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 
 @Entity
@@ -12,24 +15,33 @@ public class Usuario implements Serializable {
     @Column(name = "IdUsuario")
     private Long idUsuario;
 
+    @NotBlank(message = "El nombre de usuario es obligatorio")
+    @Size(max = 30, message = "El nombre de usuario no puede superar los 30 caracteres")
     @Column(name = "NombreUsuario", length = 30, nullable = false, unique = true)
     private String nombreUsuario;
 
+    @NotBlank(message = "La contraseña es obligatoria")
     @Column(name = "ContrasenaHash", length = 255, nullable = false)
     private String contrasenaHash;
 
+    @Size(max = 50, message = "El nombre no puede superar los 50 caracteres")
     @Column(name = "Nombres", length = 50)
     private String nombres;
 
+    @Size(max = 50, message = "El apellido no puede superar los 50 caracteres")
     @Column(name = "Apellidos", length = 50)
     private String apellidos;
 
+    @Size(max = 20, message = "El rol no puede superar los 20 caracteres")
     @Column(name = "Rol", length = 20)
     private String rol;
 
+    @Size(max = 1, message = "El estado debe ser un solo carácter")
     @Column(name = "Estado", length = 1)
     private String estado; // "A" = Activo, "B" = Bloqueado
 
+    @Email(message = "El correo electrónico no tiene un formato válido")
+    @Size(max = 100, message = "El correo no puede superar los 100 caracteres")
     @Column(name = "Email", length = 100)
     private String email;
 

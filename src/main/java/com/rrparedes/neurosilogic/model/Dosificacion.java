@@ -1,7 +1,11 @@
 package com.rrparedes.neurosilogic.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -19,39 +23,57 @@ public class Dosificacion implements Serializable {
     @JoinColumn(name = "IdPaciente", nullable = false)
     private Paciente paciente;
 
+    @NotBlank(message = "El medicamento es obligatorio")
+    @Size(max = 100, message = "El nombre del medicamento no puede superar los 100 caracteres")
     @Column(name = "Medicamento", length = 100)
     private String medicamento;
 
-    @Positive(message = "La dosis indicada debe ser mayor a 0")
+    @NotNull(message = "La dosis indicada es obligatoria")
+    @DecimalMin(value = "0.01", message = "La dosis indicada debe ser mayor a 0")
+    @DecimalMax(value = "10000.0", message = "La dosis indicada no puede superar 10000")
     @Column(name = "DosisIndicada")
     private Double dosisIndicada;
 
     @Column(name = "UnidadDosis", length = 10)
     private String unidadDosis;
 
-    @Positive(message = "La presentación debe ser mayor a 0")
+    @NotNull(message = "La presentación es obligatoria")
+    @DecimalMin(value = "0.01", message = "La presentación debe ser mayor a 0")
+    @DecimalMax(value = "10000.0", message = "La presentación no puede superar 10000")
     @Column(name = "Presentacion")
     private Double presentacion;
 
     @Column(name = "UnidadPresentacion", length = 10)
     private String unidadPresentacion;
 
-    @Positive(message = "El volumen del diluyente debe ser mayor a 0")
+    @NotNull(message = "El volumen del diluyente es obligatorio")
+    @DecimalMin(value = "0.01", message = "El volumen del diluyente debe ser mayor a 0")
+    @DecimalMax(value = "5000.0", message = "El volumen del diluyente no puede superar 5000 ml")
     @Column(name = "DiluyenteMl")
     private Double diluyenteMl;
 
+    @DecimalMin(value = "0.1", message = "Las horas totales deben ser mayores a 0")
+    @DecimalMax(value = "72.0", message = "Las horas totales no pueden superar 72")
     @Column(name = "HorasTotales")
     private Double horasTotales;
 
+    @DecimalMin(value = "0.0", message = "El volumen a administrar no puede ser negativo")
+    @DecimalMax(value = "100000.0", message = "El volumen a administrar calculado excede el límite permitido")
     @Column(name = "VolumenAdministrarMl")
     private Double volumenAdministrarMl;
 
+    @DecimalMin(value = "0.0", message = "Las gotas por minuto no pueden ser negativas")
+    @DecimalMax(value = "10000.0", message = "Las gotas por minuto calculadas exceden el límite permitido")
     @Column(name = "GotasPorMinuto")
     private Double gotasPorMinuto;
 
+    @DecimalMin(value = "0.0", message = "Las microgotas por minuto no pueden ser negativas")
+    @DecimalMax(value = "10000.0", message = "Las microgotas por minuto calculadas exceden el límite permitido")
     @Column(name = "MicrogotasPorMinuto")
     private Double microgotasPorMinuto;
 
+    @DecimalMin(value = "0.0", message = "Los ml por hora no pueden ser negativos")
+    @DecimalMax(value = "10000.0", message = "Los ml por hora calculados exceden el límite permitido")
     @Column(name = "MlPorHora")
     private Double mlPorHora;
 

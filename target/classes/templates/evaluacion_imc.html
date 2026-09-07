@@ -99,6 +99,7 @@
                 <p class="text-muted small">Paciente: <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}">Paciente</strong> (Cédula: <span th:text="${paciente.cedula}"></span>)</p>
 
                 <form th:action="@{/evaluacion-imc/guardar}" method="post">
+                  <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
                   <input type="hidden" name="idPaciente" th:value="${paciente.idPaciente}">
 
                   <div class="mb-3">
@@ -136,14 +137,17 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr th:each="i : ${historial}" th:classappend="${i.diagnostico != 'Peso normal'} ? 'table-danger'">
+                      <tr th:each="i : ${historial}" th:with="color=${coloresHistorial.get(i.idIMC)}"
+                          th:classappend="${color == 'danger'} ? 'table-danger' : (${color == 'orange'} ? 'table-orange' : (${color == 'info'} ? 'table-info' : ''))">
                         <td th:text="${#temporals.format(i.fechaRegistro, 'yyyy-MM-dd HH:mm')}">Fecha</td>
                         <td th:text="${i.pesoKg + ' kg'}">70</td>
                         <td th:text="${i.estaturaM + ' m'}">1.75</td>
                         <td th:text="${#numbers.formatDecimal(i.valorIMC, 1, 2)}" class="fw-bold">22.86</td>
                         <td>
                           <span th:text="${i.diagnostico}">Normal</span>
-                          <i th:if="${i.diagnostico != 'Peso normal'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Fuera de rango normal"></i>
+                          <i th:if="${color == 'danger'}" class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Obesidad"></i>
+                          <i th:if="${color == 'orange'}" class="bi bi-exclamation-triangle-fill text-orange ms-1" title="Sobrepeso"></i>
+                          <i th:if="${color == 'info'}" class="bi bi-arrow-down-short text-info ms-1" title="Bajo peso"></i>
                         </td>
                       </tr>
                       <tr th:if="${historial.isEmpty()}">

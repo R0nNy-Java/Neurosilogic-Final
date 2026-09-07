@@ -38,6 +38,7 @@
             <div th:if="${mensaje}" class="alert alert-success p-2" th:text="${mensaje}"></div>
 
             <form th:action="@{/cambio-contrasena}" method="post">
+              <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
               <div class="mb-3">
                 <label class="form-label">Contraseña Actual</label>
                 <input type="password" name="contrasenaActual" class="form-control" required>

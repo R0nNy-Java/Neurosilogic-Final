@@ -12,6 +12,7 @@
         <div th:if="${error}" class="alert alert-danger p-2 small" th:text="${error}"></div>
 
         <form th:action="@{/nueva-cuenta}" method="post">
+          <input type="hidden" name="csrfToken" th:value="${csrfToken}"/>
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Nombre de Usuario</label>
                 <input type="text" name="usuario" class="form-control" placeholder="Ej. enfermero3" required>

@@ -187,9 +187,9 @@
                     </span>
                   </div>
 
-                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
+                  <div id="kanbanPendientes" class="d-flex flex-column gap-2">
                     <th:block th:each="cf : ${cierresFicha}">
-                      <div th:if="${cf.tieneAlertaActiva == true}" class="card border border-warning border-opacity-25 bg-warning bg-opacity-10 p-3 rounded-3 shadow-xs">
+                      <div th:if="${cf.tieneAlertaActiva == true}" class="card border border-warning border-opacity-25 bg-warning bg-opacity-10 p-3 rounded-3 shadow-xs kanban-item">
                         <div class="d-flex justify-content-between align-items-start mb-1">
                           <strong class="text-dark small" th:text="${cf.paciente.nombres + ' ' + cf.paciente.apellidos}">Paciente</strong>
                           <span class="badge bg-white text-warning border border-warning font-monospace" style="font-size:.65rem;" th:text="${cf.paciente.cedula}">0000</span>
@@ -207,7 +207,12 @@
                         </div>
                       </div>
                     </th:block>
-                    <div th:if="${#lists.isEmpty(cierresFicha)}" class="text-center text-muted small py-4">Sin pacientes pendientes de re-evaluación.</div>
+                    <div class="text-center text-muted small py-4 kanban-empty" style="display:none;">Sin pacientes pendientes de re-evaluación.</div>
+                  </div>
+                  <div id="kanbanPendientesControles" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top d-none">
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-prev" style="font-size:.7rem;"><i class="bi bi-chevron-left"></i> Anterior</button>
+                    <span class="kanban-page-label text-muted fw-semibold" style="font-size:.7rem;">Página 1 de 1</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-next" style="font-size:.7rem;">Siguiente <i class="bi bi-chevron-right"></i></button>
                   </div>
                 </div>
               </div>
@@ -222,8 +227,8 @@
                     <span class="badge bg-info text-white rounded-pill" th:text="${#lists.size(pacientes)}">0</span>
                   </div>
 
-                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
-                    <div th:each="p : ${pacientes}" class="card border border-info border-opacity-25 bg-info bg-opacity-10 p-3 rounded-3 shadow-xs">
+                  <div id="kanbanEvaluacion" class="d-flex flex-column gap-2">
+                    <div th:each="p : ${pacientes}" class="card border border-info border-opacity-25 bg-info bg-opacity-10 p-3 rounded-3 shadow-xs kanban-item">
                       <div class="d-flex justify-content-between align-items-start mb-1">
                         <strong class="text-dark small" th:text="${p.nombres + ' ' + p.apellidos}">Paciente</strong>
                         <span class="badge bg-info text-white" style="font-size:.65rem;"><i class="bi bi-activity me-1"></i>Ficha Activa</span>
@@ -236,7 +241,12 @@
                         <span class="text-muted font-monospace" style="font-size:.68rem;">Flujo Pasos 1 a 5</span>
                       </div>
                     </div>
-                    <div th:if="${#lists.isEmpty(pacientes)}" class="text-center text-muted small py-4">Sin evaluaciones en proceso.</div>
+                    <div class="text-center text-muted small py-4 kanban-empty" style="display:none;">Sin evaluaciones en proceso.</div>
+                  </div>
+                  <div id="kanbanEvaluacionControles" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top d-none">
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-prev" style="font-size:.7rem;"><i class="bi bi-chevron-left"></i> Anterior</button>
+                    <span class="kanban-page-label text-muted fw-semibold" style="font-size:.7rem;">Página 1 de 1</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-next" style="font-size:.7rem;">Siguiente <i class="bi bi-chevron-right"></i></button>
                   </div>
                 </div>
               </div>
@@ -251,8 +261,8 @@
                     <span class="badge bg-success text-white rounded-pill" th:text="${#lists.size(cierresFicha)}">0</span>
                   </div>
 
-                  <div class="d-flex flex-column gap-2" style="max-height: 520px; overflow-y: auto;">
-                    <div th:each="cf : ${cierresFicha}" class="card border border-success border-opacity-25 bg-success bg-opacity-10 p-3 rounded-3 shadow-xs">
+                  <div id="kanbanCierre" class="d-flex flex-column gap-2">
+                    <div th:each="cf : ${cierresFicha}" class="card border border-success border-opacity-25 bg-success bg-opacity-10 p-3 rounded-3 shadow-xs kanban-item">
                       <div class="d-flex justify-content-between align-items-start mb-1">
                         <strong class="text-dark small" th:text="${cf.paciente.nombres + ' ' + cf.paciente.apellidos}">Paciente</strong>
                         <span class="badge bg-success text-white" style="font-size:.65rem;"><i class="bi bi-check2-circle me-1"></i>Ficha Cerrada</span>
@@ -287,18 +297,21 @@
                       </div>
                     </div>
 
-                    <div th:if="${#lists.isEmpty(cierresFicha)}" class="text-center text-muted small py-4">
+                    <div class="text-center text-muted small py-4 kanban-empty" style="display:none;">
                       <i class="bi bi-inbox fs-3 d-block mb-1 text-muted"></i>
                       No ha registrado cierres de ficha todavía.
                     </div>
+                  </div>
+                  <div id="kanbanCierreControles" class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top d-none">
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-prev" style="font-size:.7rem;"><i class="bi bi-chevron-left"></i> Anterior</button>
+                    <span class="kanban-page-label text-muted fw-semibold" style="font-size:.7rem;">Página 1 de 1</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary kanban-next" style="font-size:.7rem;">Siguiente <i class="bi bi-chevron-right"></i></button>
                   </div>
                 </div>
               </div>
 
             </div>
           </th:block>
-
-          </div>
 
         </main>
       </div>
@@ -307,5 +320,59 @@
   </div>
 
   <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+  <script>
+    // Paginación del lado del cliente para las columnas del Tablero Kanban: muestra como
+    // máximo "tamanoPagina" tarjetas a la vez y navega con los botones Anterior/Siguiente,
+    // en vez de un scroll interno con todas las tarjetas cargadas de una vez.
+    function inicializarPaginacionKanban(idContenedor, idControles, tamanoPagina) {
+      var contenedor = document.getElementById(idContenedor);
+      var controles = document.getElementById(idControles);
+      if (!contenedor || !controles) return;
+
+      var items = Array.prototype.slice.call(contenedor.querySelectorAll(':scope > .kanban-item'));
+      var vacio = contenedor.querySelector(':scope > .kanban-empty');
+
+      if (items.length === 0) {
+        if (vacio) vacio.style.display = '';
+        return;
+      }
+
+      if (items.length <= tamanoPagina) {
+        return; // caben todas en una sola "página", no hace falta paginar
+      }
+
+      var paginaActual = 1;
+      var totalPaginas = Math.ceil(items.length / tamanoPagina);
+      var etiqueta = controles.querySelector('.kanban-page-label');
+      var btnAnterior = controles.querySelector('.kanban-prev');
+      var btnSiguiente = controles.querySelector('.kanban-next');
+
+      function render() {
+        var inicio = (paginaActual - 1) * tamanoPagina;
+        items.forEach(function (el, i) {
+          el.style.display = (i >= inicio && i < inicio + tamanoPagina) ? '' : 'none';
+        });
+        etiqueta.textContent = 'Página ' + paginaActual + ' de ' + totalPaginas;
+        btnAnterior.disabled = paginaActual === 1;
+        btnSiguiente.disabled = paginaActual === totalPaginas;
+      }
+
+      btnAnterior.addEventListener('click', function () {
+        if (paginaActual > 1) { paginaActual--; render(); }
+      });
+      btnSiguiente.addEventListener('click', function () {
+        if (paginaActual < totalPaginas) { paginaActual++; render(); }
+      });
+
+      controles.classList.remove('d-none');
+      render();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      inicializarPaginacionKanban('kanbanPendientes', 'kanbanPendientesControles', 5);
+      inicializarPaginacionKanban('kanbanEvaluacion', 'kanbanEvaluacionControles', 5);
+      inicializarPaginacionKanban('kanbanCierre', 'kanbanCierreControles', 3);
+    });
+  </script>
 </body>
 </html>
